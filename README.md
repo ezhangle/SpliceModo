@@ -2,8 +2,6 @@ Fabric Splice for The Foundry Modo
 ===================================
 A Fabric Splice integration for Modo.
 
-<kleener tescht vom erich>
-
 Fabric Splice for Modo allows you to make use of the Fabric Core inside of Modo and use KL and the Fabric graph to perform computations inside of Modo using a custom Mesh item, a custom Schematic node etc.
 
 Repository Status

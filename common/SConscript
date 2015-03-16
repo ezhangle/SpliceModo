@@ -1,0 +1,10 @@
+import os
+Import('parentEnv', 'STAGE_DIR', 'MODO_SDK_DIR')
+
+env = parentEnv.Clone()
+
+sources = env.Glob(os.path.join(MODO_SDK_DIR, 'common', '*.cpp'))
+
+commonLib = env.StaticLibrary('common', sources)
+Export('commonLib')
+alias = env.Alias('common', commonLib)

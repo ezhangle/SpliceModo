@@ -1,0 +1,18 @@
+import os
+Import('parentEnv', 'STAGE_DIR', 'MODO_SDK_DIR', 'commonLib')
+
+env = parentEnv.Clone()
+env.Append(LIBS = [commonLib])
+
+sources = env.Glob('*.cpp')
+
+plugin = env.SharedLibrary('FabricModo', sources, SHLIBSUFFIX='.lx')
+Export('plugin')
+
+# todo: port for other operating systems
+installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
+
+installedPlugin = env.Install(installDir, plugin[0])
+
+alias = env.Alias('plugin', installedPlugin)
+Return('alias')

@@ -44,4 +44,10 @@ commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', expo
   'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
 }, duplicate=0)
 
-# env.Default(alias)
+pluginAlias = SConscript('src/SConscript', variant_dir = 'build/src', exports = {
+  'parentEnv': env, 
+  'STAGE_DIR': env.Dir('stage'), 
+  'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
+}, duplicate=0)
+
+env.Default(pluginAlias)

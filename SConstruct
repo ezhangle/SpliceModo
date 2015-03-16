@@ -35,12 +35,13 @@ for thirdpartyDir in thirdpartyDirs:
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
 
-# env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
-# env.Append(CPPPATH = [os.path.join(os.environ['OCULUS_DIR'], 'LibOVR', 'Include')])
-# env.Append(LIBPATH = [os.path.join(os.environ['OCULUS_DIR'], 'LibOVR', 'Lib', 'x64', 'VS2010')])
-# env.Append(CPPPATH = [os.environ['BOOST_INCLUDE_DIR']])
-# env.Append(LIBPATH = [os.environ['BOOST_LIBRARY_DIR']])
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
+env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
 
-# alias = SConscript('src/SConscript', variant_dir = 'build', exports = {'parentEnv': env, 'STAGE_DIR': env.Dir('stage')}, duplicate=0)
+commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', exports = {
+  'parentEnv': env, 
+  'STAGE_DIR': env.Dir('stage'), 
+  'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
+}, duplicate=0)
 
 # env.Default(alias)

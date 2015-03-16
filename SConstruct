@@ -37,6 +37,7 @@ for thirdpartyDir in thirdpartyDirs:
 
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
+env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 
 commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', exports = {
   'parentEnv': env, 

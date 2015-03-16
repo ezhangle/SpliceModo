@@ -10,7 +10,7 @@ if not platform.system().lower().startswith('win'):
 
 thirdpartyDirs = {
   'FABRIC_DIR': "Should point to Fabric Engine's installation folder.",
-  'MODO_SDK_DIR': "Should point to the root of the Oculus SDK."
+  'MODO_SDK_DIR': "Should point to the root of the MODO SDK."
 }
 
 # help debug print

@@ -24,20 +24,29 @@ if GetOption('help'):
   print ''
   Exit()
 
-# for windows for now use Visual Studio 2010. 
+# for windows for now use Visual Studio 2013. 
 # if you upgrade this you will also have to provide
 # boost libs for the corresponding VS version
-env = Environment(ENV = os.environ, MSVC_VERSION='10.0')
+env = Environment(ENV = os.environ, MSVC_VERSION='12.0')
 
 # find the third party libs
 for thirdpartyDir in thirdpartyDirs:
   if not os.environ.has_key(thirdpartyDir):
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
-
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
+env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_STATIC'])
+
+# Fabric Engine libraries
+env.Append(LIBS = ['FabricSplice-2.0_s', 'FabricCore-2.0'])
+
+# standard libraries
+if sys.platform == 'win32':
+  env.Append(LIBS = ['user32', 'advapi32', 'gdi32', 'shell32', 'ws2_32', 'Opengl32', 'glu32'])
+else:
+  env.Append(LIBS = ['X11', 'GLU', 'GL', 'dl', 'pthread'])
 
 commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', exports = {
   'parentEnv': env, 

@@ -3,10 +3,10 @@
 #include "lxu_command.hpp"
 
 // defines.
-#define	CMD_HELLOWORLD	"HelloWorld"
+#define	CMD_HELLOAGAIN	"HelloAgain"
 
 // class.
-class cmd_HelloWorld : public CLxBasicCommand
+class cmd_HelloAgain : public CLxBasicCommand
 {
 	public:
 

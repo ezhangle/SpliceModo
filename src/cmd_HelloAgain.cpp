@@ -1,19 +1,19 @@
 // ---------------------------------------------------------------
 // 
-// COMMAND:		HelloWorld.
+// COMMAND:		HelloAgain.
 // 
 // ARGUMENTS:	none.
 //
-// TASK:		outputs "hello world!" in the event log.
+// TASK:		outputs "hello again world!" in the event log.
 // 
 // ---------------------------------------------------------------
 
-#include "cmd_HelloWorld.h"
+#include "cmd_HelloAgain.h"
  
 // the command's main code.
-void cmd_HelloWorld::cmd_Execute(unsigned flags)
+void cmd_HelloAgain::cmd_Execute(unsigned flags)
 {
-	//printf("hello world!\n");
+	//printf("hello again world!\n");
 }
  
 // end of file

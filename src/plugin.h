@@ -1,5 +1,6 @@
 // includes.
 #include "FabricSplice.h"
+#include "DFGWrapper/DFGWrapper.h"
 
 // more includes.
 #include "lx_plugin.hpp"
@@ -19,3 +20,6 @@ class CItemLog : public CLxLogMessage
  	const char *GetCopyright()	{	return "n.a.";	};
 };
 extern CItemLog gLog;
+void feLog		(const char *s, unsigned int length);
+void feLogError	(const char *s, unsigned int length);
+void feKLReport	(const char *s, unsigned int length);

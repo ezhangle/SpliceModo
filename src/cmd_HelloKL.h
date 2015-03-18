@@ -6,7 +6,7 @@
 #include "lxlog.h"
 
 // constants.
-#define	SERVER_NAME		"HelloKL"
+#define	SERVER_NAME_HelloKL		"HelloKL"
 
 // class.
 class cmd_HelloKL : public CLxBasicCommand
@@ -22,7 +22,7 @@ class cmd_HelloKL : public CLxBasicCommand
 		srv->AddInterface			(new CLxIfc_Attributes		<cmd_HelloKL>);
 		srv->AddInterface			(new CLxIfc_AttributesUI	<cmd_HelloKL>);
 		srv->AddInterface			(new CLxIfc_StaticDesc		<cmd_HelloKL>);
-		lx::AddServer				(SERVER_NAME, srv);
+		lx::AddServer				(SERVER_NAME_HelloKL, srv);
 	};
 
 	// command service.

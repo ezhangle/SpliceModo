@@ -41,23 +41,62 @@ void cmd_HelloKL::cmd_Execute(unsigned flags)
 
 		FabricServices::DFGWrapper::Binding binding = host.createBindingToNewGraph();
 		FabricServices::DFGWrapper::GraphExecutable graph = binding.getGraph();
-    
-		// print out some information
-		char s[512];
-		strcpy(s, graph.getDesc().c_str());
-		feLog(s, strlen(s));
-		strcpy(s, graph.getObjectType().c_str());
-		feLog(s, strlen(s));
-		strcpy(s, graph.exportJSON().c_str());
-		feLog(s, strlen(s));
-		strcpy(s, graph.getImportPathname().c_str());
-		feLog(s, strlen(s));
-	}
 
+		// add a report node
+		FabricServices::DFGWrapper::Node reportNode = graph.addNodeFromPreset("Fabric.Core.Func.Report");
+
+		// add an in and one out port
+		graph.addPort("caption", FabricCore::DFGPortType_In);
+		graph.addPort("result", FabricCore::DFGPortType_Out);
+
+		// connect things up
+		graph.getPort("caption").connect(reportNode.getPin("value"));
+		reportNode.getPin("value").connect(graph.getPort("result"));
+
+		// setup the values to perform on
+		FabricCore::RTVal value = FabricCore::RTVal::ConstructString(client, "test test test");
+		binding.setArgValue("result", value);
+		binding.setArgValue("caption", value);
+
+		// execute the graph
+		binding.execute();
+	}
 	catch(FabricCore::Exception e)
 	{
 		printf("Error: %s\n", e.getDesc_cstr());
 	}
+
+
+	//try
+	//{
+	//	// create a client
+	//	FabricCore::Client::CreateOptions options;
+	//	memset( &options, 0, sizeof( options ) );
+	//	options.optimizationType = FabricCore::ClientOptimizationType_Background;
+	//	FabricCore::Client client(&myLogFunc, NULL, &options);
+
+	//	// create a host for Canvas
+	//	FabricServices::DFGWrapper::Host host(client);
+
+	//	FabricServices::DFGWrapper::Binding binding = host.createBindingToNewGraph();
+	//	FabricServices::DFGWrapper::GraphExecutable graph = binding.getGraph();
+ //   
+	//	// print out some information
+	//	char s[512];
+	//	strcpy(s, graph.getDesc().c_str());
+	//	feLog(s, strlen(s));
+	//	strcpy(s, graph.getObjectType().c_str());
+	//	feLog(s, strlen(s));
+	//	strcpy(s, graph.exportJSON().c_str());
+	//	feLog(s, strlen(s));
+	//	strcpy(s, graph.getImportPathname().c_str());
+	//	feLog(s, strlen(s));
+	//}
+
+	//catch(FabricCore::Exception e)
+	//{
+	//	printf("Error: %s\n", e.getDesc_cstr());
+	//}
 }
  
 // end of file

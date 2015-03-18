@@ -24,10 +24,10 @@ if GetOption('help'):
   print ''
   Exit()
 
-# for windows for now use Visual Studio 2013. 
+# for windows for now use Visual Studio 2010. 
 # if you upgrade this you will also have to provide
 # boost libs for the corresponding VS version
-env = Environment(ENV = os.environ, MSVC_VERSION='12.0')
+env = Environment(ENV = os.environ, MSVC_VERSION='10.0')
 
 # find the third party libs
 for thirdpartyDir in thirdpartyDirs:
@@ -40,7 +40,7 @@ env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_STATIC'])
 
 # Fabric Engine libraries
-env.Append(LIBS = ['FabricSplice-2.0_s', 'FabricCore-2.0'])
+env.Append(LIBS = ['FabricServices-MSVC-10.0', 'FabricSplice-2.0', 'FabricCore-2.0'])
 
 # standard libraries
 if sys.platform == 'win32':

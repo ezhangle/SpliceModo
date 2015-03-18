@@ -1,3 +1,8 @@
+//
+#pragma warning (disable : 4530)	// C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
+#pragma warning (disable : 4800)	// forcing value to bool 'true' or 'false'.
+#pragma warning (disable : 4806)	//unsafe operation: no value of type 'bool' promoted to type ...etc.
+
 // includes.
 #include "FabricSplice.h"
 #include "DFGWrapper/DFGWrapper.h"

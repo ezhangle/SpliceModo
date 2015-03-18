@@ -22,6 +22,16 @@ using namespace FabricUI;
 // execute code.
 void cmd_HelloGUI::cmd_Execute(unsigned flags)
 {
+	feLog("executing HelloGUI", 0);
+
+	QWidget *w = new QWidget(NULL);
+	feLog("new done.", 0);
+
+	w->show();
+
+
+
+
 	/*
 	try
 	{

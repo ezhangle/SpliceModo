@@ -36,12 +36,12 @@ for thirdpartyDir in thirdpartyDirs:
   if not os.environ.has_key(thirdpartyDir):
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
-env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
-env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include', 'FabricServices')])
-env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include', 'FabricUI')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'lib')])
+env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include', 'FabricServices')])
 env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_SHARED'])
 
 # Fabric Engine libraries
@@ -50,6 +50,7 @@ if platform.system().lower().startswith('win'):
   env.Append(LIBS = ['FabricServices-MSVC-'+env['MSVC_VERSION']])
 else:
   env.Append(LIBS = ['FabricServices'])
+env.Append(LIBS = ['FabricSplitSearch'])
 
 qtDir = os.environ['QT_DIR']
 qtFlags = {}

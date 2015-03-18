@@ -9,6 +9,18 @@
 #include "plugin.h"
 #include "cmd_HelloGUI.h"
 
+using namespace FabricServices;
+using namespace FabricUI;
+
+struct tempData { // please clean this up
+  FabricCore::Client client;
+  DFGWrapper::Host * host;
+  ASTWrapper::KLASTManager * manager;
+  DFGWrapper::Binding binding;
+  Commands::CommandStack stack;
+  DFG::DFGWidget * dfgWidget;
+};
+
 // static thingy for the log system.
 LXtTagInfoDesc cmd_HelloGUI::descInfo[] =
 {
@@ -24,31 +36,27 @@ void cmd_HelloGUI::cmd_Execute(unsigned flags)
 {
 	feLog("executing HelloGUI", 0);
 
-	QWidget *w = new QWidget(NULL);
-	feLog("new done.", 0);
+  tempData * d = new tempData();
+	// QWidget *w = new QWidget(NULL);
+	// feLog("new done.", 0);
 
-	w->show();
+	// w->show();
 
-
-
-
-	/*
 	try
 	{
 		// create a client
 		FabricCore::Client::CreateOptions options;
 		memset( &options, 0, sizeof( options ) );
 		options.optimizationType = FabricCore::ClientOptimizationType_Background;
-		FabricCore::Client client(&dfgLog, NULL, &options);
+		d->client = FabricCore::Client(&dfgLog, NULL, &options);
 
-		ASTWrapper::KLASTManager *manager = new ASTWrapper::KLASTManager(&client);
-
+		d->manager = new ASTWrapper::KLASTManager(&d->client);
 
 		// create a host for Canvas
-		DFGWrapper::Host host(client);
+		d->host = new DFGWrapper::Host(d->client);
 
-		DFGWrapper::Binding binding = host.createBindingToNewGraph();
-		DFGWrapper::GraphExecutable graph = binding.getGraph();
+		d->binding = d->host->createBindingToNewGraph();
+		DFGWrapper::GraphExecutable graph = d->binding.getGraph();
 
 		// add a report node
 		DFGWrapper::Node reportNode = graph.addNodeFromPreset("Fabric.Core.Func.Report");
@@ -62,31 +70,21 @@ void cmd_HelloGUI::cmd_Execute(unsigned flags)
 		reportNode.getPin("value").connect(graph.getPort("result"));
 
 		// setup the values to perform on
-		FabricCore::RTVal value = FabricCore::RTVal::ConstructString(client, "test test test");
-		binding.setArgValue("result", value);
-		binding.setArgValue("caption", value);
+		FabricCore::RTVal value = FabricCore::RTVal::ConstructString(d->client, "test test test");
+		d->binding.setArgValue("result", value);
+		d->binding.setArgValue("caption", value);
 
 		// execute the graph
-		binding.execute();
+		d->binding.execute();
+
+    d->dfgWidget = new DFG::DFGWidget(NULL, &d->client, d->manager, d->host, d->binding, graph, &d->stack, DFG::DFGConfig());
+    d->dfgWidget->show();
 	}
 	catch(FabricCore::Exception e)
 	{
 		printf("Error: %s\n", e.getDesc_cstr());
 	}
 
-
-
-	DFGWrapper::m_host = new DFGWrapper::Host(m_client);
-
-	DFGWrapper::Binding binding = m_host->createBindingToNewGraph();
-
-	DFG::DFGConfig config;
-
-	DFGWrapper::GraphExecutable subGraph = binding.getGraph();
-
-	// graph view
-	m_dfgWidget = new DFG::DFGWidget(NULL, &m_client, m_manager, m_host, binding, subGraph, &m_stack, config);
-	*/
 }
  
 // end of file

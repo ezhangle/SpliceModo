@@ -6,6 +6,7 @@
 // includes.
 #include "FabricSplice.h"
 #include "DFGWrapper/DFGWrapper.h"
+#include "Commands/CommandStack.h"
 #include "FabricUI/DFG/DFGWidget.h"
 
 // more includes.

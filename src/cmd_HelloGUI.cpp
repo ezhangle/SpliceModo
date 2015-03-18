@@ -4,24 +4,25 @@
 // 
 // ARGUMENTS:	none.
 //
-// NOTES:		- outputs "Hello KL!" in the event log.
-//				- uses a small DFG.
-// 
 // ---------------------------------------------------------------
 
 #include "plugin.h"
-#include "cmd_HelloKL.h"
+#include "cmd_HelloGUI.h"
 
 // static thingy for the log system.
-LXtTagInfoDesc cmd_HelloKL::descInfo[] =
+LXtTagInfoDesc cmd_HelloGUI::descInfo[] =
 {
 	{ LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
 	{ 0 }
 };
 
+using namespace FabricServices;
+using namespace FabricUI;
+
 // execute code.
-void cmd_HelloKL::cmd_Execute(unsigned flags)
+void cmd_HelloGUI::cmd_Execute(unsigned flags)
 {
+	/*
 	try
 	{
 		// create a client
@@ -30,14 +31,17 @@ void cmd_HelloKL::cmd_Execute(unsigned flags)
 		options.optimizationType = FabricCore::ClientOptimizationType_Background;
 		FabricCore::Client client(&dfgLog, NULL, &options);
 
-		// create a host for Canvas
-		FabricServices::DFGWrapper::Host host(client);
+		ASTWrapper::KLASTManager *manager = new ASTWrapper::KLASTManager(&client);
 
-		FabricServices::DFGWrapper::Binding binding = host.createBindingToNewGraph();
-		FabricServices::DFGWrapper::GraphExecutable graph = binding.getGraph();
+
+		// create a host for Canvas
+		DFGWrapper::Host host(client);
+
+		DFGWrapper::Binding binding = host.createBindingToNewGraph();
+		DFGWrapper::GraphExecutable graph = binding.getGraph();
 
 		// add a report node
-		FabricServices::DFGWrapper::Node reportNode = graph.addNodeFromPreset("Fabric.Core.Func.Report");
+		DFGWrapper::Node reportNode = graph.addNodeFromPreset("Fabric.Core.Func.Report");
 
 		// add an in and one out port
 		graph.addPort("caption", FabricCore::DFGPortType_In);
@@ -59,33 +63,22 @@ void cmd_HelloKL::cmd_Execute(unsigned flags)
 	{
 		printf("Error: %s\n", e.getDesc_cstr());
 	}
+
+
+
+	DFGWrapper::m_host = new DFGWrapper::Host(m_client);
+
+	DFGWrapper::Binding binding = m_host->createBindingToNewGraph();
+
+	DFG::DFGConfig config;
+
+	DFGWrapper::GraphExecutable subGraph = binding.getGraph();
+
+	// graph view
+	m_dfgWidget = new DFG::DFGWidget(NULL, &m_client, m_manager, m_host, binding, subGraph, &m_stack, config);
+	*/
 }
  
 // end of file
 
 
-
-#ifdef _OLD_STUFF____1st_TRY_WORKS
-void cmd_HelloKL::cmd_Execute(unsigned flags)
-{
-	try
-	{
-		// create the first graph.
-		FabricSplice::DGGraph graph("myGraph");
-
-		// create the first DGNode.
-		graph.constructDGNode("myNode");
-
-		// setup the KL code.
-		std::string klCode = "operator reportOp() { report('Hello KL!'); }";
-		graph.constructKLOperator("reportOp", klCode.c_str());
-
-		// evaluate the graph.
-		graph.evaluate();
-	}
-	catch(FabricSplice::Exception e)
-	{
-		printf("%s\n", e.what());
-	}
-}
-#endif

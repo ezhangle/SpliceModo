@@ -1,6 +1,7 @@
 // includes.
 #include "FabricSplice.h"
 #include "DFGWrapper/DFGWrapper.h"
+#include "FabricUI/DFG/DFGWidget.h"
 
 // more includes.
 #include "lx_plugin.hpp"
@@ -23,3 +24,4 @@ extern CItemLog gLog;
 void feLog		(const char *s, unsigned int length);
 void feLogError	(const char *s, unsigned int length);
 void feKLReport	(const char *s, unsigned int length);
+void dfgLog(void *userData, const char *s, unsigned int length);

@@ -1,6 +1,6 @@
 // includes.
-#include "FabricSplice.h"
 #include "plugin.h"
+#include "cmd_HelloKL.h"
 #include "cmd_HelloWorld.h"
 
 // log stuff.
@@ -22,7 +22,8 @@ void initialize()
 
 	// MODO.
 	{
-		cmd_HelloWorld::initialize();
+		cmd_HelloWorld	::initialize();
+		cmd_HelloKL		::initialize();
 	}
  }
 

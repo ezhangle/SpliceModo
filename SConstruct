@@ -10,7 +10,9 @@ if not platform.system().lower().startswith('win'):
 
 thirdpartyDirs = {
   'FABRIC_DIR': "Should point to Fabric Engine's installation folder.",
-  'MODO_SDK_DIR': "Should point to the root of the MODO SDK."
+  'MODO_SDK_DIR': "Should point to the root of the MODO SDK.",
+  'QT_DIR': "Should point to the root of Qt folder.",
+  'FABRIC_UI_DIR': "Should point to the root of FabricUI checkout.",
 }
 
 # help debug print
@@ -35,8 +37,11 @@ for thirdpartyDir in thirdpartyDirs:
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include', 'FabricServices')])
 env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
+env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'lib')])
 env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_SHARED'])
 
 # Fabric Engine libraries
@@ -45,6 +50,34 @@ if platform.system().lower().startswith('win'):
   env.Append(LIBS = ['FabricServices-MSVC-'+env['MSVC_VERSION']])
 else:
   env.Append(LIBS = ['FabricServices'])
+
+qtDir = os.environ['QT_DIR']
+qtFlags = {}
+qtMOC = None
+if platform.system().lower().startswith('win'):
+  # if buildType == 'Debug':
+  #   suffix = 'd4'
+  # else:
+  suffix = '4'
+  qtFlags['CPPPATH'] = [os.path.join(qtDir, 'include')]
+  qtFlags['LIBPATH'] = [os.path.join(qtDir, 'lib')]
+  qtFlags['LIBS'] = ['QtCore'+suffix, 'QtGui'+suffix, 'QtOpenGL'+suffix]
+  qtMOC = os.path.join(qtDir, 'bin', 'moc.exe')
+elif platform.system().lower().startswith('dar'):
+  qtFlags['CPPPATH'] = ['/usr/local/include']
+  qtFlags['FRAMEWORKPATH'] = ['/usr/local/lib']
+  qtFlags['FRAMEWORKS'] = ['QtCore', 'QtGui', 'QtOpenGL']
+  qtMOC = '/usr/local/bin/moc'
+elif platform.system().lower().startswith('lin'):
+  qtFlags['CPPDEFINES'] = ['_DEBUG']
+  qtFlags['CPPPATH'] = ['/usr/include']
+  qtFlags['LIBPATH'] = ['/usr/lib']
+  qtFlags['LIBS'] = ['QtGui', 'QtCore', 'QtOpenGL']
+  qtMOC = '/usr/bin/moc-qt4'
+
+# ui related libraries
+env.MergeFlags(qtFlags)
+env.Append(LIBS = ['FabricUI'])
 
 # standard libraries
 if sys.platform == 'win32':

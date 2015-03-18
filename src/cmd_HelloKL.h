@@ -6,10 +6,10 @@
 #include "lxlog.h"
 
 // constants.
-#define	SERVER_NAME		"HelloWorld"
+#define	SERVER_NAME		"HelloKL"
 
 // class.
-class cmd_HelloWorld : public CLxBasicCommand
+class cmd_HelloKL : public CLxBasicCommand
 {
 	public:
 
@@ -17,11 +17,11 @@ class cmd_HelloWorld : public CLxBasicCommand
 	static LXtTagInfoDesc descInfo[];
 	static void initialize(void)
 	{
-		CLxGenericPolymorph *srv =   new CLxPolymorph			<cmd_HelloWorld>;
-		srv->AddInterface			(new CLxIfc_Command			<cmd_HelloWorld>);
-		srv->AddInterface			(new CLxIfc_Attributes		<cmd_HelloWorld>);
-		srv->AddInterface			(new CLxIfc_AttributesUI	<cmd_HelloWorld>);
-		srv->AddInterface			(new CLxIfc_StaticDesc		<cmd_HelloWorld>);
+		CLxGenericPolymorph *srv =   new CLxPolymorph			<cmd_HelloKL>;
+		srv->AddInterface			(new CLxIfc_Command			<cmd_HelloKL>);
+		srv->AddInterface			(new CLxIfc_Attributes		<cmd_HelloKL>);
+		srv->AddInterface			(new CLxIfc_AttributesUI	<cmd_HelloKL>);
+		srv->AddInterface			(new CLxIfc_StaticDesc		<cmd_HelloKL>);
 		lx::AddServer				(SERVER_NAME, srv);
 	};
 

@@ -22,7 +22,7 @@ LXtTagInfoDesc cmd_HelloWorld::descInfo[] =
 // execute code.
 void cmd_HelloWorld::cmd_Execute(unsigned flags)
 {
-	gLog.Message(LXe_INFO, SERVER_NAME, "Hello World!", " ");
+	gLog.Message(LXe_INFO, " ", "Hello World!", " ");
 }
  
 // end of file

@@ -37,10 +37,14 @@ for thirdpartyDir in thirdpartyDirs:
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
-env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_STATIC'])
+env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_SHARED'])
 
 # Fabric Engine libraries
-env.Append(LIBS = ['FabricServices-MSVC-10.0', 'FabricSplice-2.0', 'FabricCore-2.0'])
+env.Append(LIBS = ['FabricSplice-2.0', 'FabricCore-2.0'])
+if platform.system().lower().startswith('win'):
+  env.Append(LIBS = ['FabricServices-MSVC-'+env['MSVC_VERSION']])
+else:
+  env.Append(LIBS = ['FabricServices'])
 
 # standard libraries
 if sys.platform == 'win32':

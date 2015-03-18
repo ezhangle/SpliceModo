@@ -39,7 +39,7 @@ for thirdpartyDir in thirdpartyDirs:
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_DIR'], 'include', 'FabricServices')])
 env.Append(CPPPATH = [os.path.join(os.environ['MODO_SDK_DIR'], 'include')])
-env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include')])
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include', 'FabricUI')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'lib')])
 env.Append(CPPDEFINES = ['FEC_SHARED', 'FECS_SHARED'])

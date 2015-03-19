@@ -2,6 +2,20 @@
 #ifndef SERVER_NAME_HelloFloat
 #define	SERVER_NAME_HelloFloat "HelloFloat"
 
+// constants.
+#define CHN_NAME_Float1	"Float1"
+#define CHN_NAME_Float2	"Float2"
+#define CHN_NAME_Result	"Result"
+enum enum_CHN_INPUT
+{
+	CHN_INDEX_Float1	= 0,
+	CHN_INDEX_Float2,
+};
+enum enum_CHN_OUTPUT
+{
+	CHN_INDEX_Result	= 0,
+};
+
 // forward declarations (because those two reference each other).
 class cmod_HelloFloatPackage;
 class cmod_HelloFloatInstance;

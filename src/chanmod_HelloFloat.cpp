@@ -15,7 +15,7 @@ LXtTagInfoDesc chanmod_HelloFloat::descInfo[] =
 };
 
 // execute code.
-void chanmod_HelloFloat::chanmod_Execute(unsigned flags)
+void chanmod_HelloFloat::cmd_Execute(unsigned flags)
 {
 	gLog.Message(LXe_INFO, " ", "Hello Float!", " ");
 }

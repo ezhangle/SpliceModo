@@ -23,10 +23,6 @@
 #include "lxu_log.hpp"
 #include "lxlog.h"
 
-
-// more includes.
-#include <iostream>
-
 // log system.
 #define	LOG_SYSTEM_NAME	"Fabric"
 class CItemLog : public CLxLogMessage

@@ -1,25 +1,23 @@
 // ---------------------------------------------------------------
 // 
-// COMMAND:		HelloWorld.
-// 
-// ARGUMENTS:	none.
+// CHANNEL MODIFIER:		HelloFloat.
 // 
 // ---------------------------------------------------------------
 
 #include "plugin.h"
-#include "cmd_HelloWorld.h"
+#include "chanmod_HelloFloat.h"
 
 // static tag description interface.
-LXtTagInfoDesc cmd_HelloWorld::descInfo[] =
+LXtTagInfoDesc chanmod_HelloFloat::descInfo[] =
 {
 	{ LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
 	{ 0 }
 };
 
 // execute code.
-void cmd_HelloWorld::cmd_Execute(unsigned flags)
+void chanmod_HelloFloat::chanmod_Execute(unsigned flags)
 {
-	gLog.Message(LXe_INFO, " ", "Hello World!", " ");
+	gLog.Message(LXe_INFO, " ", "Hello Float!", " ");
 }
  
 // end of file

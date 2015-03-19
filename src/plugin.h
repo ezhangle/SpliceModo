@@ -1,7 +1,11 @@
 //
+#ifndef SPLICE_MODO_PLUGIN
+#define SPLICE_MODO_PLUGIN
+
+// disable some annoying warnings.
 #pragma warning (disable : 4530)	// C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
 #pragma warning (disable : 4800)	// forcing value to bool 'true' or 'false'.
-#pragma warning (disable : 4806)	//unsafe operation: no value of type 'bool' promoted to type ...etc.
+#pragma warning (disable : 4806)	// unsafe operation: no value of type 'bool' promoted to type ...etc.
 
 // includes.
 #include "FabricSplice.h"
@@ -10,11 +14,18 @@
 #include "FabricUI/DFG/DFGWidget.h"
 
 // more includes.
+#include <lx_chanmod.hpp>
+#include <lx_item.hpp>
+#include <lx_package.hpp>
 #include "lx_plugin.hpp"
 #include "lx_value.hpp"
 #include "lxu_command.hpp"
 #include "lxu_log.hpp"
 #include "lxlog.h"
+
+
+// more includes.
+#include <iostream>
 
 // log system.
 #define	LOG_SYSTEM_NAME	"Fabric"
@@ -31,3 +42,9 @@ void feLog		(const char *s, unsigned int length);
 void feLogError	(const char *s, unsigned int length);
 void feKLReport	(const char *s, unsigned int length);
 void dfgLog(void *userData, const char *s, unsigned int length);
+
+#endif
+
+// end of file.
+
+

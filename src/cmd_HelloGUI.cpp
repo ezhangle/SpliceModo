@@ -12,35 +12,26 @@
 using namespace FabricServices;
 using namespace FabricUI;
 
-struct tempData { // please clean this up
-  FabricCore::Client client;
-  DFGWrapper::Host * host;
-  ASTWrapper::KLASTManager * manager;
-  DFGWrapper::Binding binding;
-  Commands::CommandStack stack;
-  DFG::DFGWidget * dfgWidget;
-};
-
-// static thingy for the log system.
+// static tag description interface.
 LXtTagInfoDesc cmd_HelloGUI::descInfo[] =
 {
 	{ LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
 	{ 0 }
 };
 
-using namespace FabricServices;
-using namespace FabricUI;
+struct tempData { // please clean this up
+  FabricCore::Client client;			// note at self: global
+  DFGWrapper::Host * host;				// note at self: global
+  ASTWrapper::KLASTManager * manager;	// note at self: global
+  DFGWrapper::Binding binding;		// note at self: per instance
+  Commands::CommandStack stack;		// note at self: per instance
+  DFG::DFGWidget * dfgWidget;
+};
 
 // execute code.
 void cmd_HelloGUI::cmd_Execute(unsigned flags)
 {
-	feLog("executing HelloGUI", 0);
-
-  tempData * d = new tempData();
-	// QWidget *w = new QWidget(NULL);
-	// feLog("new done.", 0);
-
-	// w->show();
+	tempData * d = new tempData();
 
 	try
 	{
@@ -77,8 +68,8 @@ void cmd_HelloGUI::cmd_Execute(unsigned flags)
 		// execute the graph
 		d->binding.execute();
 
-    d->dfgWidget = new DFG::DFGWidget(NULL, &d->client, d->manager, d->host, d->binding, graph, &d->stack, DFG::DFGConfig());
-    d->dfgWidget->show();
+		d->dfgWidget = new DFG::DFGWidget(NULL, &d->client, d->manager, d->host, d->binding, graph, &d->stack, DFG::DFGConfig());
+		d->dfgWidget->show();
 	}
 	catch(FabricCore::Exception e)
 	{

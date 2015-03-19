@@ -1,10 +1,11 @@
 // includes.
 #include "plugin.h"
+#include "chanmod_HelloFloat.h"
 #include "cmd_HelloGUI.h"
 #include "cmd_HelloKL.h"
 #include "cmd_HelloWorld.h"
 
-// log stuff.
+// log system.
 CItemLog gLog;
 void feLog		(const char *s, unsigned int length)			{ gLog.Message(LXe_INFO,   "[SPLICE]", s, " "); }
 void feLogError	(const char *s, unsigned int length)			{ gLog.Message(LXe_FAILED, "[ERROR]",  s, " "); }
@@ -24,9 +25,10 @@ void initialize()
 
 	// MODO.
 	{
-		cmd_HelloGUI	::initialize();
-		cmd_HelloKL		::initialize();
-		cmd_HelloWorld	::initialize();
+		chanmod_HelloFloat	::initialize();
+		cmd_HelloGUI		::initialize();
+		cmd_HelloKL			::initialize();
+		cmd_HelloWorld		::initialize();
 	}
  }
 

@@ -3,16 +3,13 @@
 // COMMAND:		HelloKL.
 // 
 // ARGUMENTS:	none.
-//
-// NOTES:		- outputs "Hello KL!" in the event log.
-//				- uses a small DFG.
 // 
 // ---------------------------------------------------------------
 
 #include "plugin.h"
 #include "cmd_HelloKL.h"
 
-// static thingy for the log system.
+// static tag description interface.
 LXtTagInfoDesc cmd_HelloKL::descInfo[] =
 {
 	{ LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },

@@ -1,20 +1,16 @@
-// includes.
-#include "lx_plugin.hpp"
-#include "lx_value.hpp"
-#include "lxu_command.hpp"
-#include "lxu_log.hpp"
-#include "lxlog.h"
-
-// constants.
-#define	SERVER_NAME_HelloWorld		"HelloWorld"
+//
+#ifndef SERVER_NAME_HelloWorld
+#define	SERVER_NAME_HelloWorld "HelloWorld"
 
 // class.
 class cmd_HelloWorld : public CLxBasicCommand
 {
 	public:
 
-	// static.
+	// tag description interface.
 	static LXtTagInfoDesc descInfo[];
+
+	// initialization.
 	static void initialize(void)
 	{
 		CLxGenericPolymorph *srv =   new CLxPolymorph			<cmd_HelloWorld>;
@@ -31,10 +27,8 @@ class cmd_HelloWorld : public CLxBasicCommand
 	void	cmd_Execute		(unsigned flags)			LXx_OVERRIDE;
 };
 
+#endif
+
 // end of file.
-
-
-
-
 
 

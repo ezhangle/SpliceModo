@@ -1,6 +1,6 @@
 // includes.
 #include "plugin.h"
-#include "chanmod_HelloFloat.h"
+#include "cmod_HelloFloat.h"
 #include "cmd_HelloGUI.h"
 #include "cmd_HelloKL.h"
 #include "cmd_HelloWorld.h"
@@ -25,10 +25,10 @@ void initialize()
 
 	// MODO.
 	{
-		chanmod_HelloFloat	::initialize();
-		cmd_HelloGUI		::initialize();
-		cmd_HelloKL			::initialize();
-		cmd_HelloWorld		::initialize();
+		cmod_HelloFloatPackage	::initialize();
+		cmd_HelloGUI			::initialize();
+		cmd_HelloKL				::initialize();
+		cmd_HelloWorld			::initialize();
 	}
  }
 

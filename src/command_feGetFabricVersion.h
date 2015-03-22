@@ -18,7 +18,7 @@ class command_feGetFabricVersion : public CLxBasicCommand
 		srv->AddInterface			(new CLxIfc_Attributes		<command_feGetFabricVersion>);
 		srv->AddInterface			(new CLxIfc_AttributesUI	<command_feGetFabricVersion>);
 		srv->AddInterface			(new CLxIfc_StaticDesc		<command_feGetFabricVersion>);
-		lx::AddServer				(SERVER_NAME_command_feGetFabricVersion, srv);
+		lx:: AddServer				(SERVER_NAME_command_feGetFabricVersion, srv);
 	};
 
 	// command service.

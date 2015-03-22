@@ -18,7 +18,7 @@ class command_feGetPluginVersion : public CLxBasicCommand
 		srv->AddInterface			(new CLxIfc_Attributes		<command_feGetPluginVersion>);
 		srv->AddInterface			(new CLxIfc_AttributesUI	<command_feGetPluginVersion>);
 		srv->AddInterface			(new CLxIfc_StaticDesc		<command_feGetPluginVersion>);
-		lx::AddServer				(SERVER_NAME_command_feGetPluginVersion, srv);
+		lx:: AddServer				(SERVER_NAME_command_feGetPluginVersion, srv);
 	};
 
 	// command service.

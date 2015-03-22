@@ -1,5 +1,6 @@
 // includes.
 #include "plugin.h"
+#include "chanmod_dfgModo.h"
 #include "command_feGetFabricVersion.h"
 #include "command_feGetPluginVersion.h"
 
@@ -24,6 +25,7 @@ void initialize()
 
 	// MODO.
 	{
+		chanmod_dfgModoPackage    ::initialize();
 		command_feGetFabricVersion::initialize();
 		command_feGetPluginVersion::initialize();
 	}

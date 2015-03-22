@@ -28,7 +28,7 @@ LxResult chanmod_dfgModoInstance::pins_Initialize(ILxUnknownID item, ILxUnknownI
 {
 	// Fabric.
 	{
-		m_baseInterface = new BaseInterface();
+		m_feBaseInterface = new BaseInterface();
 	}
 
 	// MODO.
@@ -43,7 +43,7 @@ void chanmod_dfgModoInstance::pins_Cleanup(void)
 {
 	// Fabric.
 	{
-		delete m_baseInterface;
+		delete m_feBaseInterface;
 	}
 
 	// MODO.
@@ -59,12 +59,12 @@ LxResult chanmod_dfgModoInstance::cmod_Allocate(ILxUnknownID cmod, ILxUnknownID 
 	unsigned int			chanIdx;
         
 	// lookup the input channel indices and add them as inputs.
-	modItem.ChannelLookup(CHN_NAME_Enable, &chanIdx);	chanMod.AddInput(item, chanIdx);
-	//modItem.ChannelLookup(CHN_NAME___JSON, &chanIdx);	chanMod.AddInput(item, chanIdx);
+	modItem.ChannelLookup(CHN_NAME_feEnable,          &chanIdx);	chanMod.AddInput(item, chanIdx);
+	//modItem.ChannelLookup(CHN_NAME_feJSON,	          &chanIdx);	chanMod.AddInput(item, chanIdx);
                                 
 	// lookup the output channel indices and add them as outputs.
-	modItem.ChannelLookup(CHN_NAME_Result, &chanIdx);	chanMod.AddOutput(item, chanIdx);
-	modItem.ChannelLookup(CHN_NAME_BIntID, &chanIdx);	chanMod.AddOutput(item, chanIdx);
+	modItem.ChannelLookup(CHN_NAME_feIsEnable,        &chanIdx);	chanMod.AddOutput(item, chanIdx);
+	modItem.ChannelLookup(CHN_NAME_feBaseInterfaceID, &chanIdx);	chanMod.AddOutput(item, chanIdx);
 
 	//
 	return LXe_OK;
@@ -74,34 +74,29 @@ unsigned int chanmod_dfgModoInstance::cmod_Flags(ILxUnknownID item, unsigned int
 {
 	CLxUser_Item	modItem(item);
 	unsigned int	chanIdx;
-    
-	if (LXx_OK(modItem.ChannelLookup(CHN_NAME_Enable, &chanIdx)))		if (index == chanIdx)	return (LXfCHMOD_INPUT);
-	//if (LXx_OK(modItem.ChannelLookup(CHN_NAME_Float2, &chanIdx)))		if (index == chanIdx)	return (LXfCHMOD_INPUT);
-	if (LXx_OK(modItem.ChannelLookup(CHN_NAME_Result, &chanIdx)))		if (index == chanIdx)	return (LXfCHMOD_OUTPUT);
+
+	// inputs.
+	if (LXx_OK(modItem.ChannelLookup(CHN_NAME_feEnable,          &chanIdx)))	if (index == chanIdx)	return (LXfCHMOD_INPUT);
+
+	// outputs.
+	if (LXx_OK(modItem.ChannelLookup(CHN_NAME_feIsEnable,        &chanIdx)))	if (index == chanIdx)	return (LXfCHMOD_OUTPUT);
+	if (LXx_OK(modItem.ChannelLookup(CHN_NAME_feBaseInterfaceID, &chanIdx)))	if (index == chanIdx)	return (LXfCHMOD_OUTPUT);
 
 	return 0;
 }
 
 LxResult chanmod_dfgModoInstance::cmod_Evaluate(ILxUnknownID cmod, ILxUnknownID attr, void *data)
 {
-	BaseInterface &b = *m_baseInterface;
+	BaseInterface &b = *m_feBaseInterface;
 	CLxLoc_ChannelModifier chanMod(cmod);
         
 	// read the input channels.
-	int enable = NULL;
-	chanMod.ReadInputInt(attr, CHN_INDEX_Enable, &enable);
+	int feEnable = false;
+	chanMod.ReadInputInt(attr, CHN_INDEX_feEnable, &feEnable);
 
-	if (enable)
-	{
-		modoLog("it's enabled.");
-	}
-	else
-	{
-		modoLog("it's not enabled.");
-	}
-
-	chanMod.WriteOutputInt(attr, CHN_INDEX_Result, (int)enable);
-	chanMod.WriteOutputInt(attr, CHN_INDEX_BIntID, (int)b.getId());
+	// set output channel values.
+	chanMod.WriteOutputInt(attr, CHN_INDEX_feIsEnable,             feEnable);
+	chanMod.WriteOutputInt(attr, CHN_INDEX_feBaseInterfaceID, (int)b.getId());
 
 	// done.
 	return LXe_OK;
@@ -115,16 +110,17 @@ LxResult chanmod_dfgModoPackage::pkg_SetupChannels(ILxUnknownID addChan)
 {
 	CLxUser_AddChannel ac(addChan);
         
-	ac.NewChannel(CHN_NAME_Enable, LXsTYPE_BOOLEAN);
+	ac.NewChannel(CHN_NAME_feEnable, LXsTYPE_BOOLEAN);
 	ac.SetDefault(0, 1);
-                
-	ac.NewChannel(CHN_NAME_Result, LXsTYPE_BOOLEAN);
+    
+	ac.NewChannel(CHN_NAME_feJSON, LXsTYPE_STRING);
+
+	ac.NewChannel(CHN_NAME_feIsEnable, LXsTYPE_BOOLEAN);
 	ac.SetDefault(0, 1);
 
-	ac.NewChannel(CHN_NAME_BIntID, LXsTYPE_INTEGER);
+	ac.NewChannel(CHN_NAME_feBaseInterfaceID, LXsTYPE_INTEGER);
 	ac.SetDefault(0, -1);
 
-	//ac.NewChannel(CHN_NAME___JSON, LXsTYPE_STRING);
 	//{
 	//	LXtObjectID		obj;
 	//	CLxUser_Value	val;

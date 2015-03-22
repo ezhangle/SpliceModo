@@ -3,19 +3,19 @@
 #define	SERVER_NAME_chanmod_dfgModo "dfgModo"
 
 // constants.
-#define CHN_NAME_Enable	"Enable"			// enable/disable node.
-#define CHN_NAME___JSON	"__JSON"			// string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
-#define CHN_NAME_Result	"IsEnabled"			// dummy output port to ensure the node gets evaluated.
-#define CHN_NAME_BIntID	"BaseInterfaceID"	// outputs iddummy output port to ensure the node gets evaluated.
+#define CHN_NAME_feEnable          "feEnable"          // in:  enable/disable execution of DFG for this item.
+#define CHN_NAME_feJSON            "feJSON"            // in:  string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
+#define CHN_NAME_feIsEnable        "feIsEnable"        // out: value of the input port "feEnable".
+#define CHN_NAME_feBaseInterfaceID "feBaseInterfaceID" // out: BaseInterface::getId().
 enum enum_CHN_INPUT
 {
-	CHN_INDEX_Enable	= 0,
-	CHN_INDEX___JSON,
+	CHN_INDEX_feEnable	= 0,
+	CHN_INDEX_feJSON,
 };
 enum enum_CHN_OUTPUT
 {
-	CHN_INDEX_Result	= 0,
-	CHN_INDEX_BIntID,
+	CHN_INDEX_feIsEnable	= 0,
+	CHN_INDEX_feBaseInterfaceID,
 };
 
 
@@ -33,7 +33,7 @@ class chanmod_dfgModoInstance : public CLxImpl_PackageInstance,
 	chanmod_dfgModoPackage *src_pkg;
 	CLxUser_Item			m_item;
 	ILxUnknownID			inst_ifc;
-	BaseInterface		   *m_baseInterface;
+	BaseInterface		   *m_feBaseInterface;
 
 	//
 	LxResult		 pins_Initialize(ILxUnknownID item, ILxUnknownID super);

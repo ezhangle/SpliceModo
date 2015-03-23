@@ -7,8 +7,6 @@
 #include "plugin.h"
 #include "chanmod_dfgModo.h"
 
-
-#include"Windows.h"
 using namespace FabricServices;
 using namespace FabricUI;
 
@@ -28,6 +26,7 @@ LxResult chanmod_dfgModoInstance::pins_Initialize(ILxUnknownID item, ILxUnknownI
 {
 	// Fabric.
 	{
+		BaseInterface::setLogFunc(biLog);
 		m_feBaseInterface = new BaseInterface();
 	}
 
@@ -121,7 +120,7 @@ LxResult chanmod_dfgModoInstance::cmod_Evaluate(ILxUnknownID cmod, ILxUnknownID 
 	float rz = 0;
 static bool first = true;
 	// go.
-	if (feEnable)// && b.isValid())
+	if (feEnable && b.isValid())
 	{
 		double strength = 0;
 		chanMod.ReadInputFloat(attr, CHN_INDEX_IN__strength, &strength);

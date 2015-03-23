@@ -1,13 +1,13 @@
 #include "class_BaseInterface.h"
 
 using namespace FabricServices;
-/*quick hack*/void biLog (void *userData, const char *s, unsigned int length);
 
 FabricCore::Client BaseInterface::s_client;
 DFGWrapper::Host * BaseInterface::s_host = NULL;
 FabricServices::ASTWrapper::KLASTManager * BaseInterface::s_manager = NULL;
 FabricServices::Commands::CommandStack BaseInterface::s_stack;
 unsigned int BaseInterface::s_maxId = 0;
+void (*BaseInterface::s_logFunc)(void *, const char *, unsigned int) = NULL;
 std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
 
 BaseInterface::BaseInterface()
@@ -142,6 +142,11 @@ void BaseInterface::setFromJSON(const std::string & json)
   }
 }
 
+void BaseInterface::setLogFunc(void (*in_logFunc)(void *, const char *, unsigned int))
+{
+	s_logFunc = in_logFunc;
+}
+
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
   logFunc(0, "A port was inserted. We should really reflect that in the DCC.", 62);
@@ -154,6 +159,12 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)
 {
-  //printf("BaseInterface: %s\n", message);
-	biLog(userData, message, length);
+  if (s_logFunc)
+  {
+    s_logFunc(userData, message, length);
+  }
+  else
+  {
+    printf("BaseInterface: %s\n", message);
+  }
 }

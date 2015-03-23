@@ -31,6 +31,9 @@ public:
   std::string getJSON();
   void setFromJSON(const std::string & json);
 
+  // logging.
+  static void setLogFunc(void (*in_logFunc)(void *, const char *, unsigned int));
+
   // notifications
   // for now we only implement onPortInserted and onPortRemoved
   virtual void onNotification(char const * json) {}
@@ -54,6 +57,7 @@ public:
 private:
 
   static void logFunc(void * userData, const char * message, unsigned int length);
+  static void (*s_logFunc)(void *, const char *, unsigned int);
 
   static FabricCore::Client s_client;
   static FabricServices::DFGWrapper::Host * s_host;

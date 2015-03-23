@@ -3,19 +3,40 @@
 #define	SERVER_NAME_chanmod_dfgModo "dfgModo"
 
 // constants.
-#define CHN_NAME_feEnable          "feEnable"          // in:  enable/disable execution of DFG for this item.
-#define CHN_NAME_feJSON            "feJSON"            // in:  string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
-#define CHN_NAME_feIsEnable        "feIsEnable"        // out: value of the input port "feEnable".
-#define CHN_NAME_feBaseInterfaceID "feBaseInterfaceID" // out: BaseInterface::getId().
+#define CHN_NAME_IN__feEnable          "feEnable"          // in:  enable/disable execution of DFG for this item.
+#define CHN_NAME_IN__feJSON            "feJSON"            // in:  string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
+#define CHN_NAME_IN__strength          "strength"
+#define CHN_NAME_IN__in1_X             "in1_X"
+#define CHN_NAME_IN__in1_Y             "in1_Y"
+#define CHN_NAME_IN__in1_Z             "in1_Z"
+#define CHN_NAME_IN__in2_X             "in2_X"
+#define CHN_NAME_IN__in2_Y             "in2_Y"
+#define CHN_NAME_IN__in2_Z             "in2_Z"
+
+#define CHN_NAME_OUT_feIsEnable        "feIsEnable"        // out: value of the input port "feEnable".
+#define CHN_NAME_OUT_feBaseInterfaceID "feBaseInterfaceID" // out: BaseInterface::getId().
+#define CHN_NAME_OUT_result_X          "result_X"
+#define CHN_NAME_OUT_result_Y          "result_Y"
+#define CHN_NAME_OUT_result_Z          "result_Z"
 enum enum_CHN_INPUT
 {
-	CHN_INDEX_feEnable	= 0,
-	CHN_INDEX_feJSON,
+	CHN_INDEX_IN__feEnable	= 0,
+	CHN_INDEX_IN__feJSON,
+	CHN_INDEX_IN__strength,
+	CHN_INDEX_IN__in1_X,
+	CHN_INDEX_IN__in1_Y,
+	CHN_INDEX_IN__in1_Z,
+	CHN_INDEX_IN__in2_X,
+	CHN_INDEX_IN__in2_Y,
+	CHN_INDEX_IN__in2_Z,
 };
 enum enum_CHN_OUTPUT
 {
-	CHN_INDEX_feIsEnable	= 0,
-	CHN_INDEX_feBaseInterfaceID,
+	CHN_INDEX_OUT_feIsEnable	= 0,
+	CHN_INDEX_OUT_feBaseInterfaceID,
+	CHN_INDEX_OUT_result_X,
+	CHN_INDEX_OUT_result_Y,
+	CHN_INDEX_OUT_result_Z,
 };
 
 

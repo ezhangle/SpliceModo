@@ -1,6 +1,7 @@
 // note: code based on "\TrainingMaterial\05_canvas\04_dcc_deployment".
 
 #include "class_BaseInterface.h"
+void biLog (void *userData, const char *s, unsigned int length);
 
 using namespace FabricServices;
 
@@ -135,5 +136,6 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)
 {
-  printf("BaseInterface: %s\n", message);
+  //printf("BaseInterface: %s\n", message);
+biLog(userData, message, length);
 }

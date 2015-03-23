@@ -37,11 +37,11 @@ class CItemLog : public CLxLogMessage
  	const char *GetCopyright()	{	return "n.a.";	};
 };
 extern CItemLog gLog;
-void dfgLog(void *userData, const char *s, unsigned int length);
-void feLog      (const char *s, unsigned int length);
-void feLogError (const char *s, unsigned int length);
-void feKLReport (const char *s, unsigned int length);
-void modoLog    (const char *s);
+void biLog (void *userData, const char *s, unsigned int length);
+void feLog                 (const char *s, unsigned int length);
+void feLogError            (const char *s, unsigned int length);
+void feKLReport            (const char *s, unsigned int length);
+void modoLog               (const char *s);
 
 #endif
 

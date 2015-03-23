@@ -1,5 +1,3 @@
-// note: code based on "\TrainingMaterial\05_canvas\04_dcc_deployment".
-
 #ifndef __BASEINTERFACE_H__
 #define __BASEINTERFACE_H__
 

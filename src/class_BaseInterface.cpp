@@ -1,10 +1,12 @@
 #include "class_BaseInterface.h"
-void biLog (void *userData, const char *s, unsigned int length);	// temp. quick hack.
 
 using namespace FabricServices;
+/*quick hack*/void biLog (void *userData, const char *s, unsigned int length);
 
 FabricCore::Client BaseInterface::s_client;
 DFGWrapper::Host * BaseInterface::s_host = NULL;
+FabricServices::ASTWrapper::KLASTManager * BaseInterface::s_manager = NULL;
+FabricServices::Commands::CommandStack BaseInterface::s_stack;
 unsigned int BaseInterface::s_maxId = 0;
 std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
 
@@ -31,7 +33,13 @@ BaseInterface::BaseInterface()
       // create an empty binding
       m_binding = s_host->createBindingToNewGraph();
 
-      // set the graph on the view
+	  // create KL AST manager
+      s_manager = new ASTWrapper::KLASTManager(&s_client);
+
+	  // command stack
+	  s_stack;
+
+	  // set the graph on the view
       setGraph(m_binding.getGraph());
     }
     catch(FabricCore::Exception e)
@@ -57,6 +65,8 @@ BaseInterface::~BaseInterface()
       try
       {
         printf("Destructing client...\n");
+		s_stack.clear();
+		delete(s_manager);
         delete(s_host);
         s_client = FabricCore::Client();
       }
@@ -94,6 +104,16 @@ FabricServices::DFGWrapper::Host * BaseInterface::getHost()
 FabricServices::DFGWrapper::Binding * BaseInterface::getBinding()
 {
   return &m_binding;
+}
+
+FabricServices::ASTWrapper::KLASTManager * BaseInterface::getManager()
+{
+  return s_manager;
+}
+
+FabricServices::Commands::CommandStack * BaseInterface::getStack()
+{
+  return &s_stack;
 }
 
 std::string BaseInterface::getJSON()
@@ -135,5 +155,5 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)
 {
   //printf("BaseInterface: %s\n", message);
-biLog(userData, message, length);			// temp. quick hack.
+	biLog(userData, message, length);
 }

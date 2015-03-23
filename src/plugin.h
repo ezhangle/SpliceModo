@@ -11,8 +11,6 @@
 #pragma warning (disable : 4806)	// unsafe operation: no value of type 'bool' promoted to type ...etc.
 
 // includes.
-#include "FabricSplice.h"
-#include "Commands/CommandStack.h"
 #include "FabricUI/DFG/DFGWidget.h"
 #include "class_BaseInterface.h"
 

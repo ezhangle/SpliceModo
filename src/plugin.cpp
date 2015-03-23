@@ -1,7 +1,6 @@
 // includes.
 #include "plugin.h"
 #include "chanmod_dfgModo.h"
-#include "command_feGetFabricVersion.h"
 #include "command_feGetPluginVersion.h"
 
 // log system.
@@ -17,16 +16,11 @@ void initialize()
 {
 	// Fabric.
 	{
-		FabricSplice::Initialize();
-		FabricSplice::Logging::setLogFunc		(feLog);
-		FabricSplice::Logging::setLogErrorFunc	(feLogError);
-		FabricSplice::Logging::setKLReportFunc	(feKLReport);
 	}
 
 	// MODO.
 	{
 		chanmod_dfgModoPackage    ::initialize();
-		command_feGetFabricVersion::initialize();
 		command_feGetPluginVersion::initialize();
 	}
  }
@@ -36,7 +30,6 @@ void cleanup()
 {
 	// Fabric.
 	{
-		FabricSplice::Finalize();
 	}
 
 	// MODO.

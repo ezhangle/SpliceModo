@@ -106,16 +106,6 @@ unsigned int chanmod_dfgModoInstance::cmod_Flags(ILxUnknownID item, unsigned int
 	return 0;
 }
 
-
-
-struct tempData { // please clean this up
-  ASTWrapper::KLASTManager * manager;
-  Commands::CommandStack stack;
-  DFG::DFGWidget * dfgWidget;
-};
-
-
-
 LxResult chanmod_dfgModoInstance::cmod_Evaluate(ILxUnknownID cmod, ILxUnknownID attr, void *data)
 {
 	BaseInterface &b = *m_feBaseInterface;
@@ -142,10 +132,6 @@ static bool first = true;
 			{
 				first = false;
 
-				tempData *d = new tempData();
-
-				d->manager = new ASTWrapper::KLASTManager(b.getClient());
-
 				// add a report node
 				DFGWrapper::Node reportNode = b.getGraph().addNodeFromPreset("Fabric.Core.Func.Report");
 
@@ -162,8 +148,8 @@ static bool first = true;
 				b.getBinding()->setArgValue("result",	value);
 				b.getBinding()->setArgValue("caption",	value);
 
-				d->dfgWidget = new DFG::DFGWidget(NULL, b.getClient(), d->manager, b.getHost(), *b.getBinding(), b.getGraph(), &d->stack, DFG::DFGConfig());
-				d->dfgWidget->show();
+				DFG::DFGWidget *dfgWidget = new DFG::DFGWidget(NULL, b.getClient(), b.getManager(), b.getHost(), *b.getBinding(), b.getGraph(), b.getStack(), DFG::DFGConfig());
+				dfgWidget->show();
 			}
 
 			// execute the graph

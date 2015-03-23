@@ -2,6 +2,8 @@
 #define __BASEINTERFACE_H__
 
 #include <DFGWrapper/DFGWrapper.h>
+#include <ASTWrapper/KLASTManager.h>
+#include <Commands/CommandStack.h>
 #include <map>
 
 // a management class for client and host
@@ -22,6 +24,8 @@ public:
   static FabricCore::Client * getClient();
   static FabricServices::DFGWrapper::Host * getHost();
   FabricServices::DFGWrapper::Binding * getBinding();
+  static FabricServices::ASTWrapper::KLASTManager * getManager();
+  static FabricServices::Commands::CommandStack * getStack();
 
   // persistence
   std::string getJSON();
@@ -54,6 +58,8 @@ private:
   static FabricCore::Client s_client;
   static FabricServices::DFGWrapper::Host * s_host;
   FabricServices::DFGWrapper::Binding m_binding;
+  static FabricServices::ASTWrapper::KLASTManager * s_manager;
+  static FabricServices::Commands::CommandStack s_stack;
   unsigned int m_id;
   static unsigned int s_maxId;
   static std::map<unsigned int, BaseInterface*> s_instances;

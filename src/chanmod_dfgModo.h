@@ -15,9 +15,9 @@
 
 #define CHN_NAME_OUT_feIsEnable        "feIsEnable"        // out: value of the input port "feEnable".
 #define CHN_NAME_OUT_feBaseInterfaceID "feBaseInterfaceID" // out: BaseInterface::getId().
-#define CHN_NAME_OUT_result_rx         "rx"
-#define CHN_NAME_OUT_result_ry         "ry"
-#define CHN_NAME_OUT_result_rz         "rz"
+#define CHN_NAME_OUT_rx                "rx"
+#define CHN_NAME_OUT_ry                "ry"
+#define CHN_NAME_OUT_rz                "rz"
 enum enum_CHN_INPUT
 {
 	CHN_INDEX_IN__feEnable	= 0,

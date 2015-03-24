@@ -24,6 +24,8 @@ BaseInterface::BaseInterface()
       memset( &options, 0, sizeof( options ) );
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
       s_client = FabricCore::Client(&logFunc, NULL, &options);
+	  s_client.loadExtension("Math",     "", false);
+	  s_client.loadExtension("Geometry", "", false);
 
       // create a host for Canvas
       s_host = new DFGWrapper::Host(s_client);

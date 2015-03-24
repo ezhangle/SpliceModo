@@ -4,7 +4,9 @@ Import('parentEnv', 'STAGE_DIR', 'MODO_SDK_DIR', 'commonLib')
 env = parentEnv.Clone()
 env.Append(LIBS = [commonLib])
 
-sources = env.Glob('*.cpp')
+headers = Flatten(Glob('*.h'))	
+sources = Flatten(Glob('*.cpp'))
+sources += Flatten(env.GlobQObjectSources('*.h'))
 
 plugin = env.SharedLibrary('FabricModo', sources, SHLIBSUFFIX='.lx')
 Export('plugin')

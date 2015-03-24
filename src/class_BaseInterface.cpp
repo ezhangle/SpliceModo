@@ -19,8 +19,6 @@ BaseInterface::BaseInterface()
   {
     try
     {
-      printf("Constructing client...\n");
-
       // create a client
       FabricCore::Client::CreateOptions options;
       memset( &options, 0, sizeof( options ) );

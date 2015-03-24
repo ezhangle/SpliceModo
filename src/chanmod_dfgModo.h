@@ -6,37 +6,37 @@
 #define CHN_NAME_IN__feEnable          "feEnable"          // in:  enable/disable execution of DFG for this item.
 #define CHN_NAME_IN__feJSON            "feJSON"            // in:  string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
 #define CHN_NAME_IN__strength          "strength"
-#define CHN_NAME_IN__in1_X             "in1_X"
-#define CHN_NAME_IN__in1_Y             "in1_Y"
-#define CHN_NAME_IN__in1_Z             "in1_Z"
-#define CHN_NAME_IN__in2_X             "in2_X"
-#define CHN_NAME_IN__in2_Y             "in2_Y"
-#define CHN_NAME_IN__in2_Z             "in2_Z"
+#define CHN_NAME_IN__ax                "ax"
+#define CHN_NAME_IN__ay                "ay"
+#define CHN_NAME_IN__az                "az"
+#define CHN_NAME_IN__bx                "bx"
+#define CHN_NAME_IN__by                "by"
+#define CHN_NAME_IN__bz                "bz"
 
 #define CHN_NAME_OUT_feIsEnable        "feIsEnable"        // out: value of the input port "feEnable".
 #define CHN_NAME_OUT_feBaseInterfaceID "feBaseInterfaceID" // out: BaseInterface::getId().
-#define CHN_NAME_OUT_result_X          "result_X"
-#define CHN_NAME_OUT_result_Y          "result_Y"
-#define CHN_NAME_OUT_result_Z          "result_Z"
+#define CHN_NAME_OUT_result_rx         "rx"
+#define CHN_NAME_OUT_result_ry         "ry"
+#define CHN_NAME_OUT_result_rz         "rz"
 enum enum_CHN_INPUT
 {
 	CHN_INDEX_IN__feEnable	= 0,
 	CHN_INDEX_IN__feJSON,
 	CHN_INDEX_IN__strength,
-	CHN_INDEX_IN__in1_X,
-	CHN_INDEX_IN__in1_Y,
-	CHN_INDEX_IN__in1_Z,
-	CHN_INDEX_IN__in2_X,
-	CHN_INDEX_IN__in2_Y,
-	CHN_INDEX_IN__in2_Z,
+	CHN_INDEX_IN__ax,
+	CHN_INDEX_IN__ay,
+	CHN_INDEX_IN__az,
+	CHN_INDEX_IN__bx,
+	CHN_INDEX_IN__by,
+	CHN_INDEX_IN__bz,
 };
 enum enum_CHN_OUTPUT
 {
 	CHN_INDEX_OUT_feIsEnable	= 0,
 	CHN_INDEX_OUT_feBaseInterfaceID,
-	CHN_INDEX_OUT_result_X,
-	CHN_INDEX_OUT_result_Y,
-	CHN_INDEX_OUT_result_Z,
+	CHN_INDEX_OUT_rx,
+	CHN_INDEX_OUT_ry,
+	CHN_INDEX_OUT_rz,
 };
 
 

@@ -7,6 +7,12 @@
 #include "plugin.h"
 #include "chanmod_dfgModo.h"
 
+#include <QtGui/QApplication>
+#include <QtGui/QWidget>
+
+#include "class_FabricDFGWidget.h"
+
+
 using namespace FabricServices;
 using namespace FabricUI;
 
@@ -147,8 +153,25 @@ static bool first = true;
 				b.getBinding()->setArgValue("result",	value);
 				b.getBinding()->setArgValue("caption",	value);
 
-				DFG::DFGWidget *dfgWidget = new DFG::DFGWidget(NULL, b.getClient(), b.getManager(), b.getHost(), *b.getBinding(), b.getGraph(), b.getStack(), DFG::DFGConfig());
-				dfgWidget->show();
+				//DFG::DFGWidget *dfgWidget = new DFG::DFGWidget(NULL, b.getClient(), b.getManager(), b.getHost(), *b.getBinding(), b.getGraph(), b.getStack(), DFG::DFGConfig());
+				//dfgWidget->show();
+
+				QMainWindow *mainWin = NULL;
+
+				/* note: doesn't work, must ask Modo devs.
+
+				  Q_FOREACH(QWidget* w, QApplication::topLevelWidgets() )
+				  {
+					if( qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
+					{
+					  mainWin = (QMainWindow*)w;
+					  break;
+					}
+				  }
+				*/
+
+				FabricDFGWidget *dfgw = new FabricDFGWidget(mainWin, m_feBaseInterface);
+				(*dfgw).show();
 			}
 
 			// execute the graph

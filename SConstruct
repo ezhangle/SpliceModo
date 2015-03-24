@@ -36,6 +36,7 @@ for thirdpartyDir in thirdpartyDirs:
   if not os.environ.has_key(thirdpartyDir):
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
+
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include', 'FabricUI')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'lib')])
@@ -79,6 +80,34 @@ elif platform.system().lower().startswith('lin'):
 # ui related libraries
 env.MergeFlags(qtFlags)
 env.Append(LIBS = ['FabricUI'])
+
+qtMOCBuilder = Builder(
+  action = [[qtMOC, '-o', '$TARGET', '$SOURCE']],
+  prefix = 'moc_',
+  suffix = '.cc',
+  src_suffix = '.h',
+)
+env.Append(BUILDERS = {'QTMOC': qtMOCBuilder})
+
+def GlobQObjectHeaders(env, filter):
+  headers = Flatten(env.Glob(filter))
+  qobjectHeaders = []
+  for header in headers:
+    content = open(header.srcnode().abspath, 'rb').read()
+    if content.find('Q_OBJECT') > -1:
+      qobjectHeaders.append(header)
+  return qobjectHeaders
+Export('GlobQObjectHeaders')
+env.AddMethod(GlobQObjectHeaders)
+
+def GlobQObjectSources(env, filter):
+  headers = env.GlobQObjectHeaders(filter)
+  sources = []
+  for header in headers:
+    sources += env.QTMOC(header)
+  return sources
+Export('GlobQObjectSources')
+env.AddMethod(GlobQObjectSources)
 
 # standard libraries
 if sys.platform == 'win32':

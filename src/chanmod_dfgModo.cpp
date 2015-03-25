@@ -208,7 +208,17 @@ static bool first = true;
 				f = FabricCore::RTVal::ConstructFloat32(*b.getClient(), strength);
 				binding.setArgValue("strength", f);
 
-				//FabricCore::RTVal v = FabricCore::RTVal::Construct(*b.getClient(), "Vec3", 3, strength);
+				xyz[0] = FabricCore::RTVal::ConstructFloat32(*b.getClient(), ax);
+				xyz[1] = FabricCore::RTVal::ConstructFloat32(*b.getClient(), ay);
+				xyz[2] = FabricCore::RTVal::ConstructFloat32(*b.getClient(), az);
+				v = FabricCore::RTVal::Construct(*b.getClient(), "Vec3", 3, xyz);
+				binding.setArgValue("a", v);
+				
+				xyz[0] = FabricCore::RTVal::ConstructFloat32(*b.getClient(), bx);
+				xyz[1] = FabricCore::RTVal::ConstructFloat32(*b.getClient(), by);
+				xyz[2] = FabricCore::RTVal::ConstructFloat32(*b.getClient(), bz);
+				v = FabricCore::RTVal::Construct(*b.getClient(), "Vec3", 3, xyz);
+				binding.setArgValue("b", v);
 			}
 
 			// execute the graph.
@@ -218,7 +228,7 @@ static bool first = true;
 			{
 				FabricCore::RTVal r = binding.getArgValue("result");
 				FabricCore::RTVal x = r.maybeGetMember("x");	rx = x.getFloat32();
-				FabricCore::RTVal y = r.maybeGetMember("y");	ry = -2 + y.getFloat32();
+				FabricCore::RTVal y = r.maybeGetMember("y");	ry = y.getFloat32();
 				FabricCore::RTVal z = r.maybeGetMember("z");	rz = z.getFloat32();
 			}
 		}

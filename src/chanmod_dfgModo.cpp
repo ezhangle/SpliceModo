@@ -7,9 +7,6 @@
 #include "plugin.h"
 #include "chanmod_dfgModo.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QWidget>
-
 #include "class_FabricDFGWidget.h"
 
 #include "Windows.h"
@@ -33,8 +30,11 @@ LxResult chanmod_dfgModoInstance::pins_Initialize(ILxUnknownID item, ILxUnknownI
 {
 	// Fabric.
 	{
+		// set log function pointers.
 		BaseInterface::setLogFunc(feLog);
 		BaseInterface::setLogErrorFunc(feLogError);
+
+		// create base interface.
 		m_feBaseInterface = new BaseInterface();
 	}
 
@@ -50,6 +50,11 @@ void chanmod_dfgModoInstance::pins_Cleanup(void)
 {
 	// Fabric.
 	{
+		// delete widget, if any.
+		FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_feBaseInterface, false);
+		if (w) delete w;
+
+		// delete base instance.
 		delete m_feBaseInterface;
 	}
 
@@ -117,7 +122,14 @@ LxResult chanmod_dfgModoInstance::cmod_Evaluate(ILxUnknownID cmod, ILxUnknownID 
 {
 	BaseInterface &b = *m_feBaseInterface;
 	CLxLoc_ChannelModifier chanMod(cmod);
-        
+
+	// w.i.p.
+	{
+		FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_feBaseInterface);
+		if (w && !(*w).isVisible())
+			(*w).show();
+	}
+
 	// read the input channels.
 	int feEnable = false;
 	chanMod.ReadInputInt(attr, CHN_INDEX_IN__feEnable, &feEnable);
@@ -150,52 +162,12 @@ static bool first = true;
 			{
 				first = false;
 
-				#ifdef __USE_HELGES_STUFF
-				{
-					// add a report node
-					DFGWrapper::Node reportNode = b.getGraph().addNodeFromPreset("Fabric.Core.Func.Report");
-
-					// add an in and one out port
-					b.getGraph().addPort("caption", FabricCore::DFGPortType_In);
-					b.getGraph().addPort("result", FabricCore::DFGPortType_Out);
-
-					// connect things up
-					b.getGraph().getPort("caption").connect(reportNode.getPin("value"));
-					reportNode.getPin("value").connect(b.getGraph().getPort("result"));
-
-					// setup the values to perform on
-					FabricCore::RTVal value = FabricCore::RTVal::ConstructString(*b.getClient(), "test, test, 1, 2, 3...");
-					b.getBinding()->setArgValue("result",	value);
-					b.getBinding()->setArgValue("caption",	value);
-				}
-				#endif
-
 				// add ports.
 				b.getGraph().addPort("strength",	FabricCore::DFGPortType_In,  "Float32");
 				b.getGraph().addPort("a",			FabricCore::DFGPortType_In,  "Vec3");
 				b.getGraph().addPort("b",			FabricCore::DFGPortType_In,  "Vec3");
 				b.getGraph().addPort("result",		FabricCore::DFGPortType_Out, "Vec3");
 
-
-				//DFG::DFGWidget *dfgWidget = new DFG::DFGWidget(NULL, b.getClient(), b.getManager(), b.getHost(), *b.getBinding(), b.getGraph(), b.getStack(), DFG::DFGConfig());
-				//dfgWidget->show();
-
-				QMainWindow *mainWin = NULL;
-
-				/* note: doesn't work, must ask Modo devs.
-
-				  Q_FOREACH(QWidget* w, QApplication::topLevelWidgets() )
-				  {
-					if( qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
-					{
-					  mainWin = (QMainWindow*)w;
-					  break;
-					}
-				  }
-				*/
-
-				FabricDFGWidget *dfgw = new FabricDFGWidget(mainWin, m_feBaseInterface);
-				(*dfgw).show();
 			}
 
 			//

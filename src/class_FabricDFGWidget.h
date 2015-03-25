@@ -29,9 +29,14 @@ public:
   FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface);
   ~FabricDFGWidget();
 
+  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
+
 public slots:
   virtual void onRecompilation();
   virtual void onPortRenamed(QString path, QString newName);
+
+private:
+	static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
 };
 
 #endif 

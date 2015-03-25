@@ -8,6 +8,7 @@ FabricServices::ASTWrapper::KLASTManager * BaseInterface::s_manager = NULL;
 FabricServices::Commands::CommandStack BaseInterface::s_stack;
 unsigned int BaseInterface::s_maxId = 0;
 void (*BaseInterface::s_logFunc)(void *, const char *, unsigned int) = NULL;
+void (*BaseInterface::s_logErrorFunc)(void *, const char *, unsigned int) = NULL;
 std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
 
 BaseInterface::BaseInterface()
@@ -44,7 +45,7 @@ BaseInterface::BaseInterface()
     }
     catch(FabricCore::Exception e)
     {
-      printf("Error: %s\n", e.getDesc_cstr());
+      logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
   }
 
@@ -72,7 +73,7 @@ BaseInterface::~BaseInterface()
       }
       catch(FabricCore::Exception e)
       {
-        printf("Error: %s\n", e.getDesc_cstr());
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
       }
     }
   }
@@ -124,7 +125,7 @@ std::string BaseInterface::getJSON()
   }
   catch(FabricCore::Exception e)
   {
-    printf("Error: %s\n", e.getDesc_cstr());
+    logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
   }
   return "";
 }
@@ -138,13 +139,18 @@ void BaseInterface::setFromJSON(const std::string & json)
   }
   catch(FabricCore::Exception e)
   {
-    printf("Error: %s\n", e.getDesc_cstr());
+    logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
   }
 }
 
 void BaseInterface::setLogFunc(void (*in_logFunc)(void *, const char *, unsigned int))
 {
 	s_logFunc = in_logFunc;
+}
+
+void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *, unsigned int))
+{
+	s_logErrorFunc = in_logErrorFunc;
 }
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
@@ -168,3 +174,17 @@ void BaseInterface::logFunc(void * userData, const char * message, unsigned int 
     printf("BaseInterface: %s\n", message);
   }
 }
+
+void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned int length)
+{
+  if (s_logErrorFunc)
+  {
+    s_logErrorFunc(userData, message, length);
+  }
+  else
+  {
+    printf("BaseInterface: error: %s\n", message);
+  }
+}
+
+

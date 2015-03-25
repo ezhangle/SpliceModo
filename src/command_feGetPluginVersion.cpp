@@ -21,9 +21,9 @@ LXtTagInfoDesc command_feGetPluginVersion::descInfo[] =
 // execute code.
 void command_feGetPluginVersion::cmd_Execute(unsigned flags)
 {
-	char s[256];
+	char s[1024];
 	sprintf(s, "FabricModo plugin version %.3f", FABRICMODO_PLUGIN_VERSION);
-	modoLog(s);
+	feLog(NULL, s, strlen(s));
 }
  
 // end of file

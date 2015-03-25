@@ -33,6 +33,7 @@ public:
 
   // logging.
   static void setLogFunc(void (*in_logFunc)(void *, const char *, unsigned int));
+  static void setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *, unsigned int));
 
   // notifications
   // for now we only implement onPortInserted and onPortRemoved
@@ -57,7 +58,9 @@ public:
 private:
 
   static void logFunc(void * userData, const char * message, unsigned int length);
+  static void logErrorFunc(void * userData, const char * message, unsigned int length);
   static void (*s_logFunc)(void *, const char *, unsigned int);
+  static void (*s_logErrorFunc)(void *, const char *, unsigned int);
 
   static FabricCore::Client s_client;
   static FabricServices::DFGWrapper::Host * s_host;

@@ -12,6 +12,7 @@
 
 // includes.
 #include "FabricUI/DFG/DFGWidget.h"
+#include "class_FabricDFGWidget.h"
 #include "class_BaseInterface.h"
 
 // more includes.
@@ -24,7 +25,7 @@
 #include "lxu_log.hpp"
 #include "lxlog.h"
 
-// log system.
+// log system (2/2).
 #define	LOG_SYSTEM_NAME	"Fabric"
 class CItemLog : public CLxLogMessage
 {
@@ -35,11 +36,8 @@ class CItemLog : public CLxLogMessage
  	const char *GetCopyright()	{	return "n.a.";	};
 };
 extern CItemLog gLog;
-void biLog (void *userData, const char *s, unsigned int length);
-void feLog                 (const char *s, unsigned int length);
-void feLogError            (const char *s, unsigned int length);
-void feKLReport            (const char *s, unsigned int length);
-void modoLog               (const char *s);
+void feLog(void *userData, const char *s, unsigned int length);
+void feLogError(void *userData, const char *s, unsigned int length);
 
 #endif
 

@@ -11,6 +11,7 @@
 #include <map>
 
 #include <FabricUI/DFG/DFGUI.h>
+#include <FabricUI/DFG/DFGCombinedWidget.h>
 #include <FabricUI/DFG/DFGValueEditor.h>
 
 #include <FabricSplice.h>
@@ -20,34 +21,17 @@
 using namespace FabricServices;
 using namespace FabricUI;
 
-class FabricDFGWidget : public QSplitter {
+class FabricDFGWidget : public DFG::DFGCombinedWidget {
 
   Q_OBJECT
   
 public:
-  FabricDFGWidget(QWidget * parent, BaseInterface *baseInterface);
+  FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface);
   ~FabricDFGWidget();
 
-  static QWidget * creator(QWidget * parent, BaseInterface *baseInterface, const QString & name);
-  
-  static void setCurrentUINodeName(const char * node);
-  static void log(const char * message);
-
 public slots:
-  void onValueChanged();
-  void onStructureChanged();
-  void onRecompilation();
-  void onPortRenamed(QString path, QString newName);
-  void hotkeyPressed(Qt::Key, Qt::KeyboardModifier, QString);
-  void onNodeDoubleClicked(FabricUI::GraphView::Node * node);
-
-private:
-  BaseInterface *m_baseInterface;
-  DFG::PresetTreeWidget * m_treeWidget;
-  DFG::DFGWidget * m_dfgWidget;
-  DFG::DFGValueEditor * m_dfgValueEditor;
-  std::string m_baseInterfaceName;
-  static std::string s_currentUINodeName;
+  virtual void onRecompilation();
+  virtual void onPortRenamed(QString path, QString newName);
 };
 
 #endif 

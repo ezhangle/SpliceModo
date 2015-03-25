@@ -1,8 +1,13 @@
 import os
+import platform
+
 Import('parentEnv', 'STAGE_DIR', 'MODO_SDK_DIR', 'commonLib')
 
 env = parentEnv.Clone()
 env.Append(LIBS = [commonLib])
+
+if platform.system().lower().startswith('win'):
+  env.Append(CCFLAGS = ['/Od', '/Zi']) # 'Z7'
 
 headers = Flatten(Glob('*.h'))	
 sources = Flatten(Glob('*.cpp'))
@@ -15,8 +20,6 @@ Export('plugin')
 installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
 
 installedPlugin = env.Install(installDir, plugin[0])
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('index.cfg'))
 
-installedIndexCfg = env.Install(STAGE_DIR.Dir('FabricModo'), env.File('index.cfg'))
-
-alias = env.Alias('plugin', installedPlugin + installedIndexCfg)
-Return('alias')
+Return('installedPlugin')

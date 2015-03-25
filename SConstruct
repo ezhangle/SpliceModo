@@ -36,7 +36,7 @@ for thirdpartyDir in thirdpartyDirs:
   if not os.environ.has_key(thirdpartyDir):
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
-
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include', 'FabricUI')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'lib')])
@@ -115,16 +115,27 @@ if sys.platform == 'win32':
 else:
   env.Append(LIBS = ['X11', 'GLU', 'GL', 'dl', 'pthread'])
 
+if sys.platform == 'win32':
+  env.Append(CCFLAGS = ['/Od', '/Zi']) # 'Z7'
+  env['CCPDBFLAGS']  = ['${(PDB and "/Fd%s.pdb /Zi" % File(PDB)) or ""}']
+
 commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', exports = {
   'parentEnv': env, 
   'STAGE_DIR': env.Dir('stage'), 
   'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
 }, duplicate=0)
 
-pluginAlias = SConscript('src/SConscript', variant_dir = 'build/src', exports = {
+pluginFiles = SConscript('src/SConscript', variant_dir = 'build/src', exports = {
   'parentEnv': env, 
   'STAGE_DIR': env.Dir('stage'), 
   'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
 }, duplicate=0)
+
+if sys.platform == 'win32':
+  pdbFile = env.Dir('#').File('vc'+env['MSVC_VERSION'].replace('.', '')+'.pdb')
+  env.Depends(pdbFile, pluginFiles)
+  pluginFiles += env.InstallAs(pluginFiles[0].dir.File('FabricModo.pdb'), pdbFile)
+
+pluginAlias = env.Alias('plugin', pluginFiles)
 
 env.Default(pluginAlias)

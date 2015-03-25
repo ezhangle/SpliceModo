@@ -33,7 +33,8 @@ LxResult chanmod_dfgModoInstance::pins_Initialize(ILxUnknownID item, ILxUnknownI
 {
 	// Fabric.
 	{
-		BaseInterface::setLogFunc(biLog);
+		BaseInterface::setLogFunc(feLog);
+		BaseInterface::setLogErrorFunc(feLogError);
 		m_feBaseInterface = new BaseInterface();
 	}
 
@@ -211,9 +212,8 @@ static bool first = true;
 			}
 
 			// execute the graph.
-			b.getBinding()->execute();		// THIS LINE CRASHES !!!!! ?!?!?!?!?!?
+			b.getBinding()->execute();
 
-#ifdef SDGSGSDGSDGGSGSGSG
 			// put graph's result in rxyz.
 			{
 				FabricCore::RTVal r = binding.getArgValue("result");
@@ -221,19 +221,12 @@ static bool first = true;
 				FabricCore::RTVal y = r.maybeGetMember("y");	ry = -2 + y.getFloat32();
 				FabricCore::RTVal z = r.maybeGetMember("z");	rz = z.getFloat32();
 			}
-#endif
 		}
 		catch(FabricCore::Exception e)
 		{
-			sprintf("Error: %s\n", e.getDesc_cstr());
-			//Beep(888,888);
-
-			//char s[1024];
-			//sprintf("Error: %s\n", e.getDesc_cstr());
-			//modoLog(s);
+			feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
 		}
 
-ry = ax+ay+az + bx+by+bz;
 
 	}
 

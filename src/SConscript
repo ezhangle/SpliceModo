@@ -16,5 +16,7 @@ installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
 
 installedPlugin = env.Install(installDir, plugin[0])
 
-alias = env.Alias('plugin', installedPlugin)
+installedIndexCfg = env.Install(STAGE_DIR.Dir('FabricModo'), env.File('index.cfg'))
+
+alias = env.Alias('plugin', installedPlugin + installedIndexCfg)
 Return('alias')

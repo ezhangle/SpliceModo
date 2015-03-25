@@ -199,7 +199,7 @@ static bool first = true;
 
 			//
 			FabricServices::DFGWrapper::Binding &binding = *b.getBinding();
-#ifdef SDGSGSDGSDGGSGSGSG
+
 			// set graph input ports from Modo input ports.
 			{
 				FabricCore::RTVal v, xyz[3], f;
@@ -207,15 +207,13 @@ static bool first = true;
 				f = FabricCore::RTVal::ConstructFloat32(*b.getClient(), strength);
 				binding.setArgValue("strength", f);
 
-
 				//FabricCore::RTVal v = FabricCore::RTVal::Construct(*b.getClient(), "Vec3", 3, strength);
 			}
-#endif
-#ifdef SDGSGSDGSDGGSGSGSG
 
 			// execute the graph.
 			b.getBinding()->execute();		// THIS LINE CRASHES !!!!! ?!?!?!?!?!?
 
+#ifdef SDGSGSDGSDGGSGSGSG
 			// put graph's result in rxyz.
 			{
 				FabricCore::RTVal r = binding.getArgValue("result");

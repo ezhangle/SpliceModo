@@ -81,6 +81,34 @@ elif platform.system().lower().startswith('lin'):
 env.MergeFlags(qtFlags)
 env.Append(LIBS = ['FabricUI'])
 
+qtMOCBuilder = Builder(
+  action = [[qtMOC, '-o', '$TARGET', '$SOURCE']],
+  prefix = 'moc_',
+  suffix = '.cc',
+  src_suffix = '.h',
+)
+env.Append(BUILDERS = {'QTMOC': qtMOCBuilder})
+
+def GlobQObjectHeaders(env, filter):
+  headers = Flatten(env.Glob(filter))
+  qobjectHeaders = []
+  for header in headers:
+    content = open(header.srcnode().abspath, 'rb').read()
+    if content.find('Q_OBJECT') > -1:
+      qobjectHeaders.append(header)
+  return qobjectHeaders
+Export('GlobQObjectHeaders')
+env.AddMethod(GlobQObjectHeaders)
+
+def GlobQObjectSources(env, filter):
+  headers = env.GlobQObjectHeaders(filter)
+  sources = []
+  for header in headers:
+    sources += env.QTMOC(header)
+  return sources
+Export('GlobQObjectSources')
+env.AddMethod(GlobQObjectSources)
+
 # standard libraries
 if sys.platform == 'win32':
   env.Append(LIBS = ['user32', 'advapi32', 'gdi32', 'shell32', 'ws2_32', 'Opengl32', 'glu32'])
@@ -97,10 +125,17 @@ commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', expo
   'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
 }, duplicate=0)
 
-pluginAlias = SConscript('src/SConscript', variant_dir = 'build/src', exports = {
+pluginFiles = SConscript('src/SConscript', variant_dir = 'build/src', exports = {
   'parentEnv': env, 
   'STAGE_DIR': env.Dir('stage'), 
   'MODO_SDK_DIR': os.environ['MODO_SDK_DIR']
 }, duplicate=0)
+
+if sys.platform == 'win32':
+  pdbFile = env.Dir('#').File('vc'+env['MSVC_VERSION'].replace('.', '')+'.pdb')
+  env.Depends(pdbFile, pluginFiles)
+  pluginFiles += env.InstallAs(pluginFiles[0].dir.File('FabricUI.pdb'), pdbFile)
+
+pluginAlias = env.Alias('plugin', pluginFiles)
 
 env.Default(pluginAlias)

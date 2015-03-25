@@ -9,7 +9,9 @@ env.Append(LIBS = [commonLib])
 if platform.system().lower().startswith('win'):
   env.Append(CCFLAGS = ['/Od', '/Zi']) # 'Z7'
 
-sources = env.Glob('*.cpp')
+headers = Flatten(Glob('*.h'))	
+sources = Flatten(Glob('*.cpp'))
+sources += Flatten(env.GlobQObjectSources('*.h'))
 
 plugin = env.SharedLibrary('FabricModo', sources, SHLIBSUFFIX='.lx')
 Export('plugin')
@@ -18,6 +20,4 @@ Export('plugin')
 installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
 
 installedPlugin = env.Install(installDir, plugin[0])
-
-alias = env.Alias('plugin', installedPlugin)
-Return('alias')
+Return('installedPlugin')

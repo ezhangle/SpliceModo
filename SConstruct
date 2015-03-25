@@ -36,6 +36,7 @@ for thirdpartyDir in thirdpartyDirs:
   if not os.environ.has_key(thirdpartyDir):
     raise Exception(thirdpartyDir+' env variable not defined. '+thirdpartyDirs[thirdpartyDir])
 
+env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include')])
 env.Append(CPPPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'include', 'FabricUI')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_DIR'], 'lib')])
 env.Append(LIBPATH = [os.path.join(os.environ['FABRIC_UI_DIR'], 'stage', 'lib')])
@@ -85,6 +86,10 @@ if sys.platform == 'win32':
   env.Append(LIBS = ['user32', 'advapi32', 'gdi32', 'shell32', 'ws2_32', 'Opengl32', 'glu32'])
 else:
   env.Append(LIBS = ['X11', 'GLU', 'GL', 'dl', 'pthread'])
+
+if sys.platform == 'win32':
+  env.Append(CCFLAGS = ['/Od', '/Zi']) # 'Z7'
+  env['CCPDBFLAGS']  = ['${(PDB and "/Fd%s.pdb /Zi" % File(PDB)) or ""}']
 
 commonAlias = SConscript('common/SConscript', variant_dir = 'build/common', exports = {
   'parentEnv': env, 

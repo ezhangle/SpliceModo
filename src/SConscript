@@ -1,8 +1,13 @@
 import os
+import platform
+
 Import('parentEnv', 'STAGE_DIR', 'MODO_SDK_DIR', 'commonLib')
 
 env = parentEnv.Clone()
 env.Append(LIBS = [commonLib])
+
+if platform.system().lower().startswith('win'):
+  env.Append(CCFLAGS = ['/Od', '/Zi']) # 'Z7'
 
 sources = env.Glob('*.cpp')
 

@@ -53,7 +53,25 @@ namespace dfgModoIM
 		
 		LxResult	cui_UIHints(const char *channelName, ILxUnknownID hints_obj)	LXx_OVERRIDE;
 	
-		void		sil_ItemAddChannel(ILxUnknownID item_obj)						LXx_OVERRIDE;
+		void		sil_ItemAddChannel(ILxUnknownID item_obj)						LXx_OVERRIDE
+		{
+			/*
+			 *	When user channels are added to our item type, this function will be
+			 *	called. We use it to invalidate our modifier so that it's reallocated.
+			 *	We don't need to worry about channels being removed, as the evaluation
+			 *	system will automatically invalidate the modifier when channels it
+			 *	writes are removed.
+			 */
+	
+			CLxUser_Item item (item_obj);
+			CLxUser_Scene scene;
+	
+			if (item.test() && item.IsA(gItemType.Type()))
+			{
+				if (item.GetContext(scene))
+					scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+			}
+		};
 
 		static LXtTagInfoDesc descInfo[];
 	
@@ -72,7 +90,30 @@ namespace dfgModoIM
 	{
 		public:
 		Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj);
-		bool	Test(ILxUnknownID item_obj)									LXx_OVERRIDE;
+		bool	Test(ILxUnknownID item_obj)									LXx_OVERRIDE
+		{
+			/*
+			 *	When the list of user channels for a particular item changes, the
+			 *	modifier will be invalidated. This function will be called to check
+			 *	if the modifier we allocated previously matches what we'd allocate
+			 *	if the Alloc function was called now. We return true if it does. In
+			 *	our case, we check if the current list of user channels for the
+			 *	specified item matches what we cached when we allocated the modifier.
+			 */
+	
+			CLxUser_Item		 item (item_obj);
+			std::vector <ChannelDef> user_channels;
+	
+			if (item.test ())
+			{
+				userChannels_collect (item, user_channels);
+		
+				return user_channels.size () == _user_channels.size ();
+			}
+	
+			return false;
+		};
+
 		void	Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)	LXx_OVERRIDE;
 	
 		private:

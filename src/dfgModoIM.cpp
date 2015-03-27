@@ -11,7 +11,9 @@ LXtTagInfoDesc dfgModoIM::Package::descInfo[] =
 // global item type.
 CLxItemType dfgModoIM::gItemType(SERVER_NAME_dfgModoIM);
 
-
+// fixed channel names.
+#define CHN_NAME_IO_FabricActive	"FabricActive"	// io: enable/disable execution of DFG for this item.
+#define CHN_NAME_IO_FabricJSON		"FabricJSON"	// io: string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
 
 
 
@@ -26,29 +28,32 @@ CLxItemType dfgModoIM::gItemType(SERVER_NAME_dfgModoIM);
 
 LxResult dfgModoIM::Package::pkg_SetupChannels (ILxUnknownID addChan_obj)
 {
-	/*
-	 *	Add some basic built in channels.
-	 */
-	
-	CLxUser_AddChannel	 add_chan (addChan_obj);
-	LxResult		 result = LXe_FAILED;
-	
-	if (add_chan.test ())
+	CLxUser_AddChannel add_chan(addChan_obj);
+	LxResult result = LXe_FAILED;
+
+	// add fixed channels.
+	if (add_chan.test())
 	{
-		add_chan.NewChannel (CHAN_MATRIX, LXsTYPE_MATRIX4);
-		add_chan.SetStorage (LXsTYPE_MATRIX4);
-	
-		add_chan.NewChannel (CHAN_QUATERNION, LXsTYPE_QUATERNION);
-		add_chan.SetStorage (LXsTYPE_QUATERNION);
-	
-		add_chan.NewChannel (CHAN_STRING, LXsTYPE_STRING);
+		add_chan.NewChannel (CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
+		add_chan.SetDefault (0, 1);
+
+		add_chan.NewChannel (CHN_NAME_IO_FabricJSON, LXsTYPE_STRING);
 		add_chan.SetStorage (LXsTYPE_STRING);
+
+add_chan.NewChannel (CHAN_MATRIX, LXsTYPE_MATRIX4);
+add_chan.SetStorage (LXsTYPE_MATRIX4);
 	
-		add_chan.NewChannel (CHAN_INTEGER, LXsTYPE_INTEGER);
-		add_chan.SetDefault (0.0, 0);
+add_chan.NewChannel (CHAN_QUATERNION, LXsTYPE_QUATERNION);
+add_chan.SetStorage (LXsTYPE_QUATERNION);
 	
-		add_chan.NewChannel (CHAN_FLOAT, LXsTYPE_FLOAT);
-		add_chan.SetDefault (0.0, 0);
+add_chan.NewChannel (CHAN_STRING, LXsTYPE_STRING);
+add_chan.SetStorage (LXsTYPE_STRING);
+	
+add_chan.NewChannel (CHAN_INTEGER, LXsTYPE_INTEGER);
+add_chan.SetDefault (0.0, 0);
+	
+add_chan.NewChannel (CHAN_FLOAT, LXsTYPE_FLOAT);
+add_chan.SetDefault (0.0, 0);
 		
 		result = LXe_OK;
 	}
@@ -58,22 +63,20 @@ LxResult dfgModoIM::Package::pkg_SetupChannels (ILxUnknownID addChan_obj)
 
 LxResult dfgModoIM::Package::cui_UIHints (const char *channelName, ILxUnknownID hints_obj)
 {
-	/*
-	 *	Here we set some hints for the built in channels. These allow channels
-	 *	to be displayed as either inputs or outputs in the schematic. For the
-	 *	standard channel (draw) we do nothing, for any of our inputs, we add
-	 *	them as suggested input channels. Any other channel (user channels),
-	 *	are added as suggested output channels.
-	 */
+	CLxUser_UIHints hints(hints_obj);
+	LxResult result = LXe_FAILED;
 
-	CLxUser_UIHints		 hints (hints_obj);
-	LxResult		 result = LXe_FAILED;
-	
-	if (hints.test ())
+	// set hints for channels.
+	if (hints.test())
 	{
-		if (strcmp (channelName, "draw") != 0)
+		if (strcmp(channelName, "draw") != 0)
 		{
-			if (strcmp (channelName, CHAN_FLOAT) == 0      ||
+			if (   !strcmp(channelName, CHN_NAME_IO_FabricActive)
+				|| !strcmp(channelName, CHN_NAME_IO_FabricJSON)	)
+			{
+				result = hints.ChannelFlags(0);	// don't show these ports in the schematic view.
+			}
+			else if (strcmp (channelName, CHAN_FLOAT) == 0      ||
 			    strcmp (channelName, CHAN_INTEGER) == 0    ||
 			    strcmp (channelName, CHAN_MATRIX) == 0     ||
 			    strcmp (channelName, CHAN_QUATERNION) == 0 ||
@@ -83,7 +86,10 @@ LxResult dfgModoIM::Package::cui_UIHints (const char *channelName, ILxUnknownID 
 			}
 			else
 			{
-				result = hints.ChannelFlags (LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+				if (strcmp (channelName, "hello"))
+					result = hints.ChannelFlags (LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+				else
+					result = hints.ChannelFlags (LXfUIHINTCHAN_INPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
 			}
 		}
 		
@@ -93,25 +99,6 @@ LxResult dfgModoIM::Package::cui_UIHints (const char *channelName, ILxUnknownID 
 	return result;
 }
 
-void dfgModoIM::Package::sil_ItemAddChannel (ILxUnknownID item_obj)
-{
-	/*
-	 *	When user channels are added to our item type, this function will be
-	 *	called. We use it to invalidate our modifier so that it's reallocated.
-	 *	We don't need to worry about channels being removed, as the evaluation
-	 *	system will automatically invalidate the modifier when channels it
-	 *	writes are removed.
-	 */
-	
-	CLxUser_Item		 item (item_obj);
-	CLxUser_Scene		 scene;
-	
-	if (item.test () && item.IsA (gItemType.Type ()))
-	{
-		if (item.GetContext (scene))
-			scene.EvalModInvalidate (SERVER_NAME_dfgModoIM ".mod");
-	}
-}
 
 
 
@@ -143,11 +130,14 @@ dfgModoIM::Element::Element (CLxUser_Evaluation &eval, ILxUnknownID item_obj)
 	 *	The first channels we want to add are the standard input channels.
 	 */
 
-	_chan_index = eval.AddChan (item, CHAN_MATRIX, LXfECHAN_READ);
-		      eval.AddChan (item, CHAN_QUATERNION, LXfECHAN_READ);
-		      eval.AddChan (item, CHAN_STRING, LXfECHAN_READ);
-		      eval.AddChan (item, CHAN_INTEGER, LXfECHAN_READ);
-		      eval.AddChan (item, CHAN_FLOAT, LXfECHAN_READ);
+	_chan_index =	eval.AddChan (item, CHN_NAME_IO_FabricActive,	LXfECHAN_READ | LXfECHAN_WRITE);
+					eval.AddChan (item, CHN_NAME_IO_FabricJSON,		LXfECHAN_READ | LXfECHAN_WRITE);
+
+					eval.AddChan (item, CHAN_MATRIX, LXfECHAN_READ);
+					eval.AddChan (item, CHAN_QUATERNION, LXfECHAN_READ);
+					eval.AddChan (item, CHAN_STRING, LXfECHAN_READ);
+					eval.AddChan (item, CHAN_INTEGER, LXfECHAN_READ);
+					eval.AddChan (item, CHAN_FLOAT, LXfECHAN_READ);
 
 	/*
 	 *	Next, we want to grab all of the user channels on the item and add
@@ -165,30 +155,6 @@ dfgModoIM::Element::Element (CLxUser_Evaluation &eval, ILxUnknownID item_obj)
 	}
 }
 
-bool dfgModoIM::Element::Test (ILxUnknownID item_obj)
-{
-	/*
-	 *	When the list of user channels for a particular item changes, the
-	 *	modifier will be invalidated. This function will be called to check
-	 *	if the modifier we allocated previously matches what we'd allocate
-	 *	if the Alloc function was called now. We return true if it does. In
-	 *	our case, we check if the current list of user channels for the
-	 *	specified item matches what we cached when we allocated the modifier.
-	 */
-	
-	CLxUser_Item		 item (item_obj);
-	std::vector <ChannelDef> user_channels;
-	
-	if (item.test ())
-	{
-		userChannels_collect (item, user_channels);
-		
-		return user_channels.size () == _user_channels.size ();
-	}
-	
-	return false;
-}
-
 void dfgModoIM::Element::Eval (CLxUser_Evaluation &eval, CLxUser_Attributes &attr)
 {
 	/*
@@ -201,6 +167,9 @@ void dfgModoIM::Element::Eval (CLxUser_Evaluation &eval, CLxUser_Attributes &att
 	CLxUser_Matrix		 input_matrix;
 	CLxUser_Quaternion	 input_quaternion;
 	
+	int				fabricActive;
+	std::string		 fabricJSON;
+
 	LXtMatrix4		 chan_matrix;
 	LXtQuaternion		 chan_quaternion;
 	std::string		 chan_string;
@@ -214,6 +183,12 @@ void dfgModoIM::Element::Eval (CLxUser_Evaluation &eval, CLxUser_Attributes &att
 	/*
 	 *	Read the input channels.
 	 */
+	attr.GetInt (temp_chan_index++, &fabricActive);
+	//attr.String (temp_chan_index++, fabricJSON);
+	char s[128];
+	strcpy(s, fabricActive ? "it's alive!" : "it's dead.");
+	attr.SetString (temp_chan_index++, s);
+
 	
 	if (attr.ObjectRO (temp_chan_index++, input_matrix) && input_matrix.test ())
 		input_matrix.Get4 (chan_matrix);

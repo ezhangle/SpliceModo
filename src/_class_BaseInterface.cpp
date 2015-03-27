@@ -155,12 +155,20 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
-  logFunc(0, "A port was inserted. We should really reflect that in the DCC.", 62);
+  char s[256] = "A port was inserted. We should really reflect that in the DCC.";
+  logFunc(0, s, strlen(s));
 }
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 {
-  logFunc(0, "A port was removed. We should really reflect that in the DCC.", 61);
+  char s[256] = "A port was removed. We should really reflect that in the DCC.";
+  logFunc(0, s, strlen(s));
+}
+
+void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName)
+{
+  char s[256] = "A port was renamed. We should really reflect that in the DCC.";
+  logFunc(0, s, strlen(s));
 }
 
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)

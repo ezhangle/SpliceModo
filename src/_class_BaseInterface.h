@@ -48,7 +48,7 @@ public:
   virtual void onEndPointsDisconnected(FabricServices::DFGWrapper::Port src, FabricServices::DFGWrapper::Port dst) {}
   virtual void onNodeMetadataChanged(FabricServices::DFGWrapper::Node node, const char * key, const char * metadata) {}
   virtual void onNodeTitleChanged(FabricServices::DFGWrapper::Node node, const char * title) {}
-  virtual void onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName) {}
+  virtual void onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName);
   virtual void onPinRenamed(FabricServices::DFGWrapper::Pin pin, const char * oldName) {}
   virtual void onExecMetadataChanged(FabricServices::DFGWrapper::Executable exec, const char * key, const char * metadata) {}
   virtual void onExtDepAdded(const char * extension, const char * version) {}

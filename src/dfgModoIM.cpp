@@ -1,26 +1,6 @@
-/*
-*
-* Item Modify Sample Plugin
-*
-* This sample code demonstrates how to implement a basic item modify plugin.
-* The modifier reads a series of standard input channels and copies the value
-* to any user channels of the same type. Adding or removing user channels from
-* the item, will cause the modifier to be invalidated.
-*
-*/
+
+#include "plugin.h"
  
-/*
-* Include the required source files.
-*/
- 
-#include <lxidef.h>
- 
-#include <lx_channelui.hpp>
-#include <lx_item.hpp>
-#include <lx_package.hpp>
-#include <lx_plugin.hpp>
- 
-#include <lxu_modifier.hpp>
  
 /*
 * Define the server and channel names. The channel names are really just named
@@ -435,7 +415,7 @@ CLxItemModifierElement * Modifier::Alloc (CLxUser_Evaluation &eval, ILxUnknownID
 return new Element (eval, item);
 }
  
-void initialize ()
+void init ()
 {
 Instance::initialize ();
 Package::initialize ();
@@ -444,11 +424,6 @@ Modifier::initialize ();
  
 }; // End Namespace.
  
-void initialize ()
-{
-ItemModify_Sample::initialize ();
-} 
-
 // end of file
 
 

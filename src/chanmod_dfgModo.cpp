@@ -7,10 +7,6 @@
 #include "plugin.h"
 #include "chanmod_dfgModo.h"
 
-#include "class_FabricDFGWidget.h"
-
-#include "Windows.h"
-
 using namespace FabricServices;
 using namespace FabricUI;
 

@@ -16,7 +16,7 @@
 
 #include <FabricSplice.h>
 
-#include "class_BaseInterface.h"
+#include "_class_BaseInterface.h"
 
 using namespace FabricServices;
 using namespace FabricUI;

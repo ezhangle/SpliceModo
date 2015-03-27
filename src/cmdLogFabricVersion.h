@@ -1,9 +1,9 @@
 //
-#ifndef cmdLogFabricVersion::SERVER_NAME
+#ifndef SERVER_NAME_cmdLogFabricVersion
+#define	SERVER_NAME_cmdLogFabricVersion "LogFabricVersion"
 
 namespace cmdLogFabricVersion
 {
-	#define	SERVER_NAME "LogFabricVersion"
 	class Command : public CLxBasicCommand
 	{
 		public:
@@ -16,10 +16,8 @@ namespace cmdLogFabricVersion
 		{
 			CLxGenericPolymorph *srv =   new CLxPolymorph			<Command>;
 			srv->AddInterface			(new CLxIfc_Command			<Command>);
-			srv->AddInterface			(new CLxIfc_Attributes		<Command>);
-			srv->AddInterface			(new CLxIfc_AttributesUI	<Command>);
 			srv->AddInterface			(new CLxIfc_StaticDesc		<Command>);
-			lx:: AddServer				(SERVER_NAME, srv);
+			lx:: AddServer				(SERVER_NAME_cmdLogFabricVersion, srv);
 		};
 
 		// command service.
@@ -28,8 +26,6 @@ namespace cmdLogFabricVersion
 		void	cmd_Execute		(unsigned flags)			LXx_OVERRIDE;
 	};
 };
+
 #endif
-
-// end of file.
-
 

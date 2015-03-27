@@ -11,6 +11,7 @@
 #include <map>
 
 #include <FabricUI/DFG/DFGUI.h>
+#include <FabricUI/DFG/DFGLogWidget.h>
 #include <FabricUI/DFG/DFGCombinedWidget.h>
 #include <FabricUI/DFG/DFGValueEditor.h>
 

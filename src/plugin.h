@@ -14,7 +14,7 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 
-// more includes.
+// includes.
 #include "lxidef.h"
 #include "lx_chanmod.hpp"
 #include <lx_channelui.hpp>
@@ -26,6 +26,10 @@
 #include "lxu_log.hpp"
 #include "lxu_modifier.hpp"
 #include "lxlog.h"
+
+// includes.
+#include "cmdLogFabricVersion.h"
+#include "dfgModoIM.h"
 
 // log system (2/2).
 #define	LOG_SYSTEM_NAME	"Fabric"
@@ -42,7 +46,4 @@ void feLog(void *userData, const char *s, unsigned int length);
 void feLogError(void *userData, const char *s, unsigned int length);
 
 #endif
-
-// end of file.
-
 

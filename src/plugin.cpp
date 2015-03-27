@@ -1,8 +1,5 @@
 // includes.
 #include "plugin.h"
-#include "cmdLogFabricVersion.h"
-#include "dfgModoIM.h"
-#include "chanmod_dfgModo.h"
 
 // log system.
 CItemLog gLog;
@@ -22,17 +19,12 @@ void feLogError(void *userData, const char *s, unsigned int length)
 // plugin initialization.
 void initialize()
 {
-	chanmod_dfgModoPackage    ::initialize();
-	cmdLogFabricVersion::Command::initialize();
-
-	ItemModify_Sample::init();
+	cmdLogFabricVersion::Command::	initialize();
+	dfgModoIM::						initialize();
  }
 
 // plugin clean up.
 void cleanup()
 {
 }
-
-// end of file.
-
 

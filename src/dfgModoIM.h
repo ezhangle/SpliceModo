@@ -6,9 +6,12 @@ namespace dfgModoIM
 {
 	extern CLxItemType gItemType;
 
+	void initialize();
+
 	class Instance : public CLxImpl_PackageInstance
 	{
 		public:
+
 		static void initialize()
 		{
 			CLxGenericPolymorph	*srv = NULL;
@@ -38,17 +41,17 @@ namespace dfgModoIM
 			lx::AddServer(SERVER_NAME_dfgModoIM, srv);
 		}
 
-		Package() : _inst_spawn (SERVER_NAME_dfgModoIM ".inst") {}
+		Package() : m_inst_spawn (SERVER_NAME_dfgModoIM ".inst") {}
 	
 		LxResult	pkg_SetupChannels(ILxUnknownID addChan_obj)						LXx_OVERRIDE;
 		LxResult	pkg_Attach(void **ppvObj)										LXx_OVERRIDE
 					{
-						_inst_spawn.Alloc (ppvObj);
+						m_inst_spawn.Alloc (ppvObj);
 						return (ppvObj[0] ? LXe_OK : LXe_FAILED);
 					};
 		LxResult	pkg_TestInterface(const LXtGUID *guid)							LXx_OVERRIDE
 					{
-						return _inst_spawn.TestInterfaceRC(guid);
+						return m_inst_spawn.TestInterfaceRC(guid);
 					};
 		
 		LxResult	cui_UIHints(const char *channelName, ILxUnknownID hints_obj)	LXx_OVERRIDE;
@@ -76,7 +79,7 @@ namespace dfgModoIM
 		static LXtTagInfoDesc descInfo[];
 	
 		private:
-		CLxSpawner <Instance> _inst_spawn;
+		CLxSpawner <Instance> m_inst_spawn;
 	};
 
 	struct ChannelDef
@@ -89,7 +92,12 @@ namespace dfgModoIM
 	class Element : public CLxItemModifierElement
 	{
 		public:
+		int		m_chan_index;
+		std::vector <ChannelDef> m_user_channels;
+		BaseInterface *m_baseInterface;
+
 		Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj);
+		~Element();
 		bool	Test(ILxUnknownID item_obj)									LXx_OVERRIDE
 		{
 			/*
@@ -106,9 +114,9 @@ namespace dfgModoIM
 	
 			if (item.test ())
 			{
-				userChannels_collect (item, user_channels);
+				userChannels_collect(item, user_channels);
 		
-				return user_channels.size () == _user_channels.size ();
+				return (user_channels.size() == m_user_channels.size());
 			}
 	
 			return false;
@@ -117,10 +125,43 @@ namespace dfgModoIM
 		void	Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)	LXx_OVERRIDE;
 	
 		private:
-		void	userChannels_collect(CLxUser_Item &item, std::vector <ChannelDef> &userChannels);
+		void	userChannels_collect(CLxUser_Item &item, std::vector <ChannelDef> &userChannels)
+		{
+			/*
+			 *	This function collects all of the user channels on the specified item
+			 *	and adds them to the provided vector of channel definitions. We loop
+			 *	through all channels on the item and test their package. If they have
+			 *	no package, then it's a user channel and it's added to the vector.
+			 *	We also check if the channel type is a divider, if it is, we skip it.
+			 */
+			unsigned count = 0;
+			userChannels.clear();
 	
-		int		_chan_index;
-		std::vector <ChannelDef> _user_channels;
+			if (!item.test())
+				return;
+	
+			item.ChannelCount(&count);
+	
+			for (unsigned i=0;i<count;i++)
+			{
+				const char *package = NULL;
+				const char *channel_type = NULL;
+	
+				if (LXx_OK(item.ChannelPackage(i, &package)) || package)
+					continue;
+		
+				if (LXx_OK(item.ChannelEvalType(i, &channel_type) && channel_type))
+				{
+					if (!strcmp(channel_type, LXsTYPE_NONE))
+					{
+						ChannelDef channel;
+						channel.chan_index = i;
+						userChannels.push_back(channel);
+					}
+				}
+			}
+		};
+
 	};
 
 	class Modifier : public CLxItemModifierServer
@@ -141,9 +182,6 @@ namespace dfgModoIM
 			return new Element(eval, item_obj);
 		};
 	};
-
-	void initialize();
-
-};	// End Namespace.
+};
 
 #endif

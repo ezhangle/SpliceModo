@@ -28,7 +28,6 @@
 #include "lxlog.h"
 
 // includes.
-#include "chanmod_dfgModo.h"
 #include "cmdLogFabricVersion.h"
 #include "dfgModoIM.h"
 

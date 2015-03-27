@@ -19,7 +19,6 @@ void feLogError(void *userData, const char *s, unsigned int length)
 // plugin initialization.
 void initialize()
 {
-	chanmod_dfgModoPackage::initialize();
 	cmdLogFabricVersion::Command::	initialize();
 	dfgModoIM::						initialize();
  }

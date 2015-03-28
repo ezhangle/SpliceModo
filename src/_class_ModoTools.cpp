@@ -41,11 +41,12 @@ bool ModoTools::HasUserChannel(void *ptr_CLxUser_Item, const std::string &channe
 		return false;
 	}
 
-	// nothing to do?
+	// ref at item.
+	CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
 
-	// ERR
-	out_err = "ModoTools::RenameUserChannel() is not yet implemented";
-	return false;
+	// do it.
+	unsigned int index;
+	return (item.ChannelLookup(channelName.c_str(), &index) == LXe_OK);
 }
 
 bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
@@ -61,6 +62,11 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 
 	// ref at item.
 	CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+
+	// channel already exists?
+	if (HasUserChannel(ptr_CLxUser_Item, channelName, out_err))
+	{	out_err = "the channel " + channelName + " already exists";
+		return false;	}
 
 	// build command.
 	std::string itemName;

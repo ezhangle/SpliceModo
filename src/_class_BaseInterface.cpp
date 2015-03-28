@@ -163,14 +163,16 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 {
-  char s[256] = "A port was removed. We should really reflect that in the DCC.";
-  logFunc(0, s, strlen(s));
+	std::string err;
+	if (!ModoTools::DeleteUserChannel(m_item_dfgModoIM, port.getName(), err))
+		logErrorFunc(0, err.c_str(), err.length());
 }
 
 void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName)
 {
-  char s[256] = "A port was renamed. We should really reflect that in the DCC.";
-  logFunc(0, s, strlen(s));
+	std::string err;
+	if (!ModoTools::RenameUserChannel(m_item_dfgModoIM, std::string(oldName), port.getName(), err))
+		logErrorFunc(0, err.c_str(), err.length());
 }
 
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)

@@ -1,23 +1,16 @@
 #ifndef __BASEINTERFACE_H__
 #define __BASEINTERFACE_H__
 
+// disable some annoying VS warnings.
+#pragma warning (disable : 4530)	// C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
+#pragma warning (disable : 4800)	// forcing value to bool 'true' or 'false'.
+#pragma warning (disable : 4806)	// unsafe operation: no value of type 'bool' promoted to type ...etc.
+
+// includes.
 #include <DFGWrapper/DFGWrapper.h>
 #include <ASTWrapper/KLASTManager.h>
 #include <Commands/CommandStack.h>
 #include <map>
-
-// includes (Modo).
-#include "lxidef.h"
-#include "lx_chanmod.hpp"
-#include <lx_channelui.hpp>
-#include "lx_item.hpp"
-#include "lx_package.hpp"
-#include "lx_plugin.hpp"
-#include "lx_value.hpp"
-#include "lxu_command.hpp"
-#include "lxu_log.hpp"
-#include "lxu_modifier.hpp"
-#include "lxlog.h"
 
 // a management class for client and host
 class BaseInterface : public FabricServices::DFGWrapper::View
@@ -26,8 +19,8 @@ public:
   BaseInterface();
   ~BaseInterface();
 
-  //
-  CLxUser_Item *m_item_dfgModoIM;
+  // pointer at CLxUser_Item for the item modifier node "dfgModoIM".
+  void *m_item_dfgModoIM;
 
   // instance management
   // right now there are no locks in place,

@@ -1,4 +1,5 @@
 #include "_class_BaseInterface.h"
+#include "_class_ModoTools.h"
 
 using namespace FabricServices;
 
@@ -155,30 +156,9 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
-	if (m_item_dfgModoIM)
-	{
-		CLxUser_Item &item = *m_item_dfgModoIM;
-
-		//
-		std::string itemName;
-		item.GetUniqueName(itemName);
-		std::string command = "channel.create " + port.getName() + " item:" + itemName;
-		logFunc(0, command.c_str(), command.length());
-
-		//
-		CLxUser_CommandService	cmd_srv;
-		CLxUser_Command			cmd;
-		int						queryArgIndex;
-		unsigned int			execFlags = LXfCMD_EXEC_DEFAULT;
-		if (cmd_srv.NewCommandFromString(cmd, command.c_str(), execFlags, queryArgIndex))
-			cmd.Execute(execFlags);
-		else
-		{
-			std::string err = "NewCommandFromString() failed for \"" + command + "\"";
-			logErrorFunc(0, err.c_str(), err.length());
-			return;
-		}
-	}
+	std::string err;
+	if (!ModoTools::CreateUserChannel(m_item_dfgModoIM, port.getName(), err))
+		logErrorFunc(0, err.c_str(), err.length());
 }
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)

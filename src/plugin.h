@@ -10,24 +10,10 @@
 #pragma warning (disable : 4800)	// forcing value to bool 'true' or 'false'.
 #pragma warning (disable : 4806)	// unsafe operation: no value of type 'bool' promoted to type ...etc.
 
-// includes (Modo).
-#include "lxidef.h"
-#include "lx_chanmod.hpp"
-#include <lx_channelui.hpp>
-#include "lx_item.hpp"
-#include "lx_package.hpp"
-#include "lx_plugin.hpp"
-#include "lx_value.hpp"
-#include "lxu_command.hpp"
-#include "lxu_log.hpp"
-#include "lxu_modifier.hpp"
-#include "lxlog.h"
-
-// includes (Fabric).
+// includes.
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
-
-// includes.
+#include "_class_ModoTools.h"
 #include "cmdLogFabricVersion.h"
 #include "dfgModoIM.h"
 

@@ -5,6 +5,12 @@
 namespace dfgModoIM
 {
 	extern CLxItemType gItemType;
+	struct ChannelDef
+	{
+		int chan_index;
+		int eval_index;
+		ChannelDef () : chan_index (-1), eval_index (-1) {}
+	};
 
 	void initialize();
 
@@ -46,7 +52,7 @@ namespace dfgModoIM
 		LxResult	pkg_SetupChannels(ILxUnknownID addChan_obj)						LXx_OVERRIDE;
 		LxResult	pkg_Attach(void **ppvObj)										LXx_OVERRIDE
 					{
-						m_inst_spawn.Alloc (ppvObj);
+						m_inst_spawn.Alloc(ppvObj);
 						return (ppvObj[0] ? LXe_OK : LXe_FAILED);
 					};
 		LxResult	pkg_TestInterface(const LXtGUID *guid)							LXx_OVERRIDE
@@ -82,19 +88,13 @@ namespace dfgModoIM
 		CLxSpawner <Instance> m_inst_spawn;
 	};
 
-	struct ChannelDef
-	{
-		int chan_index;
-		int eval_index;
-		ChannelDef () : chan_index (-1), eval_index (-1) {}
-	};
-
 	class Element : public CLxItemModifierElement
 	{
 		public:
-		int		m_chan_index;
+		int						 m_chan_index;
 		std::vector <ChannelDef> m_user_channels;
-		BaseInterface *m_baseInterface;
+		CLxUser_Item			 m_item;
+		BaseInterface			*m_baseInterface;
 
 		Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj);
 		~Element();
@@ -109,12 +109,11 @@ namespace dfgModoIM
 			 *	specified item matches what we cached when we allocated the modifier.
 			 */
 	
-			CLxUser_Item		 item (item_obj);
 			std::vector <ChannelDef> user_channels;
 	
-			if (item.test ())
+			if (m_item.test())
 			{
-				userChannels_collect(item, user_channels);
+				userChannels_collect(m_item, user_channels);
 		
 				return (user_channels.size() == m_user_channels.size());
 			}
@@ -161,7 +160,6 @@ namespace dfgModoIM
 				}
 			}
 		};
-
 	};
 
 	class Modifier : public CLxItemModifierServer

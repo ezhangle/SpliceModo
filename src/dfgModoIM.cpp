@@ -42,7 +42,7 @@ LxResult dfgModoIM::Package::pkg_SetupChannels(ILxUnknownID addChan_obj)
 	return result;
 }
 
-LxResult dfgModoIM::Package::cui_UIHints (const char *channelName, ILxUnknownID hints_obj)
+LxResult dfgModoIM::Package::cui_UIHints(const char *channelName, ILxUnknownID hints_obj)
 {
 	CLxUser_UIHints hints(hints_obj);
 	LxResult result = LXe_FAILED;
@@ -59,10 +59,11 @@ LxResult dfgModoIM::Package::cui_UIHints (const char *channelName, ILxUnknownID 
 			}
 			else
 			{
-				if (strcmp (channelName, "hello"))
-					result = hints.ChannelFlags (LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
-				else
-					result = hints.ChannelFlags (LXfUIHINTCHAN_INPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+				result = hints.ChannelFlags (LXfUIHINTCHAN_SUGGESTED);
+				//if (strcmp (channelName, "hello"))
+				//	result = hints.ChannelFlags (LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+				//else
+				//	result = hints.ChannelFlags (LXfUIHINTCHAN_INPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
 			}
 		}
 		
@@ -84,6 +85,10 @@ dfgModoIM::Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
 
 		// create base interface.
 		m_baseInterface = new BaseInterface();
+
+		//
+		m_item.set(item_obj);
+		(*m_baseInterface).m_item_dfgModoIM = &m_item;
 	}
 
 	/*
@@ -94,17 +99,17 @@ dfgModoIM::Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
 	 *	when they've changed.
 	 */
 
-	CLxUser_Item		 item (item_obj);
 	
-	if (!item.test())
+	if (!m_item.test())
 		return;
+
 
 	/*
 	 *	The first channels we want to add are the standard input channels.
 	 */
 
-	m_chan_index =	eval.AddChan (item, CHN_NAME_IO_FabricActive,	LXfECHAN_READ | LXfECHAN_WRITE);
-					eval.AddChan (item, CHN_NAME_IO_FabricJSON,		LXfECHAN_READ | LXfECHAN_WRITE);
+	m_chan_index =	eval.AddChan (m_item, CHN_NAME_IO_FabricActive,	LXfECHAN_READ | LXfECHAN_WRITE);
+					eval.AddChan (m_item, CHN_NAME_IO_FabricJSON,	LXfECHAN_READ | LXfECHAN_WRITE);
 
 	/*
 	 *	Next, we want to grab all of the user channels on the item and add
@@ -112,13 +117,13 @@ dfgModoIM::Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
 	 *	user channels for easy access from our modifier.
 	 */
 	
-	userChannels_collect (item, m_user_channels);
+	userChannels_collect (m_item, m_user_channels);
 	
 	for (unsigned i = 0; i < m_user_channels.size (); i++)
 	{
 		ChannelDef		*channel = &m_user_channels[i];
 		
-		channel->eval_index = eval.AddChan (item, channel->chan_index, LXfECHAN_WRITE);
+		channel->eval_index = eval.AddChan (m_item, channel->chan_index, LXfECHAN_WRITE);
 	}
 }
 
@@ -148,7 +153,6 @@ void dfgModoIM::Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr
 		if (w && !(*w).isVisible())
 			(*w).show();
 	}
-
 
 	// read fixed input channels.
 	int			fabricActive;

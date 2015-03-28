@@ -3,18 +3,14 @@
 #define SPLICE_MODO_PLUGIN
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION	0.005
+#define FABRICMODO_PLUGIN_VERSION	0.006
 
 // disable some annoying VS warnings.
 #pragma warning (disable : 4530)	// C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
 #pragma warning (disable : 4800)	// forcing value to bool 'true' or 'false'.
 #pragma warning (disable : 4806)	// unsafe operation: no value of type 'bool' promoted to type ...etc.
 
-// includes.
-#include "_class_BaseInterface.h"
-#include "_class_FabricDFGWidget.h"
-
-// includes.
+// includes (Modo).
 #include "lxidef.h"
 #include "lx_chanmod.hpp"
 #include <lx_channelui.hpp>
@@ -26,6 +22,10 @@
 #include "lxu_log.hpp"
 #include "lxu_modifier.hpp"
 #include "lxlog.h"
+
+// includes (Fabric).
+#include "_class_BaseInterface.h"
+#include "_class_FabricDFGWidget.h"
 
 // includes.
 #include "cmdLogFabricVersion.h"

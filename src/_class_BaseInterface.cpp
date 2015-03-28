@@ -155,8 +155,30 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
-  char s[256] = "A port was inserted. We should really reflect that in the DCC.";
-  logFunc(0, s, strlen(s));
+	if (m_item_dfgModoIM)
+	{
+		CLxUser_Item &item = *m_item_dfgModoIM;
+
+		//
+		std::string itemName;
+		item.GetUniqueName(itemName);
+		std::string command = "channel.create " + port.getName() + " item:" + itemName;
+		logFunc(0, command.c_str(), command.length());
+
+		//
+		CLxUser_CommandService	cmd_srv;
+		CLxUser_Command			cmd;
+		int						queryArgIndex;
+		unsigned int			execFlags = LXfCMD_EXEC_DEFAULT;
+		if (cmd_srv.NewCommandFromString(cmd, command.c_str(), execFlags, queryArgIndex))
+			cmd.Execute(execFlags);
+		else
+		{
+			std::string err = "NewCommandFromString() failed for \"" + command + "\"";
+			logErrorFunc(0, err.c_str(), err.length());
+			return;
+		}
+	}
 }
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)

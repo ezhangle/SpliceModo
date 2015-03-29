@@ -29,12 +29,12 @@ class ModoTools
 	// returns: true on success, false otherwise.
 	static bool ExecuteCommand(std::string &command, std::string &out_err);
 		
-	// checks if an item has a specific user channe.
+	// checks if an item has a specific channel (user or other).
 	// params:	ptr_CLxUser_Item		pointer at CLxUser_Item.
 	//			channelName				name of channel.
 	//			out_err					contains an error description if the function returns false.
-	// returns: true if the item ptr_CLxUser_Item has a user channel called channelName, false otherwise.
-	static bool HasUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
+	// returns: true if the item ptr_CLxUser_Item has a channel called channelName, false otherwise.
+	static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
 
 	// creates a new user channel.
 	// params:	ptr_CLxUser_Item		pointer at CLxUser_Item.

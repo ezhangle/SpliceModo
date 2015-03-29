@@ -24,7 +24,7 @@ bool ModoTools::ExecuteCommand(std::string &command, std::string &out_err)
 	return true;
 }
 
-bool ModoTools::HasUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
 {
 	// init error string.
 	out_err = "";
@@ -64,17 +64,16 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 	CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
 
 	// channel already exists?
-	if (HasUserChannel(ptr_CLxUser_Item, channelName, out_err))
+	if (HasChannel(ptr_CLxUser_Item, channelName, out_err))
 	{	out_err = "the channel " + channelName + " already exists";
 		return false;	}
 
-	// build command.
+	// get item's name.
 	std::string itemName;
 	item.GetUniqueName(itemName);
-	std::string command = "channel.create " + channelName + " item:" + itemName;
 
 	// execute command.
-	return ExecuteCommand(command, out_err);
+	return ExecuteCommand(std::string("channel.create " + channelName + " item:" + itemName), out_err);
 }
 
 bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
@@ -88,9 +87,18 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 	{	out_err = "empty channel name";
 		return false;	}
 
-	// ERR
-	out_err = "ModoTools::DeleteUserChannel() is not yet implemented";
-	return false;
+	// ref at item.
+	CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+
+	// get item's name.
+	std::string itemName;
+	item.GetUniqueName(itemName);
+
+	// execute command.
+	if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + channelName + "} set"), out_err))
+		return ExecuteCommand(std::string("channel.delete"), out_err);
+	else
+		return false;
 }
 
 bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err)

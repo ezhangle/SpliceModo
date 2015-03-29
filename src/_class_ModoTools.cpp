@@ -112,10 +112,24 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 	{	out_err = "empty channel name";
 		return false;	}
 
-	// nothing to do?
-	//HasUserChannel(...);
+	// ref at item.
+	CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
 
-	// ERR
-	out_err = "ModoTools::RenameUserChannel() is not yet implemented";
-	return false;
+	// channel already exists?
+	if (HasChannel(ptr_CLxUser_Item, channelNameNew, out_err))
+	{	out_err = "the channel " + channelNameNew + " already exists";
+		return false;	}
+
+	// get item's name.
+	std::string itemName;
+	item.GetUniqueName(itemName);
+
+	// execute command.
+	if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + channelName + "} set"), out_err))
+		if (ExecuteCommand(std::string("channel.name name:" + channelNameNew), out_err))
+			return ExecuteCommand(std::string("channel.username username:" + channelNameNew), out_err);
+		else
+			return false;
+	else
+		return false;
 }

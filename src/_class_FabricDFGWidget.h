@@ -38,7 +38,7 @@ public slots:
   virtual void onPortRenamed(QString path, QString newName);
 
 private:
-	static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
+    static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
 };
 
 #endif 

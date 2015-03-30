@@ -26,8 +26,8 @@ BaseInterface::BaseInterface()
       memset( &options, 0, sizeof( options ) );
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
       s_client = FabricCore::Client(&logFunc, NULL, &options);
-	  s_client.loadExtension("Math",     "", false);
-	  s_client.loadExtension("Geometry", "", false);
+    s_client.loadExtension("Math",     "", false);
+    s_client.loadExtension("Geometry", "", false);
 
       // create a host for Canvas
       s_host = new DFGWrapper::Host(s_client);
@@ -35,13 +35,13 @@ BaseInterface::BaseInterface()
       // create an empty binding
       m_binding = s_host->createBindingToNewGraph();
 
-	  // create KL AST manager
+    // create KL AST manager
       s_manager = new ASTWrapper::KLASTManager(&s_client);
 
-	  // command stack
-	  s_stack;
+    // command stack
+    s_stack;
 
-	  // set the graph on the view
+    // set the graph on the view
       setGraph(m_binding.getGraph());
     }
     catch(FabricCore::Exception e)
@@ -67,8 +67,8 @@ BaseInterface::~BaseInterface()
       try
       {
         printf("Destructing client...\n");
-		s_stack.clear();
-		delete(s_manager);
+    s_stack.clear();
+    delete(s_manager);
         delete(s_host);
         s_client = FabricCore::Client();
       }
@@ -146,33 +146,33 @@ void BaseInterface::setFromJSON(const std::string & json)
 
 void BaseInterface::setLogFunc(void (*in_logFunc)(void *, const char *, unsigned int))
 {
-	s_logFunc = in_logFunc;
+  s_logFunc = in_logFunc;
 }
 
 void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *, unsigned int))
 {
-	s_logErrorFunc = in_logErrorFunc;
+  s_logErrorFunc = in_logErrorFunc;
 }
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
-	std::string err;
-	if (!ModoTools::CreateUserChannel(m_item_dfgModoIM, port.getName(), err))
-		logErrorFunc(0, err.c_str(), err.length());
+  std::string err;
+  if (!ModoTools::CreateUserChannel(m_item_dfgModoIM, port.getName(), err))
+    logErrorFunc(0, err.c_str(), err.length());
 }
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 {
-	std::string err;
-	if (!ModoTools::DeleteUserChannel(m_item_dfgModoIM, port.getName(), err))
-		logErrorFunc(0, err.c_str(), err.length());
+  std::string err;
+  if (!ModoTools::DeleteUserChannel(m_item_dfgModoIM, port.getName(), err))
+    logErrorFunc(0, err.c_str(), err.length());
 }
 
 void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName)
 {
-	std::string err;
-	if (!ModoTools::RenameUserChannel(m_item_dfgModoIM, std::string(oldName), port.getName(), err))
-		logErrorFunc(0, err.c_str(), err.length());
+  std::string err;
+  if (!ModoTools::RenameUserChannel(m_item_dfgModoIM, std::string(oldName), port.getName(), err))
+    logErrorFunc(0, err.c_str(), err.length());
 }
 
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)

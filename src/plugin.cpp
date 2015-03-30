@@ -19,8 +19,18 @@ void feLogError(void *userData, const char *s, unsigned int length)
 // plugin initialization.
 void initialize()
 {
-    cmdLogFabricVersion::Command::  initialize();
-    dfgModoIM::                     initialize();
+    // Fabric.
+    {
+        // set log function pointers.
+        BaseInterface::setLogFunc(feLog);
+        BaseInterface::setLogErrorFunc(feLogError);
+    }
+
+    // Modo.
+    {
+        cmdLogFabricVersion::Command::  initialize();
+        dfgModoIM::                     initialize();
+    }
  }
 
 // plugin clean up.

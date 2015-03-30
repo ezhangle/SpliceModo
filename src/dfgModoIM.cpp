@@ -18,6 +18,31 @@ namespace dfgModoIM
      *  allowing us to invalidate the modifier when new channels are added.
      */
 
+    // user data.
+    struct _userdata
+    {
+        BaseInterface *baseInterface; // Fabric Engine base interface.
+
+        _userdata()
+        {
+            gLog.Message(LXe_INFO, "[dfgModoIM]", "init user data  / create base instance", " ");
+            memset(this, NULL, sizeof(*this));      // zero out.
+            baseInterface = new BaseInterface();    // create base instance.
+        };
+
+        ~_userdata()
+        {
+            if (baseInterface)
+            {
+                gLog.Message(LXe_INFO, "[dfgModoIM]", "clear user data / destroy base instance", " ");
+                // delete widget and base interface.
+                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+                if (w) delete w;
+                delete baseInterface;
+            }
+        };
+    };
+
     class Instance : public CLxImpl_PackageInstance
     {
         public:
@@ -29,21 +54,16 @@ namespace dfgModoIM
                 lx::AddSpawner          (SERVER_NAME_dfgModoIM ".inst", srv);
             }
 
-            // pointer at user data.
-            void *m_userdata;
+            _userdata *m_userdata;
 
-            // constructor.
             Instance()
             {
-                // allocate/init user data.
-                m_userdata = new int[128];
+                m_userdata = new _userdata;
             };
 
-            // destructor.
             ~Instance()
             {
-                // clean up user data.
-                delete[] m_userdata;
+                delete m_userdata;
             };
     };
 

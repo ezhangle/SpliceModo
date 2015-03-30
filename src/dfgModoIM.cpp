@@ -336,56 +336,56 @@ namespace dfgModoIM
                 (*w).show();
         }
 
-        // nothing to do?
-        if (!eval || !attr)
-            return;
-    
-        // debug: output amount of channels in attr.
+         // debug: output amount of channels in attr.
         {
             char s[256];
             sprintf(s, "attr.Count() = %ld", attr.Count());
             gLog.Message(LXe_INFO, "[DBG]", s, " ");
         }
 
+       // nothing to do?
+        if (!eval || !attr)
+            return;
+
+        // ref at base interface.
+        BaseInterface &bi = *quickhack_baseInterface;
+
         // read the fixed input channels and return early if the FabricActive flag is disabled.
-        int FabricActive = false;
         {
+            int FabricActive = false;
             unsigned int temp_chan_index = m_chan_index;
             attr.GetInt (temp_chan_index++, &FabricActive);
             temp_chan_index++;  // note: we don't need the FabricJSON string here, so no need to fetch it.
+            if (!FabricActive)
+                return;
         }
-        if (!FabricActive)
-            return;
-    
-        /*
-         *  Loop through the user channels. If we have any user channel type that
-         *  matches one of the inputs, we copy the input to the output. For any
-         *  channel type we don't recognize, we skip it.
-         */
-    
-        for (int i = 0; i < m_user_channels.size (); i++)
+
+        // Fabric Engine (step 1): loop through all the input ports of the DFG and set
+        //                         the values from the matching user channels.
         {
-            ChannelDef      *channel = &m_user_channels[i];
-            unsigned         type = 0;
-        
-            if (channel->eval_index < 0)
-                continue;
+            // will be implemented tuesday (april 31.) morning.
+        }
 
-            type = attr.Type ((unsigned) channel->eval_index);
-
-            if (type == LXi_TYPE_OBJECT)
+        // Fabric Engine (step 2): execute the DFG.
+        {
+            try
             {
+                bi.getBinding()->execute();
             }
-            else if (type == LXi_TYPE_INTEGER)
+            catch(FabricCore::Exception e)
             {
-            }
-            else if (type == LXi_TYPE_FLOAT)
-            {
-            }
-            else if (type == LXi_TYPE_STRING)
-            {
+                feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
             }
         }
+
+        // Fabric Engine (step 3): loop through all the output ports of the DFG and set
+        //                         the values of the matching user channels.
+        {
+            // will be implemented tuesday (april 31.) morning.
+        }
+
+        // done.
+        return;
     }
 
     void Element::userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userChannels)

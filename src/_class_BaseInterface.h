@@ -19,8 +19,8 @@ public:
   BaseInterface();
   ~BaseInterface();
 
-  // pointer at CLxUser_Item for the item modifier node "dfgModoIM".
-  void *m_item_dfgModoIM;
+  // pointer at ILxUnknownID (for the item modifier node "dfgModoIM").
+  void *m_item_obj_dfgModoIM;
 
   // instance management
   // right now there are no locks in place,

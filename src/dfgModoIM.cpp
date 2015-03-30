@@ -9,6 +9,8 @@
 
 static CLxItemType gItemType_dfgModoIM (SERVER_NAME_dfgModoIM);
 
+BaseInterface *quickhack_baseInterface = NULL;
+
 namespace dfgModoIM
 {
     /*
@@ -25,6 +27,9 @@ namespace dfgModoIM
 
         _userdata()
         {
+            gLog.Message(LXe_INFO, "[dfgModoIM]", "init user data  / create quick hack base instance", " ");
+            quickhack_baseInterface = new BaseInterface();
+
             gLog.Message(LXe_INFO, "[dfgModoIM]", "init user data  / create base instance", " ");
             memset(this, NULL, sizeof(*this));      // zero out.
             baseInterface = new BaseInterface();    // create base instance.
@@ -32,6 +37,15 @@ namespace dfgModoIM
 
         ~_userdata()
         {
+            if (quickhack_baseInterface)
+            {
+                gLog.Message(LXe_INFO, "[dfgModoIM]", "clear user data / destroy quick hack base instance", " ");
+                // delete widget and base interface.
+                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface, false);
+                if (w) delete w;
+                delete quickhack_baseInterface;
+            }
+
             if (baseInterface)
             {
                 gLog.Message(LXe_INFO, "[dfgModoIM]", "clear user data / destroy base instance", " ");
@@ -242,6 +256,18 @@ namespace dfgModoIM
 
     Element::Element (CLxUser_Evaluation &eval, ILxUnknownID item_obj)
     {
+        {
+            //
+            (*quickhack_baseInterface).m_item_obj_dfgModoIM = item_obj;
+
+             // w.i.p.
+            {
+                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
+                if (w && !(*w).isVisible())
+                    (*w).show();
+            }
+        }
+
         /*
          *  In the constructor, we want to add the input and output channels
          *  required for this modifier. The inputs are hardcoded, but for the
@@ -250,8 +276,7 @@ namespace dfgModoIM
          *  when they've changed.
          */
 
-        CLxUser_Item         item (item_obj);
-
+        CLxUser_Item item(item_obj);
         if (!item.test())
             return;
 
@@ -274,7 +299,7 @@ namespace dfgModoIM
         {
             ChannelDef      *channel = &m_user_channels[i];
         
-            channel->eval_index = eval.AddChan (item, channel->chan_index, LXfECHAN_WRITE);
+            channel->eval_index = eval.AddChan (item, channel->chan_index, LXfECHAN_READ | LXfECHAN_WRITE);
         }
     }
 
@@ -292,7 +317,7 @@ namespace dfgModoIM
         CLxUser_Item         item (item_obj);
         std::vector <ChannelDef> user_channels;
 
-        if (item.test ())
+        if (item.test())
         {
             userChannels_collect (item, user_channels);
         
@@ -304,36 +329,33 @@ namespace dfgModoIM
 
     void Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)
     {
-        /*
-         *  The Eval function for the modifier reads input channels and writes
-         *  output channels. We begin by reading the standard input channels,
-         *  then we loop through the user channels and copy the input values to
-         *  channels of the same type.
-         */
-    
-        std::string      chan_string;
-        int          chan_integer = 0;
-        unsigned         temp_chan_index = m_chan_index;
-    
+         // w.i.p.
+        {
+            FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
+            if (w && !(*w).isVisible())
+                (*w).show();
+        }
+
+        // nothing to do?
         if (!eval || !attr)
             return;
     
-
-
+        // debug: output amount of channels in attr.
         {
             char s[256];
             sprintf(s, "attr.Count() = %ld", attr.Count());
             gLog.Message(LXe_INFO, "[DBG]", s, " ");
         }
 
-
-
-        /*
-         *  Read the input channels.
-         */
-    
-        attr.GetInt (temp_chan_index++, &chan_integer);
-        attr.String (temp_chan_index++, chan_string);
+        // read the fixed input channels and return early if the FabricActive flag is disabled.
+        int FabricActive = false;
+        {
+            unsigned int temp_chan_index = m_chan_index;
+            attr.GetInt (temp_chan_index++, &FabricActive);
+            temp_chan_index++;  // note: we don't need the FabricJSON string here, so no need to fetch it.
+        }
+        if (!FabricActive)
+            return;
     
         /*
          *  Loop through the user channels. If we have any user channel type that
@@ -356,25 +378,12 @@ namespace dfgModoIM
             }
             else if (type == LXi_TYPE_INTEGER)
             {
-                /*
-                 *  For any integer type channel, we just set the value
-                 *  using the input integer value.
-                 */
-        
-                attr.SetInt ((unsigned) channel->eval_index, chan_integer);
             }
             else if (type == LXi_TYPE_FLOAT)
             {
             }
             else if (type == LXi_TYPE_STRING)
             {
-                /*
-                 *  For string type channels, we just copy the pointer
-                 *  for the string. The attributes interface will copy
-                 *  the string.
-                 */
-
-                attr.SetString ((unsigned) channel->eval_index, chan_string.c_str ());
             }
         }
     }

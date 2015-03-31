@@ -231,15 +231,16 @@ namespace dfgModoIM
     class Element : public CLxItemModifierElement
     {
         public:
-            Element                 (CLxUser_Evaluation &eval, ILxUnknownID item_obj);
-            bool         Test           (ILxUnknownID item_obj)                 LXx_OVERRIDE;
-            void         Eval           (CLxUser_Evaluation &eval, CLxUser_Attributes &attr)    LXx_OVERRIDE;
+            Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj);
+            bool         Test(ILxUnknownID item_obj)                                LXx_OVERRIDE;
+            void         Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)   LXx_OVERRIDE;
     
         private:
-            void         userChannels_collect   (CLxUser_Item &item, std::vector <ChannelDef> &userChannels);
-    
-            int          m_chan_index;
-            std::vector <ChannelDef> m_user_channels;
+            int                      m_eval_index_FabricActive;
+            int                      m_eval_index_FabricJSON;
+            std::vector <ChannelDef> m_usrChannels;
+            void        usrChannelsCollect    (CLxUser_Item &item, std::vector <ChannelDef> &io_usrChannels);
+            ChannelDef *usrChannelsGetFromName(std::string channelName, std::vector <ChannelDef> &usrChannels);
     };
 
     class Modifier : public CLxItemModifierServer
@@ -255,7 +256,7 @@ namespace dfgModoIM
             CLxItemModifierElement *Alloc       (CLxUser_Evaluation &eval, ILxUnknownID item_obj)   LXx_OVERRIDE;
     };
 
-    Element::Element (CLxUser_Evaluation &eval, ILxUnknownID item_obj)
+    Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
     {
         {
             //
@@ -281,26 +282,16 @@ namespace dfgModoIM
         if (!item.test())
             return;
 
-        /*
-         *  The first channels we want to add are the standard input channels.
-         */
+        // add the fixed input channels to eval.
+        m_eval_index_FabricActive = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+        m_eval_index_FabricJSON   = eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
 
-        m_chan_index =  eval.AddChan (item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-                        eval.AddChan (item, CHN_NAME_IO_FabricJSON, LXfECHAN_READ);
-
-        /*
-         *  Next, we want to grab all of the user channels on the item and add
-         *  them as output channels to the modifier. We cache the list of
-         *  user channels for easy access from our modifier.
-         */
-    
-        userChannels_collect (item, m_user_channels);
-    
-        for (unsigned i = 0; i < m_user_channels.size (); i++)
+        // collect all the user channels and add them to eval.
+        usrChannelsCollect(item, m_usrChannels);
+        for (unsigned i=0;i<m_usrChannels.size();i++)
         {
-            ChannelDef      *channel = &m_user_channels[i];
-        
-            channel->eval_index = eval.AddChan(item, channel->chan_index, LXfECHAN_READ | LXfECHAN_WRITE);
+            ChannelDef &c = m_usrChannels[i];
+            c.eval_index = eval.AddChan(item, c.chan_index, LXfECHAN_READ | LXfECHAN_WRITE);
         }
     }
 
@@ -315,14 +306,14 @@ namespace dfgModoIM
          *  specified item matches what we cached when we allocated the modifier.
          */
     
-        CLxUser_Item         item (item_obj);
-        std::vector <ChannelDef> user_channels;
+        CLxUser_Item             item(item_obj);
+        std::vector <ChannelDef> tmp;
 
         if (item.test())
         {
-            userChannels_collect (item, user_channels);
+            usrChannelsCollect (item, tmp);
         
-            return user_channels.size () == m_user_channels.size ();
+            return tmp.size() == m_usrChannels.size();
         }
     
         return false;
@@ -330,73 +321,114 @@ namespace dfgModoIM
 
     void Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)
     {
-         // w.i.p.
+         // if necessary create and show the DFG widget (w.i.p.)
         {
             FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
             if (w && !(*w).isVisible())
                 (*w).show();
         }
 
-         // debug: output amount of channels and channel names in attr.
-        {
-            char s[256];
-            sprintf(s, "attr.Count() = %ld  (m_chan_index = %ld)", attr.Count(), m_chan_index);
-            gLog.Message(LXe_INFO, "[DBG]", s, " ");
-            for (int i=0;i<m_user_channels.size();i++)
-            {
-                ChannelDef &c = m_user_channels[i];
-                sprintf(s, "   name = %s   (chan_index = %ld, eval_index = %ld)", c.chan_name.c_str(), c.chan_index, c.eval_index);
-                gLog.Message(LXe_INFO, "[DBG]", s, " ");
-            }
-        }
-
        // nothing to do?
         if (!eval || !attr)
             return;
 
-        // ref at DFG stuff.
+        // refs at DFG wrapper members.
+        FabricCore::Client                          &client  = *(*quickhack_baseInterface).getClient();
         FabricServices::DFGWrapper::Binding         &binding = *(*quickhack_baseInterface).getBinding();
         FabricServices::DFGWrapper::GraphExecutable &graph   = binding.getGraph();
 
         // read the fixed input channels and return early if the FabricActive flag is disabled.
-        {
-            int FabricActive = false;
-            unsigned int temp_chan_index = m_chan_index;
-            attr.GetInt(temp_chan_index++, &FabricActive);
-            temp_chan_index++;  // note: we don't need the FabricJSON string here, so no need to fetch it.
-            if (!FabricActive)
-                return;
-        }
+        int FabricActive = false;
+        attr.GetInt(m_eval_index_FabricActive, &FabricActive);
+        if (!FabricActive)
+            return;
 
         // Fabric Engine (step 1): loop through all the DFG's input ports and set
         //                         their values from the matching Modo user channels.
         {
+            char        serr[256];
+            std::string err = "";
             std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
             for (int fi=0;fi<ports.size();fi++)
             {
+                // ref at port.
                 FabricServices::DFGWrapper::Port &port = ports[fi];
 
-                gLog.Message(LXe_INFO, "[DBG]", port.getName().c_str(), " ");
+                // if the port has the wrong type then skip it.
+                if (port.getPortType() != FabricCore::DFGPortType_In)
+                    continue;
 
-                int mi = -1;
-                for (int i=0;i<m_user_channels.size();i++)
+                // get pointer at matching channel definition.
+                std::string name = port.getName();
+                ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
+                if (!cd || (*cd).eval_index < 0)
+                {   err = "unable to find a user channel that matches the port \"" + name + "\"";
+                    break;  }
+
+                // "DFG port value = item user channel".
+                std::string dataType = port.getDataType();
+                FabricCore::RTVal rtval;
+                int retGet = 0;
+                if      (   dataType == "SInt8"
+                         || dataType == "SInt16"
+                         || dataType == "SInt32"
+                         || dataType == "SInt64" )
                 {
-                    ChannelDef &c = m_user_channels[i];
-                    if (port.getName() == c.chan_name)
+                    int val;
+                    retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, val);
+                    if (retGet == 0)
+                    {   if      (dataType == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
+                        else if (dataType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
+                        else if (dataType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
+                        else if (dataType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
+                        binding.setArgValue(name.c_str(), rtval);   }
+                }
+                else if (   dataType == "UInt8"
+                         || dataType == "UInt16"
+                         || dataType == "UInt32"
+                         || dataType == "UInt64" )
+                {
+                    unsigned int val;
+                    retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
+                    if (retGet == 0)
+                    {   if      (dataType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
+                        else if (dataType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
+                        else if (dataType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+                        else if (dataType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
+                        binding.setArgValue(name.c_str(), rtval);   }
+                }
+                else if (   dataType == "Float32"
+                         || dataType == "Float64" )
+                {
+                    double val;
+                    retGet = ModoTools::GetChannelValueAsFloat(attr, (*cd).eval_index, val);
+                    if (retGet == 0)
                     {
-                        mi = c.eval_index;
+                        if      (dataType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
+                        else if (dataType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
+                        binding.setArgValue(name.c_str(), rtval);
                     }
                 }
-
-
-                if (mi < 0)
-                    gLog.Message(LXe_INFO, "[DBG]", "no matchind Modo port was found", " ");
                 else
                 {
-                    char s[256];
-                    sprintf(s, "found matchind Modo port (eval index = %ld)", mi);
-                    gLog.Message(LXe_INFO, "[DBG]", s, " ");
+                    err = "the port \"" + name + "\" has the unsupported data type \"" + dataType + "\"";
+                    break;
                 }
+
+                // error getting value from user channel?
+                if (retGet != 0)
+                {
+                    sprintf(serr, "%ld", retGet);
+                    err = "failed to get value from user channel \"" + name + "\" (returned " + serr + ")";
+                    break;
+                }
+            }
+
+            // error?
+            if (err != "")
+            {
+                feLogError(NULL, err.c_str(), err.length());
+                return;
             }
         }
 
@@ -415,60 +447,134 @@ namespace dfgModoIM
         // Fabric Engine (step 3): loop through all the DFG's output ports and set
         //                         the values of the matching Modo user channels.
         {
-            // will be implemented tuesday (april 31.) morning.
+            char        serr[256];
+            std::string err = "";
+            std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
+            for (int fi=0;fi<ports.size();fi++)
+            {
+                // ref at port.
+                FabricServices::DFGWrapper::Port &port = ports[fi];
+
+                // if the port has the wrong type then skip it.
+                if (port.getPortType() != FabricCore::DFGPortType_Out)
+                    continue;
+
+                // get pointer at matching channel definition.
+                std::string name = port.getName();
+                ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
+                if (!cd || (*cd).eval_index < 0)
+                {   err = "unable to find a user channel that matches the port \"" + name + "\"";
+                    break;  }
+
+                // "item user channel = DFG port value".
+                int dataType = attr.Type((*cd).eval_index);
+                FabricCore::RTVal rtval;
+                int retGet = 0;
+                int retSet = LXe_OK;
+                if      (dataType == LXi_TYPE_INTEGER)
+                {
+                    int val;
+                    retGet = BaseInterface::GetPortValueAsInteger(port, val);
+                    if (retGet == 0)
+                        retSet = attr.SetInt((*cd).eval_index, val);
+                }
+                else if (dataType == LXi_TYPE_FLOAT)
+                {
+                    double val;
+                    retGet = BaseInterface::GetPortValueAsFloat(port, val);
+                    if (retGet == 0)
+                        retSet = attr.SetFlt((*cd).eval_index, val);
+                }
+                else
+                {
+                    const char *typeName = NULL;
+                    attr.TypeName((*cd).eval_index, &typeName);
+                    err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
+                    break;
+                }
+
+                // error getting value from DFG port?
+                if (retGet != 0)
+                {
+                    sprintf(serr, "%ld", retGet);
+                    err = "failed to get value from port \"" + name + "\" (returned " + serr + ")";
+                    break;
+                }
+
+                // error setting value of user channel?
+                if (retSet != 0)
+                {
+                    sprintf(serr, "%ld", retGet);
+                    err = "failed to get value from port \"" + name + "\" (returned " + serr + ")";
+                    break;
+                }
+            }
+
+            // error?
+            if (err != "")
+            {
+                feLogError(NULL, err.c_str(), err.length());
+                return;
+            }
         }
 
         // done.
         return;
     }
 
-    void Element::userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userChannels)
+    void Element::usrChannelsCollect(CLxUser_Item &item, std::vector <ChannelDef> &io_usrChannels)
     {
-        /*
-         *  This function collects all of the user channels on the specified item
-         *  and adds them to the provided vector of channel definitions. We loop
-         *  through all channels on the item and test their package. If they have
-         *  no package, then it's a user channel and it's added to the vector.
-         *  We also check if the channel type is a divider, if it is, we skip it.
-         */
-    
-        unsigned count = 0;
-    
-        userChannels.clear();
-    
+        //
+        // this function collects all of the user channels on the
+        // specified item and stores them into io_usrChannels.
+        //
+
+        // init.
+        io_usrChannels.clear();
         if (!item.test())
             return;
     
+        // get amount of channels.
+        unsigned count = 0;
         item.ChannelCount(&count);
     
+        // go through all channels and add all valid user channels to usrchn.
         for (unsigned i=0;i<count;i++)
         {
-            const char *package      = NULL;
-            const char *channel_type = NULL;
-    
-            // does it have a package, i.e. not a user channel?
-            if (LXx_OK (item.ChannelPackage (i, &package)) || package)
+            // if the channel has a package (i.e. if it is not a user channel) then skip it.
+            const char *package = NULL;
+            if (LXx_OK(item.ChannelPackage(i, &package)) || package)
                 continue;
-        
-            if (LXx_OK (item.ChannelEvalType (i, &channel_type) && channel_type))
-            {
-                // no type, i.e. is this a divider?
-                if (!strcmp(channel_type, LXsTYPE_NONE))
-                    continue;
 
-                //
-                ChannelDef channel;
+            // if the channel has no type then skip it.
+            const char *channel_type = NULL;
+            if (!LXx_OK(item.ChannelEvalType(i, &channel_type) && channel_type))
+                continue;
 
-                channel.chan_index = i;
-                channel.eval_index = -1;
+            // if the channel type is "none" (i.e. if it is a divider) then skip it.
+            if (!strcmp(channel_type, LXsTYPE_NONE))
+                continue;
 
-                const char *name = NULL;
-                item.ChannelName(i, &name);
-                channel.chan_name  = name;
-
-                userChannels.push_back (channel);
-            }
+            // add the channel to io_usrChannels.
+            const char *name = NULL;
+            item.ChannelName(i, &name);
+            ChannelDef c;
+            c.eval_index = -1;
+            c.chan_index =  i;
+            c.chan_name  = name;
+            io_usrChannels.push_back(c);
         }
+    }
+
+    ChannelDef *Element::usrChannelsGetFromName(std::string channelName, std::vector <ChannelDef> &usrChannels)
+    {
+        for (int i=0;i<usrChannels.size();i++)
+        {
+            ChannelDef *c = &usrChannels[i];
+            if (channelName == (*c).chan_name)
+                return c;
+        }
+        return NULL;
     }
 
     const char * Modifier::ItemType ()

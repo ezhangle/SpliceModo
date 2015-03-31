@@ -57,6 +57,21 @@ class ModoTools
     //          out_err                 contains an error description if the function returns false.
     // returns: true on success, false otherwise.
     static bool RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err);
+
+    // gets the value of a channel as an integer.
+    // params:  attr        attribute with channels.
+    //          eval_index  channel index.
+    //          out         will contain the result or 0 if an error occurred.
+    //          strict      true: the type must match perfectly, false: the type must 'kind of' match.
+    // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
+    static int GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out, bool strict = false);
+
+    // gets the value of a channel as a float.
+    // params:  attr        attribute with channels.
+    //          eval_index  channel index.
+    //          out         will contain the result or 0 if an error occurred.
+    // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
+    static int GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out);
 };
 
 #endif

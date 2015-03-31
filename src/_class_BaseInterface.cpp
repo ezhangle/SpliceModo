@@ -218,4 +218,69 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
   }
 }
 
+int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out)
+{
+    // init output.
+    out = 0;
+
+    // invalid port?
+    if (!port.isValid())
+        return -2;
+
+    // set output from port value.
+    std::string dataType = port.getDataType();
+    FabricCore::RTVal rtval = port.getRTVal();
+
+    if      (dataType == "SInt8")       out = (int)rtval.getSInt8();
+    else if (dataType == "SInt16")      out = (int)rtval.getSInt16();
+    else if (dataType == "SInt32")      out = (int)rtval.getSInt32();
+    else if (dataType == "SInt64")      out = (int)rtval.getSInt64();
+
+    else if (dataType == "UInt8")       out = (int)rtval.getUInt8();
+    else if (dataType == "UInt16")      out = (int)rtval.getUInt16();
+    else if (dataType == "UInt32")      out = (int)rtval.getUInt32();
+    else if (dataType == "UInt64")      out = (int)rtval.getUInt64();
+
+    else if (dataType == "Float32")     out = (int)rtval.getFloat32();
+    else if (dataType == "Float64")     out = (int)rtval.getFloat64();
+
+    else return -1;  // wrong data type.
+
+    // done.
+    return 0;
+}
+
+int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, double &out)
+{
+    // init output.
+    out = 0;
+
+    // invalid port?
+    if (!port.isValid())
+        return -2;
+
+    // set output from port value.
+    std::string dataType = port.getDataType();
+    FabricCore::RTVal rtval = port.getRTVal();
+
+    if      (dataType == "SInt8")       out = (double)rtval.getSInt8();
+    else if (dataType == "SInt16")      out = (double)rtval.getSInt16();
+    else if (dataType == "SInt32")      out = (double)rtval.getSInt32();
+    else if (dataType == "SInt64")      out = (double)rtval.getSInt64();
+
+    else if (dataType == "UInt8")       out = (double)rtval.getUInt8();
+    else if (dataType == "UInt16")      out = (double)rtval.getUInt16();
+    else if (dataType == "UInt32")      out = (double)rtval.getUInt32();
+    else if (dataType == "UInt64")      out = (double)rtval.getUInt64();
+
+    else if (dataType == "Float32")     out = (double)rtval.getFloat32();
+    else if (dataType == "Float64")     out = (double)rtval.getFloat64();
+
+    else return -1;  // wrong data type.
+
+    // done.
+    return 0;
+}
+
+
 

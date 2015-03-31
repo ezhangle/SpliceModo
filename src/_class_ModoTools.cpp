@@ -133,3 +133,66 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     else
         return false;
 }
+
+int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out)
+{
+    // init output.
+    out = 0;
+
+    // illegal index?
+    if (eval_index < 0)
+        return -2;
+
+    // set output from channel value.
+	int type = attr.Type(eval_index);
+    if (type == LXi_TYPE_INTEGER)
+    {
+        if (attr.GetInt(eval_index, &out) != LXe_OK)
+            return -3;
+        return 0;
+    }
+    else if (type == LXi_TYPE_FLOAT)
+    {
+        double f = 0;
+        if (attr.GetFlt(eval_index, &f))
+            return -3;
+        out = (int)f;
+        return 0;
+    }
+
+    // wrong channel type.
+    return -1;
+}
+
+int ModoTools::GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out)
+{
+    // init output.
+    out = 0;
+
+    // illegal index?
+    if (eval_index < 0)
+        return -2;
+
+    // set output from channel value.
+	int type = attr.Type(eval_index);
+    if (type == LXi_TYPE_INTEGER)
+    {
+        int i = 0;
+        if (attr.GetInt(eval_index, &i) != LXe_OK)
+            return -3;
+        out = i;
+        return 0;
+    }
+    else if (type == LXi_TYPE_FLOAT)
+    {
+        if (attr.GetFlt(eval_index, &out))
+            return -3;
+        return 0;
+    }
+
+    // wrong channel type.
+    return -1;
+}
+
+
+

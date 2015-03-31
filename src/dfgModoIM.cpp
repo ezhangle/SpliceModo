@@ -221,10 +221,11 @@ namespace dfgModoIM
 
     struct ChannelDef
     {
-        int          chan_index;
-        int          eval_index;
+        int  chan_index;
+        int  eval_index;
+        std::string chan_name;
     
-        ChannelDef () : chan_index (-1), eval_index (-1) {}
+        ChannelDef () : chan_index (-1), eval_index (-1), chan_name("") {}
     };
 
     class Element : public CLxItemModifierElement
@@ -299,7 +300,7 @@ namespace dfgModoIM
         {
             ChannelDef      *channel = &m_user_channels[i];
         
-            channel->eval_index = eval.AddChan (item, channel->chan_index, LXfECHAN_READ | LXfECHAN_WRITE);
+            channel->eval_index = eval.AddChan(item, channel->chan_index, LXfECHAN_READ | LXfECHAN_WRITE);
         }
     }
 
@@ -336,41 +337,74 @@ namespace dfgModoIM
                 (*w).show();
         }
 
-         // debug: output amount of channels in attr.
+         // debug: output amount of channels and channel names in attr.
         {
             char s[256];
-            sprintf(s, "attr.Count() = %ld", attr.Count());
+            sprintf(s, "attr.Count() = %ld  (m_chan_index = %ld)", attr.Count(), m_chan_index);
             gLog.Message(LXe_INFO, "[DBG]", s, " ");
+            for (int i=0;i<m_user_channels.size();i++)
+            {
+                ChannelDef &c = m_user_channels[i];
+                sprintf(s, "   name = %s   (chan_index = %ld, eval_index = %ld)", c.chan_name.c_str(), c.chan_index, c.eval_index);
+                gLog.Message(LXe_INFO, "[DBG]", s, " ");
+            }
         }
 
        // nothing to do?
         if (!eval || !attr)
             return;
 
-        // ref at base interface.
-        BaseInterface &bi = *quickhack_baseInterface;
+        // ref at DFG stuff.
+        FabricServices::DFGWrapper::Binding         &binding = *(*quickhack_baseInterface).getBinding();
+        FabricServices::DFGWrapper::GraphExecutable &graph   = binding.getGraph();
 
         // read the fixed input channels and return early if the FabricActive flag is disabled.
         {
             int FabricActive = false;
             unsigned int temp_chan_index = m_chan_index;
-            attr.GetInt (temp_chan_index++, &FabricActive);
+            attr.GetInt(temp_chan_index++, &FabricActive);
             temp_chan_index++;  // note: we don't need the FabricJSON string here, so no need to fetch it.
             if (!FabricActive)
                 return;
         }
 
-        // Fabric Engine (step 1): loop through all the input ports of the DFG and set
-        //                         the values from the matching user channels.
+        // Fabric Engine (step 1): loop through all the DFG's input ports and set
+        //                         their values from the matching Modo user channels.
         {
-            // will be implemented tuesday (april 31.) morning.
+            std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
+            for (int fi=0;fi<ports.size();fi++)
+            {
+                FabricServices::DFGWrapper::Port &port = ports[fi];
+
+                gLog.Message(LXe_INFO, "[DBG]", port.getName().c_str(), " ");
+
+                int mi = -1;
+                for (int i=0;i<m_user_channels.size();i++)
+                {
+                    ChannelDef &c = m_user_channels[i];
+                    if (port.getName() == c.chan_name)
+                    {
+                        mi = c.eval_index;
+                    }
+                }
+
+
+                if (mi < 0)
+                    gLog.Message(LXe_INFO, "[DBG]", "no matchind Modo port was found", " ");
+                else
+                {
+                    char s[256];
+                    sprintf(s, "found matchind Modo port (eval index = %ld)", mi);
+                    gLog.Message(LXe_INFO, "[DBG]", s, " ");
+                }
+            }
         }
 
         // Fabric Engine (step 2): execute the DFG.
         {
             try
             {
-                bi.getBinding()->execute();
+                binding.execute();
             }
             catch(FabricCore::Exception e)
             {
@@ -378,8 +412,8 @@ namespace dfgModoIM
             }
         }
 
-        // Fabric Engine (step 3): loop through all the output ports of the DFG and set
-        //                         the values of the matching user channels.
+        // Fabric Engine (step 3): loop through all the DFG's output ports and set
+        //                         the values of the matching Modo user channels.
         {
             // will be implemented tuesday (april 31.) morning.
         }
@@ -392,38 +426,47 @@ namespace dfgModoIM
     {
         /*
          *  This function collects all of the user channels on the specified item
-         *  and adds them to the provided vector of channel defintions. We loop
+         *  and adds them to the provided vector of channel definitions. We loop
          *  through all channels on the item and test their package. If they have
          *  no package, then it's a user channel and it's added to the vector.
          *  We also check if the channel type is a divider, if it is, we skip it.
          */
     
-        unsigned         count = 0;
+        unsigned count = 0;
     
-        userChannels.clear ();
+        userChannels.clear();
     
-        if (!item.test ())
+        if (!item.test())
             return;
     
-        item.ChannelCount (&count);
+        item.ChannelCount(&count);
     
-        for (unsigned i = 0; i < count; i++)
+        for (unsigned i=0;i<count;i++)
         {
-            const char      *package = NULL, *channel_type = NULL;
+            const char *package      = NULL;
+            const char *channel_type = NULL;
     
+            // does it have a package, i.e. not a user channel?
             if (LXx_OK (item.ChannelPackage (i, &package)) || package)
                 continue;
         
             if (LXx_OK (item.ChannelEvalType (i, &channel_type) && channel_type))
             {
-                if (strcmp(channel_type, LXsTYPE_NONE))
-                {
-                    ChannelDef       channel;
-            
-                    channel.chan_index = i;
-            
-                    userChannels.push_back (channel);
-                }
+                // no type, i.e. is this a divider?
+                if (!strcmp(channel_type, LXsTYPE_NONE))
+                    continue;
+
+                //
+                ChannelDef channel;
+
+                channel.chan_index = i;
+                channel.eval_index = -1;
+
+                const char *name = NULL;
+                item.ChannelName(i, &name);
+                channel.chan_name  = name;
+
+                userChannels.push_back (channel);
             }
         }
     }

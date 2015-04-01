@@ -4,9 +4,6 @@
 
 #define SERVER_NAME_dfgModoIM       "dfgModoIM"
 
-#define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.
-#define CHN_NAME_IO_FabricJSON      "FabricJSON"    // io: string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
-
 static CLxItemType gItemType_dfgModoIM (SERVER_NAME_dfgModoIM);
 
 BaseInterface *quickhack_baseInterface = NULL;

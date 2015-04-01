@@ -14,12 +14,16 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmdPutGraphInFabricJSON.h"
 #include "cmdLogFabricVersion.h"
 #include "cmdOpenFabricCanvas.h"
+#include "cmdStoreDFGinJSON.h"
 #include "dfgModoIM.h"
 
-// log system (2/2).
+// fixed channel names.
+#define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.
+#define CHN_NAME_IO_FabricJSON      "FabricJSON"    // io: string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
+
+// log system.
 #define LOG_SYSTEM_NAME "Fabric"
 class CItemLog : public CLxLogMessage
 {

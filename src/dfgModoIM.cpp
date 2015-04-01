@@ -79,9 +79,20 @@ namespace dfgModoIM
             {
                 delete m_userdata;
             };
+
+            LxResult    pins_AfterLoad(void)            LXx_OVERRIDE;
     };
 
-    class Package : public CLxImpl_Package, public CLxImpl_ChannelUI, public CLxImpl_SceneItemListener
+    LxResult Instance::pins_AfterLoad(void)
+    {
+        feLog(NULL, std::string("pins_AfterLoad()"));
+
+        return LXe_OK;
+    }
+
+    class Package : public CLxImpl_Package,
+                    public CLxImpl_ChannelUI,
+                    public CLxImpl_SceneItemListener
     {
         public:
         static void initialize()

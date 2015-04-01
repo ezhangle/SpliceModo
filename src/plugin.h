@@ -14,6 +14,7 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
+#include "cmdPutGraphInFabricJSON.h"
 #include "cmdLogFabricVersion.h"
 #include "cmdOpenFabricCanvas.h"
 #include "dfgModoIM.h"

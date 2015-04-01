@@ -36,9 +36,10 @@ void initialize()
 
     // Modo.
     {
-        cmdLogFabricVersion::Command::  initialize();
-        cmdOpenFabricCanvas::Command::  initialize();
-        dfgModoIM::                     initialize();
+        cmdPutGraphInFabricJSON :: Command::  initialize();
+        cmdLogFabricVersion     :: Command::  initialize();
+        cmdOpenFabricCanvas     :: Command::  initialize();
+        dfgModoIM::                           initialize();
     }
  }
 

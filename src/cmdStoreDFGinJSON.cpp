@@ -10,37 +10,38 @@ LXtTagInfoDesc cmdStoreDFGinJSON::Command::descInfo[] =
 // execute code.
 void cmdStoreDFGinJSON::Command::cmd_Execute(unsigned flags)
 {
-    
-    CLxUser_Item item;  // we assume that this is a valid item with a string channel called "myStringChannel".
+    // init err string,
+    std::string err = "command StoreDFGinJSON failed: ";
 
-    CLxUser_ChannelWrite chanWrite(item);
-    chanWrite.Set(item, "myStringChannel", "hello world");
+    // check pointer and create ref at BaseInterface.
+    if (!quickhack_baseInterface)
+    {   err += "pointer == NULL";
+        feLogError(0, err.c_str(), err.length());
+        return;    }
+    BaseInterface &b = *quickhack_baseInterface;
 
+    // create item.
+    CLxUser_Item item((ILxUnknownID)b.m_item_obj_dfgModoIM);
+    if (!item.test())
+    {   err += "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
+        feLogError(0, err.c_str(), err.length());
+        return;    }
 
+    // add item name to err string.
+    std::string itemName;
+    item.GetUniqueName(itemName);
+    err += "item\"" + itemName + "\": ";
 
-
-
-    //std::string err = "command StoreDFGinJSON failed: ";
-
-    //if (!quickhack_baseInterface)
-    //{   err += "pointer == NULL";
-    //    feLogError(0, err.c_str(), err.length());
-    //    return;    }
-
-    //BaseInterface &b = *quickhack_baseInterface;
-
-    //CLxUser_Item item((ILxUnknownID)b.m_item_obj_dfgModoIM);
-    //if (!item.test())
-    //{   err += "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-    //    feLogError(0, err.c_str(), err.length());
-    //    return;    }
-
-    //std::string json = b.getJSON();
-
-    //CLxUser_ChannelWrite chanWrite(item);
-    //if (!chanWrite.Set(item, CHN_NAME_IO_FabricJSON, json.c_str()))
-    //{   err += "failed to set channel \"" CHN_NAME_IO_FabricJSON "\"";
-    //    feLogError(0, err.c_str(), err.length());
-    //    return;    }
+    // store JSON string in channel.
+    CLxUser_ChannelWrite chanWrite;
+    if (!chanWrite.from(item))
+    {   err += "couldn't create channel writer.";
+        feLogError(0, err.c_str(), err.length());
+        return;    }
+    std::string json = b.getJSON();
+    if (!chanWrite.Set(item, CHN_NAME_IO_FabricJSON, json.c_str()))
+    {   err += "failed to set channel \"" CHN_NAME_IO_FabricJSON "\"";
+        feLogError(0, err.c_str(), err.length());
+        return;    }
 }
  

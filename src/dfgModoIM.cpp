@@ -69,7 +69,8 @@ namespace dfgModoIM
 
             Instance()
             {
-                m_userdata = new _userdata;
+                m_item      = NULL;
+                m_userdata  = new _userdata;
             };
 
             ~Instance()
@@ -77,13 +78,63 @@ namespace dfgModoIM
                 delete m_userdata;
             };
 
-            LxResult    pins_AfterLoad(void)            LXx_OVERRIDE;
+            LxResult    pins_Initialize(ILxUnknownID item, ILxUnknownID super)  LXx_OVERRIDE;
+            LxResult    pins_AfterLoad(void)                                    LXx_OVERRIDE;
+
+        private:
+            ILxUnknownID m_item;
     };
+
+    LxResult Instance::pins_Initialize(ILxUnknownID item, ILxUnknownID super)
+    {
+        m_item = item;
+
+        return LXe_OK;
+    }
 
     LxResult Instance::pins_AfterLoad(void)
     {
-        feLog(NULL, std::string("pins_AfterLoad()"));
+        // init err string,
+        std::string err = "pins_AfterLoad() failed: ";
 
+        // check pointer and create ref at BaseInterface.
+        if (!quickhack_baseInterface)
+        {   err += "pointer == NULL";
+            feLogError(0, err.c_str(), err.length());
+            return LXe_OK;  }
+        BaseInterface &b = *quickhack_baseInterface;
+
+        // create item.
+        CLxUser_Item item(m_item);
+        if (!item.test())
+        {   err += "item(m_item) failed";
+            feLogError(0, err.c_str(), err.length());
+            return LXe_OK;  }
+
+        // log.
+        std::string itemName;
+        item.GetUniqueName(itemName);
+        std::string info;
+        info = "item \"" + itemName + "\": set Fabric base interface from item's JSON string.";
+        feLog(0, info.c_str(), info.length());
+
+        // get content of channel CHN_NAME_IO_FabricJSON.
+        CLxUser_ChannelRead chanRead;
+        chanRead.from(item);
+        if (!chanRead.from(item))
+        {   err += "couldn't create channel reader.";
+            feLogError(0, err.c_str(), err.length());
+            return LXe_OK;  }
+        std::string json;
+        if (!chanRead.GetString(item, CHN_NAME_IO_FabricJSON, json))
+        {   err += "failed to read channel \"" CHN_NAME_IO_FabricJSON "\"";
+            feLogError(0, err.c_str(), err.length());
+            return LXe_OK;  }
+
+        // do it.
+        b.setFromJSON(json);
+
+        // done.
         return LXe_OK;
     }
 
@@ -135,6 +186,7 @@ namespace dfgModoIM
 
             add_chan.NewChannel(CHN_NAME_IO_FabricJSON, LXsTYPE_STRING);
             add_chan.SetStorage(LXsTYPE_STRING);
+            add_chan.SetInternal();
 
             result = LXe_OK;
         }

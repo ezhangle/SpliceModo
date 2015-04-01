@@ -39,9 +39,11 @@ class ModoTools
     // creates a new user channel.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
     //          channelName             name of new channel.
+    //          dataType                channel's data type (e.g. "float", "integer", "string").
+    //          structType              structure type, may be "" (e.g. "scalar", "vecXY", "vecXYZ", "vecRGB", "vecRGBA").
     //          out_err                 contains an error description if the function returns false.
     // returns: true on success, false otherwise.
-    static bool CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
+    static bool CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &dataType, const std::string &structType, std::string &out_err);
 
     // deletes an existing user channel.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
@@ -62,7 +64,7 @@ class ModoTools
     // params:  attr        attribute with channels.
     //          eval_index  channel index.
     //          out         will contain the result or 0 if an error occurred.
-    //          strict      true: the type must match perfectly, false: the type must 'kind of' match.
+    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
     // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
     static int GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out, bool strict = false);
 
@@ -70,8 +72,17 @@ class ModoTools
     // params:  attr        attribute with channels.
     //          eval_index  channel index.
     //          out         will contain the result or 0 if an error occurred.
+    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
     // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
-    static int GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out);
+    static int GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out, bool strict = false);
+
+    // gets the value of a channel as a string.
+    // params:  attr        attribute with channels.
+    //          eval_index  channel index.
+    //          out         will contain the result or "" if an error occurred.
+    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
+    // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
+    static int GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index, std::string &out, bool strict = false);
 };
 
 #endif

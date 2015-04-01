@@ -174,11 +174,13 @@ namespace dfgModoIM
                     || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
                    )
                 {
-                    result = hints.ChannelFlags (/*LXfUIHINTCHAN_INPUT_ONLY | */LXfUIHINTCHAN_SUGGESTED);
+                    result = hints.ChannelFlags (0);    // by default we don't display the fixed channels in the schematic view.
                 }
                 else
                 {
-                    result = hints.ChannelFlags (/*LXfUIHINTCHAN_OUTPUT_ONLY | */LXfUIHINTCHAN_SUGGESTED);
+                    if      ((*quickhack_baseInterface).HasInputPort(channelName))  result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
+                    else if ((*quickhack_baseInterface).HasOutputPort(channelName)) result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+                    else                                                            result = hints.ChannelFlags(0);
                 }
             }
             result = LXe_OK;
@@ -291,7 +293,19 @@ namespace dfgModoIM
         for (unsigned i=0;i<m_usrChannels.size();i++)
         {
             ChannelDef &c = m_usrChannels[i];
-            c.eval_index = eval.AddChan(item, c.chan_index, LXfECHAN_READ | LXfECHAN_WRITE);
+
+            unsigned int type;
+            if      ((*quickhack_baseInterface).HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
+            else if ((*quickhack_baseInterface).HasOutputPort(c.chan_name.c_str()))     type =                 LXfECHAN_WRITE;
+            else                                                                        type = LXfECHAN_READ | LXfECHAN_WRITE;
+
+            c.eval_index = eval.AddChan(item, c.chan_index, type);
+
+            // debug.
+            {
+                std::string s = "eval.AddChan(\"" + c.chan_name + ")";
+                feLog(NULL, s);
+            }
         }
     }
 
@@ -388,7 +402,7 @@ namespace dfgModoIM
                          || dataType == "UInt32"
                          || dataType == "UInt64" )
                 {
-                    unsigned int val;
+                    unsigned int val = 0;
                     retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
                     if (retGet == 0)
                     {   if      (dataType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
@@ -406,6 +420,16 @@ namespace dfgModoIM
                     {
                         if      (dataType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
                         else if (dataType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
+                        binding.setArgValue(name.c_str(), rtval);
+                    }
+                }
+                else if (   dataType == "String")
+                {
+                    std::string val;
+                    retGet = ModoTools::GetChannelValueAsString(attr, (*cd).eval_index, val);
+                    if (retGet == 0)
+                    {
+                        rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
                         binding.setArgValue(name.c_str(), rtval);
                     }
                 }
@@ -484,6 +508,13 @@ namespace dfgModoIM
                     retGet = BaseInterface::GetPortValueAsFloat(port, val);
                     if (retGet == 0)
                         retSet = attr.SetFlt((*cd).eval_index, val);
+                }
+                else if (dataType == LXi_TYPE_STRING)
+                {
+                    std::string val;
+                    retGet = BaseInterface::GetPortValueAsString(port, val);
+                    if (retGet == 0)
+                        retSet = attr.SetString((*cd).eval_index, val.c_str());
                 }
                 else
                 {

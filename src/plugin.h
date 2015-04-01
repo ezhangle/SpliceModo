@@ -29,7 +29,9 @@ class CItemLog : public CLxLogMessage
 };
 extern CItemLog gLog;
 void feLog(void *userData, const char *s, unsigned int length);
+void feLog(void *userData, const std::string &s);
 void feLogError(void *userData, const char *s, unsigned int length);
+void feLogError(void *userData, const std::string &s);
 
 #endif
 

@@ -80,23 +80,38 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         static std::map<unsigned int, BaseInterface*> s_instances;
 
     public:
+        // returns true if the graph has an input port called portName.
+        bool HasInputPort(const char *portName);
+        bool HasInputPort(const std::string &portName);
+
+        // returns true if the graph has an output port called portName.
+        bool HasOutputPort(const char *portName);
+        bool HasOutputPort(const std::string &portName);
+
         // gets the value of a port as an integer.
         // params:  port        the port.
         //          out         will contain the result or 0 if an error occurred.
+        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
         // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out);
+        static int GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out, bool strict = false);
 
         // gets the value of a port as a float.
         // params:  port        the port.
         //          out         will contain the result or 0 if an error occurred.
+        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
         // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, double &out);
+        static int GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, double &out, bool strict = false);
 
         // gets the value of a port as a string.
         // params:  port        the port.
         //          out         will contain the result or "" if an error occurred.
+        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
         // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsString(FabricServices::DFGWrapper::Port &port, std::string &out);
+        static int GetPortValueAsString(FabricServices::DFGWrapper::Port &port, std::string &out, bool strict = false);
 };
 
 #endif
+
+
+
+

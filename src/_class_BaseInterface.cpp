@@ -164,7 +164,37 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
         logErrorFunc(0, err.c_str(), err.length());
         return;    }
 
-    if (!ModoTools::CreateUserChannel(&item, port.getName(), err))
+    std::string dataType   = port.getDataType();
+    std::string structType = "";
+
+    if      (   dataType == "Integer"
+             || dataType == "SInt8"
+             || dataType == "SInt16"
+             || dataType == "SInt32"
+             || dataType == "SInt64"
+             || dataType == "UInt8"
+             || dataType == "UInt16"
+             || dataType == "UInt32"
+             || dataType == "UInt64")   {   dataType = "integer";                           }
+
+    else if (   dataType == "Scalar"
+             || dataType == "Float32"
+             || dataType == "Float64")  {   dataType = "float";                             }
+
+    else if (   dataType == "String")   {   dataType = "string";                            }
+
+    else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }
+
+    else if (   dataType == "Quat")     {   dataType = "quaternion";                        }   // 22h17     // 23h03
+
+    else
+    {
+        err = "unable to create user channel, type \"" + dataType + "\" not yet implemented";
+        logErrorFunc(0, err.c_str(), err.length());
+        return;
+    }
+
+    if (!ModoTools::CreateUserChannel(&item, port.getName(), dataType, structType, err))
         logErrorFunc(0, err.c_str(), err.length());
 }
 
@@ -218,7 +248,29 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
   }
 }
 
-int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out)
+bool BaseInterface::HasInputPort(const char *portName)
+{
+    FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
+    return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_In);
+}
+
+bool BaseInterface::HasInputPort(const std::string &portName)
+{
+    return HasInputPort(portName.c_str());
+}
+
+bool BaseInterface::HasOutputPort(const char *portName)
+{
+    FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
+    return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_Out);
+}
+
+bool BaseInterface::HasOutputPort(const std::string &portName)
+{
+    return HasOutputPort(portName.c_str());
+}
+
+int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out, bool strict)
 {
     // init output.
     out = 0;
@@ -241,16 +293,19 @@ int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port,
     else if (dataType == "UInt32")      out = (int)rtval.getUInt32();
     else if (dataType == "UInt64")      out = (int)rtval.getUInt64();
 
-    else if (dataType == "Float32")     out = (int)rtval.getFloat32();
-    else if (dataType == "Float64")     out = (int)rtval.getFloat64();
-
+    else if (!strict)
+    {
+        if      (dataType == "Float32") out = (int)rtval.getFloat32();
+        else if (dataType == "Float64") out = (int)rtval.getFloat64();
+        else return -1;  // wrong data type.
+    }
     else return -1;  // wrong data type.
 
     // done.
     return 0;
 }
 
-int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, double &out)
+int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, double &out, bool strict)
 {
     // init output.
     out = 0;
@@ -263,24 +318,73 @@ int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, d
     std::string dataType = port.getDataType();
     FabricCore::RTVal rtval = port.getRTVal();
 
-    if      (dataType == "SInt8")       out = (double)rtval.getSInt8();
-    else if (dataType == "SInt16")      out = (double)rtval.getSInt16();
-    else if (dataType == "SInt32")      out = (double)rtval.getSInt32();
-    else if (dataType == "SInt64")      out = (double)rtval.getSInt64();
-
-    else if (dataType == "UInt8")       out = (double)rtval.getUInt8();
-    else if (dataType == "UInt16")      out = (double)rtval.getUInt16();
-    else if (dataType == "UInt32")      out = (double)rtval.getUInt32();
-    else if (dataType == "UInt64")      out = (double)rtval.getUInt64();
-
-    else if (dataType == "Float32")     out = (double)rtval.getFloat32();
+    if      (dataType == "Float32")     out = (double)rtval.getFloat32();
     else if (dataType == "Float64")     out = (double)rtval.getFloat64();
 
+    else if (!strict)
+    {
+        if      (dataType == "SInt8")   out = (double)rtval.getSInt8();
+        else if (dataType == "SInt16")  out = (double)rtval.getSInt16();
+        else if (dataType == "SInt32")  out = (double)rtval.getSInt32();
+        else if (dataType == "SInt64")  out = (double)rtval.getSInt64();
+
+        else if (dataType == "UInt8")   out = (double)rtval.getUInt8();
+        else if (dataType == "UInt16")  out = (double)rtval.getUInt16();
+        else if (dataType == "UInt32")  out = (double)rtval.getUInt32();
+        else if (dataType == "UInt64")  out = (double)rtval.getUInt64();
+        else return -1;  // wrong data type.
+    }
     else return -1;  // wrong data type.
 
     // done.
     return 0;
 }
 
+int BaseInterface::GetPortValueAsString(FabricServices::DFGWrapper::Port &port, std::string &out, bool strict)
+{
+    // init output.
+    out = "";
+
+    // invalid port?
+    if (!port.isValid())
+        return -2;
+
+    // set output from port value.
+    std::string dataType = port.getDataType();
+    FabricCore::RTVal rtval = port.getRTVal();
+
+    if (dataType == "String")   out = rtval.getStringCString();
+
+    else if (!strict)
+    {
+        char   s[64];
+        int    i;
+        double f;
+
+        // integer?
+        if (GetPortValueAsInteger(port, i, true) == 0)
+        {
+            sprintf(s, "%ld", i);
+            out = s;
+            return 0;
+        }
+
+        // float?
+        if (GetPortValueAsFloat(port, f, true) == 0)
+        {
+            sprintf(s, "%f", f);
+            out = s;
+            return 0;
+        }
+
+        // wrong data type.
+        return -1;
+    }
+    else
+        return -1;  // wrong data type.
+
+    // done.
+    return 0;
+}
 
 

@@ -49,7 +49,7 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
     return (item.ChannelLookup(channelName.c_str(), &index) == LXe_OK);
 }
 
-bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
+bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &dataType, const std::string &structType, std::string &out_err)
 {
     // init.
     out_err = "";
@@ -58,6 +58,9 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
         return false;   }
     if (channelName.length() <= 0)
     {   out_err = "empty channel name";
+        return false;   }
+    if (dataType.length() <= 0)
+    {   out_err = "empty dataType";
         return false;   }
 
     // ref at item.
@@ -73,7 +76,13 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     item.GetUniqueName(itemName);
 
     // execute command.
-    return ExecuteCommand(std::string("channel.create " + channelName + " item:" + itemName), out_err);
+    return ExecuteCommand(std::string( "channel.create " + channelName
+                                      + " "              + dataType
+                                      + " "              + structType
+                                      + " item:"         + itemName)
+                                      , out_err);
+
+// channel.create bli float vecXYZ false 0.0 false 0.0 0.0 username:bli
 }
 
 bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
@@ -134,7 +143,7 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
         return false;
 }
 
-int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out)
+int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out, bool strict)
 {
     // init output.
     out = 0;
@@ -151,7 +160,7 @@ int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index
             return -3;
         return 0;
     }
-    else if (type == LXi_TYPE_FLOAT)
+    else if (!strict && type == LXi_TYPE_FLOAT)
     {
         double f = 0;
         if (attr.GetFlt(eval_index, &f))
@@ -164,7 +173,7 @@ int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index
     return -1;
 }
 
-int ModoTools::GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out)
+int ModoTools::GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out, bool strict)
 {
     // init output.
     out = 0;
@@ -175,7 +184,13 @@ int ModoTools::GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, 
 
     // set output from channel value.
 	int type = attr.Type(eval_index);
-    if (type == LXi_TYPE_INTEGER)
+    if (type == LXi_TYPE_FLOAT)
+    {
+        if (attr.GetFlt(eval_index, &out))
+            return -3;
+        return 0;
+    }
+    else if (!strict && type == LXi_TYPE_INTEGER)
     {
         int i = 0;
         if (attr.GetInt(eval_index, &i) != LXe_OK)
@@ -183,16 +198,52 @@ int ModoTools::GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, 
         out = i;
         return 0;
     }
-    else if (type == LXi_TYPE_FLOAT)
-    {
-        if (attr.GetFlt(eval_index, &out))
-            return -3;
-        return 0;
-    }
 
     // wrong channel type.
     return -1;
 }
 
+int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index, std::string &out, bool strict)
+{
+    // init output.
+    out = "";
 
+    // illegal index?
+    if (eval_index < 0)
+        return -2;
+
+    // set output from channel value.
+	int type = attr.Type(eval_index);
+    if (type == LXi_TYPE_STRING)
+    {
+        if (attr.GetString(eval_index, out) != LXe_OK)
+            return -3;
+        return 0;
+    }
+    else if (!strict)
+    {
+        char   s[64];
+        if (type == LXi_TYPE_INTEGER)
+        {
+            int i = 0;
+            if (attr.GetInt(eval_index, &i) != LXe_OK)
+                return -3;
+            sprintf(s, "%ld", i);
+            out = s;
+            return 0;
+        }
+        else if (!strict && type == LXi_TYPE_FLOAT)
+        {
+            double f = 0;
+            if (attr.GetFlt(eval_index, &f))
+                return -3;
+            sprintf(s, "%f", f);
+            out = s;
+            return 0;
+        }
+    }
+
+    // wrong channel type.
+    return -1;
+}
 

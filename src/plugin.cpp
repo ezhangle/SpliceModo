@@ -37,6 +37,7 @@ void initialize()
     // Modo.
     {
         cmdLogFabricVersion::Command::  initialize();
+        cmdOpenFabricCanvas::Command::  initialize();
         dfgModoIM::                     initialize();
     }
  }

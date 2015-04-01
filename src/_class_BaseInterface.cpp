@@ -183,9 +183,9 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 
     else if (   dataType == "String")   {   dataType = "string";                            }
 
-    else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }
+    else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  } // WIP WIP WIP WIP WIP 
 
-    else if (   dataType == "Quat")     {   dataType = "quaternion";                        }   // 22h17     // 23h03
+    else if (   dataType == "Quat")     {   dataType = "quaternion";                        } // WIP WIP WIP WIP WIP 
 
     else
     {

@@ -15,6 +15,7 @@
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
 #include "cmdLogFabricVersion.h"
+#include "cmdOpenFabricCanvas.h"
 #include "dfgModoIM.h"
 
 // log system (2/2).

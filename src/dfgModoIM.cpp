@@ -263,13 +263,6 @@ namespace dfgModoIM
         {
             //
             (*quickhack_baseInterface).m_item_obj_dfgModoIM = item_obj;
-
-             // w.i.p.
-            {
-                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
-                if (w && !(*w).isVisible())
-                    (*w).show();
-            }
         }
 
         /*
@@ -335,13 +328,6 @@ namespace dfgModoIM
 
     void Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)
     {
-         // if necessary create and show the DFG widget (w.i.p.)
-        {
-            FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
-            if (w && !(*w).isVisible())
-                (*w).show();
-        }
-
        // nothing to do?
         if (!eval || !attr)
             return;

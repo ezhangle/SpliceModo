@@ -167,7 +167,13 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
     std::string dataType   = port.getDataType();
     std::string structType = "";
 
-    if      (   dataType == "Integer"
+    if      (   dataType == "")         {   err = "port.getDataType() == \"\"";
+                                            logErrorFunc(0, err.c_str(), err.length());
+                                            return;    }
+
+    else if (   dataType == "Boolean")  {   dataType = "boolean";                           }   // WIP
+
+    else if (   dataType == "Integer"
              || dataType == "SInt8"
              || dataType == "SInt16"
              || dataType == "SInt32"
@@ -183,9 +189,15 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 
     else if (   dataType == "String")   {   dataType = "string";                            }
 
-    else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  } // WIP WIP WIP WIP WIP 
+    else if (   dataType == "Quat")     {   dataType = "quaternion";                        }   // WIP
 
-    else if (   dataType == "Quat")     {   dataType = "quaternion";                        } // WIP WIP WIP WIP WIP 
+    else if (   dataType == "Mat44")    {   dataType = "matrix";                            }   // WIP
+
+    else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }   // WIP
+    else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }   // WIP
+
+    else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }   // WIP
+    else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }   // WIP
 
     else
     {
@@ -270,6 +282,46 @@ bool BaseInterface::HasOutputPort(const std::string &portName)
     return HasOutputPort(portName.c_str());
 }
 
+int BaseInterface::GetPortValueAsBoolean(FabricServices::DFGWrapper::Port &port, bool &out, bool strict)
+{
+    // init output.
+    out = false;
+
+    // invalid port?
+    if (!port.isValid())
+        return -2;
+
+    // set out from port value.
+    std::string dataType = port.getDataType();
+    FabricCore::RTVal rtval = port.getRTVal();
+
+    if      (dataType.length() == 0)    return -1;
+
+    else if (dataType == "Boolean")     out = rtval.getBoolean();
+
+    else if (!strict)
+    {
+        if      (dataType == "Float32") out = (0 != rtval.getFloat32());
+        else if (dataType == "Float64") out = (0 != rtval.getFloat64());
+
+        else if (dataType == "SInt8")   out = (0 != rtval.getSInt8());
+        else if (dataType == "SInt16")  out = (0 != rtval.getSInt16());
+        else if (dataType == "SInt32")  out = (0 != rtval.getSInt32());
+        else if (dataType == "SInt64")  out = (0 != rtval.getSInt64());
+
+        else if (dataType == "UInt8")   out = (0 != rtval.getUInt8());
+        else if (dataType == "UInt16")  out = (0 != rtval.getUInt16());
+        else if (dataType == "UInt32")  out = (0 != rtval.getUInt32());
+        else if (dataType == "UInt64")  out = (0 != rtval.getUInt64());
+
+        else return -1;
+    }
+    else return -1;
+
+    // done.
+    return 0;
+}
+
 int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out, bool strict)
 {
     // init output.
@@ -279,11 +331,13 @@ int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port,
     if (!port.isValid())
         return -2;
 
-    // set output from port value.
+    // set out from port value.
     std::string dataType = port.getDataType();
     FabricCore::RTVal rtval = port.getRTVal();
 
-    if      (dataType == "SInt8")       out = (int)rtval.getSInt8();
+    if      (dataType.length() == 0)    return -1;
+
+    else if (dataType == "SInt8")       out = (int)rtval.getSInt8();
     else if (dataType == "SInt16")      out = (int)rtval.getSInt16();
     else if (dataType == "SInt32")      out = (int)rtval.getSInt32();
     else if (dataType == "SInt64")      out = (int)rtval.getSInt64();
@@ -295,11 +349,14 @@ int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port,
 
     else if (!strict)
     {
-        if      (dataType == "Float32") out = (int)rtval.getFloat32();
+        if      (dataType == "Boolean") out = (int)rtval.getBoolean();
+
+        else if (dataType == "Float32") out = (int)rtval.getFloat32();
         else if (dataType == "Float64") out = (int)rtval.getFloat64();
-        else return -1;  // wrong data type.
+
+        else return -1;
     }
-    else return -1;  // wrong data type.
+    else return -1;
 
     // done.
     return 0;
@@ -314,16 +371,20 @@ int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, d
     if (!port.isValid())
         return -2;
 
-    // set output from port value.
+    // set out from port value.
     std::string dataType = port.getDataType();
     FabricCore::RTVal rtval = port.getRTVal();
 
-    if      (dataType == "Float32")     out = (double)rtval.getFloat32();
+    if      (dataType.length() == 0)    return -1;
+
+    else if (dataType == "Float32")     out = (double)rtval.getFloat32();
     else if (dataType == "Float64")     out = (double)rtval.getFloat64();
 
     else if (!strict)
     {
-        if      (dataType == "SInt8")   out = (double)rtval.getSInt8();
+        if      (dataType == "Boolean") out = (double)rtval.getBoolean();
+
+        else if (dataType == "SInt8")   out = (double)rtval.getSInt8();
         else if (dataType == "SInt16")  out = (double)rtval.getSInt16();
         else if (dataType == "SInt32")  out = (double)rtval.getSInt32();
         else if (dataType == "SInt64")  out = (double)rtval.getSInt64();
@@ -332,9 +393,10 @@ int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, d
         else if (dataType == "UInt16")  out = (double)rtval.getUInt16();
         else if (dataType == "UInt32")  out = (double)rtval.getUInt32();
         else if (dataType == "UInt64")  out = (double)rtval.getUInt64();
-        else return -1;  // wrong data type.
+
+        else return -1;
     }
-    else return -1;  // wrong data type.
+    else return -1;
 
     // done.
     return 0;
@@ -349,19 +411,27 @@ int BaseInterface::GetPortValueAsString(FabricServices::DFGWrapper::Port &port, 
     if (!port.isValid())
         return -2;
 
-    // set output from port value.
+    // set out from port value.
     std::string dataType = port.getDataType();
     FabricCore::RTVal rtval = port.getRTVal();
 
-    if (dataType == "String")   out = rtval.getStringCString();
+    if      (dataType.length() == 0)    return -1;
+
+    else if (dataType == "String")      out = rtval.getStringCString();
 
     else if (!strict)
     {
-        char   s[64];
-        int    i;
-        double f;
+        char    s[64];
+        bool    b;
+        int     i;
+        double  f;
 
-        // integer?
+        if (GetPortValueAsBoolean(port, b, true) == 0)
+        {
+            out = (b ? "true" : "false");
+            return 0;
+        }
+
         if (GetPortValueAsInteger(port, i, true) == 0)
         {
             sprintf(s, "%ld", i);
@@ -369,7 +439,6 @@ int BaseInterface::GetPortValueAsString(FabricServices::DFGWrapper::Port &port, 
             return 0;
         }
 
-        // float?
         if (GetPortValueAsFloat(port, f, true) == 0)
         {
             sprintf(s, "%f", f);
@@ -377,11 +446,10 @@ int BaseInterface::GetPortValueAsString(FabricServices::DFGWrapper::Port &port, 
             return 0;
         }
 
-        // wrong data type.
         return -1;
     }
     else
-        return -1;  // wrong data type.
+        return -1;
 
     // done.
     return 0;

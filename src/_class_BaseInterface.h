@@ -88,26 +88,15 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         bool HasOutputPort(const char *portName);
         bool HasOutputPort(const std::string &portName);
 
-        // gets the value of a port as an integer.
+        // gets the value of a port as a boolean, integer, string, etc.
         // params:  port        the port.
-        //          out         will contain the result or 0 if an error occurred.
-        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
+        //          out         will contain the result.
+        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
         // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port, int &out, bool strict = false);
-
-        // gets the value of a port as a float.
-        // params:  port        the port.
-        //          out         will contain the result or 0 if an error occurred.
-        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
-        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, double &out, bool strict = false);
-
-        // gets the value of a port as a string.
-        // params:  port        the port.
-        //          out         will contain the result or "" if an error occurred.
-        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
-        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsString(FabricServices::DFGWrapper::Port &port, std::string &out, bool strict = false);
+        static int GetPortValueAsBoolean (FabricServices::DFGWrapper::Port &port, bool        &out, bool strict = false);
+        static int GetPortValueAsInteger (FabricServices::DFGWrapper::Port &port, int         &out, bool strict = false);
+        static int GetPortValueAsFloat   (FabricServices::DFGWrapper::Port &port, double      &out, bool strict = false);
+        static int GetPortValueAsString  (FabricServices::DFGWrapper::Port &port, std::string &out, bool strict = false);
 };
 
 #endif

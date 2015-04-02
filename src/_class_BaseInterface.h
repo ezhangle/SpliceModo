@@ -92,11 +92,13 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         // params:  port        the port.
         //          out         will contain the result.
         //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
-        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
-        static int GetPortValueAsBoolean (FabricServices::DFGWrapper::Port &port, bool        &out, bool strict = false);
-        static int GetPortValueAsInteger (FabricServices::DFGWrapper::Port &port, int         &out, bool strict = false);
-        static int GetPortValueAsFloat   (FabricServices::DFGWrapper::Port &port, double      &out, bool strict = false);
-        static int GetPortValueAsString  (FabricServices::DFGWrapper::Port &port, std::string &out, bool strict = false);
+        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 unknown, -4 Fabric exception.
+        static int GetPortValueAsBoolean   (FabricServices::DFGWrapper::Port &port, bool                 &out, bool strict = false);
+        static int GetPortValueAsInteger   (FabricServices::DFGWrapper::Port &port, int                  &out, bool strict = false);
+        static int GetPortValueAsFloat     (FabricServices::DFGWrapper::Port &port, double               &out, bool strict = false);
+        static int GetPortValueAsString    (FabricServices::DFGWrapper::Port &port, std::string          &out, bool strict = false);
+        static int GetPortValueAsQuaternion(FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
+        static int GetPortValueAsMatrix44  (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
 };
 
 #endif

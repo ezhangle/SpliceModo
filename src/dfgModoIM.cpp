@@ -356,7 +356,7 @@ namespace dfgModoIM
 
             // debug.
             {
-                std::string s = "eval.AddChan(\"" + c.chan_name + ")";
+                std::string s = "[DBG] eval.AddChan(\"" + c.chan_name + "\")";
                 feLog(NULL, s);
             }
         }
@@ -429,7 +429,17 @@ namespace dfgModoIM
                 std::string dataType = port.getDataType();
                 FabricCore::RTVal rtval;
                 int retGet = 0;
-                if      (   dataType == "SInt8"
+                if      (   dataType == "Boolean")
+                {
+                    bool val;
+                    retGet = ModoTools::GetChannelValueAsBoolean(attr, (*cd).eval_index, val);
+                    if (retGet == 0)
+                    {
+                        rtval = FabricCore::RTVal::ConstructBoolean(client, val);
+                        binding.setArgValue(name.c_str(), rtval);
+                    }
+                }
+                else if (   dataType == "SInt8"
                          || dataType == "SInt16"
                          || dataType == "SInt32"
                          || dataType == "SInt64" )
@@ -477,6 +487,24 @@ namespace dfgModoIM
                     {
                         rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
                         binding.setArgValue(name.c_str(), rtval);
+                    }
+                }
+                else if (   dataType == "Quat")
+                {
+                    std::vector <double> val;
+                    retGet = ModoTools::GetChannelValueAsQuaternion(attr, (*cd).eval_index, val);
+                    if (retGet == 0)
+                    {
+                        // not yet implemented.
+                    }
+                }
+                else if (   dataType == "Mat44")
+                {
+                    std::vector <double> val;
+                    retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
+                    if (retGet == 0)
+                    {
+                        // not yet implemented.
                     }
                 }
                 else

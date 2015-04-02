@@ -143,6 +143,38 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
         return false;
 }
 
+int ModoTools::GetChannelValueAsBoolean(CLxUser_Attributes &attr, int eval_index, bool &out, bool strict)
+{
+    // init output.
+    out = false;
+
+    // illegal index?
+    if (eval_index < 0)
+        return -2;
+
+    // set output from channel value.
+	int type = attr.Type(eval_index);
+    if (type == LXi_TYPE_INTEGER)
+    {
+        int i;
+        if (attr.GetInt(eval_index, &i) != LXe_OK)
+            return -3;
+        out = (i != 0);
+        return 0;
+    }
+    else if (!strict && type == LXi_TYPE_FLOAT)
+    {
+        double f = 0;
+        if (attr.GetFlt(eval_index, &f))
+            return -3;
+        out = (f != 0);
+        return 0;
+    }
+
+    // wrong channel type.
+    return -1;
+}
+
 int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out, bool strict)
 {
     // init output.
@@ -246,4 +278,20 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
     // wrong channel type.
     return -1;
 }
+
+int ModoTools::GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    out.clear();
+    // not yet implemented.
+    return -3;
+}
+
+int ModoTools::GetChannelValueAsMatrix44(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    out.clear();
+    // not yet implemented.
+    return -3;
+}
+
+
 

@@ -60,29 +60,18 @@ class ModoTools
     // returns: true on success, false otherwise.
     static bool RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err);
 
-    // gets the value of a channel as an integer.
+    // gets the value of a channel as a boolean, integer, string, etc.
     // params:  attr        attribute with channels.
     //          eval_index  channel index.
-    //          out         will contain the result or 0 if an error occurred.
-    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
-    // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
-    static int GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index, int &out, bool strict = false);
-
-    // gets the value of a channel as a float.
-    // params:  attr        attribute with channels.
-    //          eval_index  channel index.
-    //          out         will contain the result or 0 if an error occurred.
-    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
-    // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
-    static int GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, double &out, bool strict = false);
-
-    // gets the value of a channel as a string.
-    // params:  attr        attribute with channels.
-    //          eval_index  channel index.
-    //          out         will contain the result or "" if an error occurred.
-    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and is converted if necessary.
-    // returns: 0 on success, -1 wrong channel type, -2 illegal index, -3 otherwise.
-    static int GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index, std::string &out, bool strict = false);
+    //          out         will contain the result.
+    //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
+    // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 otherwise.
+    static int GetChannelValueAsBoolean   (CLxUser_Attributes &attr, int eval_index, bool                 &out, bool strict = false);
+    static int GetChannelValueAsInteger   (CLxUser_Attributes &attr, int eval_index, int                  &out, bool strict = false);
+    static int GetChannelValueAsFloat     (CLxUser_Attributes &attr, int eval_index, double               &out, bool strict = false);
+    static int GetChannelValueAsString    (CLxUser_Attributes &attr, int eval_index, std::string          &out, bool strict = false);
+    static int GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
+    static int GetChannelValueAsMatrix44  (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
 };
 
 #endif

@@ -152,7 +152,7 @@ int ModoTools::GetChannelValueAsBoolean(CLxUser_Attributes &attr, int eval_index
     if (eval_index < 0)
         return -2;
 
-    // set output from channel value.
+    // set out from channel value.
 	int type = attr.Type(eval_index);
     if (type == LXi_TYPE_INTEGER)
     {
@@ -184,7 +184,7 @@ int ModoTools::GetChannelValueAsInteger(CLxUser_Attributes &attr, int eval_index
     if (eval_index < 0)
         return -2;
 
-    // set output from channel value.
+    // set out from channel value.
 	int type = attr.Type(eval_index);
     if (type == LXi_TYPE_INTEGER)
     {
@@ -214,7 +214,7 @@ int ModoTools::GetChannelValueAsFloat(CLxUser_Attributes &attr, int eval_index, 
     if (eval_index < 0)
         return -2;
 
-    // set output from channel value.
+    // set out from channel value.
 	int type = attr.Type(eval_index);
     if (type == LXi_TYPE_FLOAT)
     {
@@ -244,7 +244,7 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
     if (eval_index < 0)
         return -2;
 
-    // set output from channel value.
+    // set out from channel value.
 	int type = attr.Type(eval_index);
     if (type == LXi_TYPE_STRING)
     {
@@ -288,9 +288,35 @@ int ModoTools::GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_in
 
 int ModoTools::GetChannelValueAsMatrix44(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
 {
+    // init output.
     out.clear();
-    // not yet implemented.
-    return -3;
+
+    // illegal index?
+    if (eval_index < 0)
+        return -2;
+
+    // set out from channel value.
+	int type = attr.Type(eval_index);
+    if (type == LXi_TYPE_OBJECT)
+    {
+        CLxUser_Matrix usrMatrix;
+        LXtMatrix4     m44;
+        if (!attr.ObjectRO(eval_index, usrMatrix) && usrMatrix.test())
+            return -3;
+        if (usrMatrix.Get4(m44) != LXe_OK)
+            return -3;
+        for (int i=0;i<4;i++)
+            for (int j=0;j<4;j++)
+                out.push_back(m44[i][j]);
+        return 0;
+    }
+    else if (!strict)
+    {
+        // nothing here.
+    }
+
+    // wrong channel type.
+    return -1;
 }
 
 

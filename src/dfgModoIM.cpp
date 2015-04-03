@@ -566,6 +566,9 @@ namespace dfgModoIM
 
                 // "item user channel = DFG port value".
                 int dataType = attr.Type((*cd).eval_index);
+                const char *typeName = NULL;
+                if (!LXx_OK(attr.TypeName((*cd).eval_index, &typeName)))
+                    typeName = NULL;
                 FabricCore::RTVal rtval;
                 int retGet = 0;
                 int retSet = LXe_OK;
@@ -590,11 +593,32 @@ namespace dfgModoIM
                     if (retGet == 0)
                         retSet = attr.SetString((*cd).eval_index, val.c_str());
                 }
+                else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
+                {
+                    std::vector <double> val;
+                    retGet = BaseInterface::GetPortValueAsQuaternion(port, val);
+                    if (retGet == 0)
+                    {
+                        CLxUser_Quaternion usrQuaternion;
+                        LXtQuaternion      q;
+                        if (!attr.ObjectRW((*cd).eval_index, usrQuaternion) || !usrQuaternion.test())
+                        {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
+                            break;  }
+                        for (int i=0;i<4;i++)   q[i] = val[i];
+                        usrQuaternion.SetQuaternion(q);
+                    }
+                }
+                else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
+                {
+                        {   err = "LXsTYPE_MATRIX4 not yet implemented (user channel  \"" + name + "\")";
+                            break;  }
+                }
                 else
                 {
                     const char *typeName = NULL;
                     attr.TypeName((*cd).eval_index, &typeName);
-                    err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
+                    if (typeName)   err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
+                    else            err = "the user channel  \"" + name + "\" has the unsupported data type \"NULL\"";
                     break;
                 }
 
@@ -610,7 +634,7 @@ namespace dfgModoIM
                 if (retSet != 0)
                 {
                     sprintf(serr, "%ld", retGet);
-                    err = "failed to get value from port \"" + name + "\" (returned " + serr + ")";
+                    err = "failed to set value of user channel \"" + name + "\" (returned " + serr + ")";
                     break;
                 }
             }

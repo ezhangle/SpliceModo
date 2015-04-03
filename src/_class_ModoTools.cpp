@@ -281,9 +281,34 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
 
 int ModoTools::GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
 {
+    // init output.
     out.clear();
-    // not yet implemented.
-    return -3;
+
+    // illegal index?
+    if (eval_index < 0)
+        return -2;
+
+    // set out from channel value.
+	int type = attr.Type(eval_index);
+    if (type == LXi_TYPE_OBJECT)
+    {
+        CLxUser_Quaternion usrQuaternion;
+        LXtQuaternion      q;
+        if (!attr.ObjectRO(eval_index, usrQuaternion) && usrQuaternion.test())
+            return -3;
+        if (usrQuaternion.GetQuaternion(q) != LXe_OK)
+            return -3;
+        for (int i=0;i<4;i++)
+            out.push_back(q[i]);
+        return 0;
+    }
+    else if (!strict)
+    {
+        // nothing here.
+    }
+
+    // wrong channel type.
+    return -1;
 }
 
 int ModoTools::GetChannelValueAsMatrix44(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)

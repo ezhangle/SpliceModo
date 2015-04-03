@@ -157,83 +157,104 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
-    std::string err;
-    CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-    if (!item.test())
-    {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-        logErrorFunc(0, err.c_str(), err.length());
-        return;    }
-
-    std::string dataType   = port.getDataType();
-    std::string structType = "";
-
-    if      (   dataType == "")         {   err = "port.getDataType() == \"\"";
-                                            logErrorFunc(0, err.c_str(), err.length());
-                                            return;    }
-
-    else if (   dataType == "Boolean")  {   dataType = "boolean";                           }   // WIP
-
-    else if (   dataType == "Integer"
-             || dataType == "SInt8"
-             || dataType == "SInt16"
-             || dataType == "SInt32"
-             || dataType == "SInt64"
-             || dataType == "UInt8"
-             || dataType == "UInt16"
-             || dataType == "UInt32"
-             || dataType == "UInt64")   {   dataType = "integer";                           }
-
-    else if (   dataType == "Scalar"
-             || dataType == "Float32"
-             || dataType == "Float64")  {   dataType = "float";                             }
-
-    else if (   dataType == "String")   {   dataType = "string";                            }
-
-    else if (   dataType == "Quat")     {   dataType = "quaternion";                        }   // WIP
-
-    else if (   dataType == "Mat44")    {   dataType = "matrix";                            }   // WIP
-
-    else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }   // WIP
-    else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }   // WIP
-
-    else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }   // WIP
-    else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }   // WIP
-
-    else
+    try
     {
-        err = "unable to create user channel, type \"" + dataType + "\" not yet implemented";
-        logErrorFunc(0, err.c_str(), err.length());
-        return;
-    }
+        std::string err;
+        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
+        if (!item.test())
+        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
+            logErrorFunc(0, err.c_str(), err.length());
+            return;    }
 
-    if (!ModoTools::CreateUserChannel(&item, port.getName(), dataType, structType, err))
-        logErrorFunc(0, err.c_str(), err.length());
+        std::string dataType   = port.getDataType();
+        std::string structType = "";
+
+        if      (   dataType == "")         {   err = "port.getDataType() == \"\"";
+                                                logErrorFunc(0, err.c_str(), err.length());
+                                                return;    }
+
+        else if (   dataType == "Boolean")  {   dataType = "boolean";                           }   // WIP
+
+        else if (   dataType == "Integer"
+                 || dataType == "SInt8"
+                 || dataType == "SInt16"
+                 || dataType == "SInt32"
+                 || dataType == "SInt64"
+                 || dataType == "UInt8"
+                 || dataType == "UInt16"
+                 || dataType == "UInt32"
+                 || dataType == "UInt64")   {   dataType = "integer";                           }
+
+        else if (   dataType == "Scalar"
+                 || dataType == "Float32"
+                 || dataType == "Float64")  {   dataType = "float";                             }
+
+        else if (   dataType == "String")   {   dataType = "string";                            }
+
+        else if (   dataType == "Quat")     {   dataType = "quaternion";                        }   // WIP
+
+        else if (   dataType == "Mat44")    {   dataType = "matrix";                            }   // WIP
+
+        else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }   // WIP
+        else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }   // WIP
+
+        else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }   // WIP
+        else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }   // WIP
+
+        else
+        {
+            err = "unable to create user channel, type \"" + dataType + "\" not yet implemented";
+            logErrorFunc(0, err.c_str(), err.length());
+            return;
+        }
+
+        if (!ModoTools::CreateUserChannel(&item, port.getName(), dataType, structType, err))
+            logErrorFunc(0, err.c_str(), err.length());
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
 }
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
 {
-    std::string err;
-    CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-    if (!item.test())
-    {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-        logErrorFunc(0, err.c_str(), err.length());
-        return;    }
+    try
+    {
+        std::string err;
+        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
+        if (!item.test())
+        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
+            logErrorFunc(0, err.c_str(), err.length());
+            return;    }
 
-  if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
-    logErrorFunc(0, err.c_str(), err.length());
+      if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
+        logErrorFunc(0, err.c_str(), err.length());
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
 }
 
 void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName)
 {
-    std::string err;
-    CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-    if (!item.test())
-    {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-        logErrorFunc(0, err.c_str(), err.length());
-        return;    }
+    try
+    {
+        std::string err;
+        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
+        if (!item.test())
+        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
+            logErrorFunc(0, err.c_str(), err.length());
+            return;    }
 
-  if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
-    logErrorFunc(0, err.c_str(), err.length());
+      if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
+        logErrorFunc(0, err.c_str(), err.length());
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
 }
 
 void BaseInterface::logFunc(void * userData, const char * message, unsigned int length)
@@ -262,8 +283,16 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
 
 bool BaseInterface::HasInputPort(const char *portName)
 {
-    FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
-    return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_In);
+    try
+    {
+        FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
+        return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_In);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        return false;
+    }
 }
 
 bool BaseInterface::HasInputPort(const std::string &portName)
@@ -273,8 +302,16 @@ bool BaseInterface::HasInputPort(const std::string &portName)
 
 bool BaseInterface::HasOutputPort(const char *portName)
 {
-    FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
-    return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_Out);
+    try
+    {
+        FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
+        return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_Out);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        return false;
+    }
 }
 
 bool BaseInterface::HasOutputPort(const std::string &portName)
@@ -322,6 +359,7 @@ int BaseInterface::GetPortValueAsBoolean(FabricServices::DFGWrapper::Port &port,
     }
     catch(FabricCore::Exception e)
     {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
     }
 
@@ -369,6 +407,7 @@ int BaseInterface::GetPortValueAsInteger(FabricServices::DFGWrapper::Port &port,
     }
     catch(FabricCore::Exception e)
     {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
     }
 
@@ -416,6 +455,7 @@ int BaseInterface::GetPortValueAsFloat(FabricServices::DFGWrapper::Port &port, d
     }
     catch(FabricCore::Exception e)
     {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
     }
 
@@ -476,6 +516,7 @@ int BaseInterface::GetPortValueAsString(FabricServices::DFGWrapper::Port &port, 
     }
     catch(FabricCore::Exception e)
     {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
     }
 
@@ -501,13 +542,20 @@ int BaseInterface::GetPortValueAsQuaternion(FabricServices::DFGWrapper::Port &po
         if      (dataType.length() == 0)        return -1;
 
         else if (dataType == "Quat")        {
-                                                return -3;
+                                                char member[32];
+                                                FabricCore::RTVal v;
+                                                v = rtval.maybeGetMember("v");
+                                                out.push_back(v.    maybeGetMember("x").getFloat32());
+                                                out.push_back(v.    maybeGetMember("y").getFloat32());
+                                                out.push_back(v.    maybeGetMember("z").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("w").getFloat32());
                                             }
         else
             return -1;
     }
     catch(FabricCore::Exception e)
     {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
     }
 
@@ -539,10 +587,10 @@ int BaseInterface::GetPortValueAsMatrix44(FabricServices::DFGWrapper::Port &port
                                                 {
                                                     sprintf(member, "row%ld", i);
                                                     rtRow = rtval.maybeGetMember(member);
-                                                    out.push_back(rtRow.maybeGetMember("x").getFloat64());
-                                                    out.push_back(rtRow.maybeGetMember("y").getFloat64());
-                                                    out.push_back(rtRow.maybeGetMember("z").getFloat64());
-                                                    out.push_back(rtRow.maybeGetMember("t").getFloat64());
+                                                    out.push_back(rtRow.maybeGetMember("x").getFloat32());
+                                                    out.push_back(rtRow.maybeGetMember("y").getFloat32());
+                                                    out.push_back(rtRow.maybeGetMember("z").getFloat32());
+                                                    out.push_back(rtRow.maybeGetMember("t").getFloat32());
                                                 }
                                             }
         else
@@ -550,6 +598,7 @@ int BaseInterface::GetPortValueAsMatrix44(FabricServices::DFGWrapper::Port &port
     }
     catch(FabricCore::Exception e)
     {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
     }
 

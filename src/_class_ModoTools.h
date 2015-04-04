@@ -33,7 +33,10 @@ class ModoTools
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
     //          channelName             name of channel.
     //          out_err                 contains an error description if the function returns false.
+    //          out_actualChannelName   if the channel was found then this contains the "actual" channel name, typically it is
+    //                                  equal channelName, but for vector or color channels it can differ.
     // returns: true if the item ptr_CLxUser_Item has a channel called channelName, false otherwise.
+    static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err);
     static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
 
     // creates a new user channel.
@@ -70,6 +73,8 @@ class ModoTools
     static int GetChannelValueAsInteger   (CLxUser_Attributes &attr, int eval_index, int                  &out, bool strict = false);
     static int GetChannelValueAsFloat     (CLxUser_Attributes &attr, int eval_index, double               &out, bool strict = false);
     static int GetChannelValueAsString    (CLxUser_Attributes &attr, int eval_index, std::string          &out, bool strict = false);
+    static int GetChannelValueAsVector2   (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
+    static int GetChannelValueAsVector3   (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
     static int GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
     static int GetChannelValueAsMatrix44  (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
 };

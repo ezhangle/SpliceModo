@@ -173,7 +173,7 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
                                                 logErrorFunc(0, err.c_str(), err.length());
                                                 return;    }
 
-        else if (   dataType == "Boolean")  {   dataType = "boolean";                           }   // WIP
+        else if (   dataType == "Boolean")  {   dataType = "boolean";                           }
 
         else if (   dataType == "Integer"
                  || dataType == "SInt8"
@@ -191,15 +191,15 @@ void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 
         else if (   dataType == "String")   {   dataType = "string";                            }
 
-        else if (   dataType == "Quat")     {   dataType = "quaternion";                        }   // WIP
+        else if (   dataType == "Quat")     {   dataType = "quaternion";                        }
 
-        else if (   dataType == "Mat44")    {   dataType = "matrix";                            }   // WIP
+        else if (   dataType == "Mat44")    {   dataType = "matrix";                            }
 
-        else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }   // WIP
-        else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }   // WIP
+        else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }
+        else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }
 
-        else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }   // WIP
-        else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }   // WIP
+        else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }
+        else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }
 
         else
         {
@@ -228,8 +228,8 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
             logErrorFunc(0, err.c_str(), err.length());
             return;    }
 
-      if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
-        logErrorFunc(0, err.c_str(), err.length());
+        if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
+            logErrorFunc(0, err.c_str(), err.length());
     }
     catch(FabricCore::Exception e)
     {
@@ -237,7 +237,7 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
     }
 }
 
-void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName)
+void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char *oldName)
 {
     try
     {
@@ -248,8 +248,8 @@ void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const c
             logErrorFunc(0, err.c_str(), err.length());
             return;    }
 
-      if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
-        logErrorFunc(0, err.c_str(), err.length());
+        if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
+            logErrorFunc(0, err.c_str(), err.length());
     }
     catch(FabricCore::Exception e)
     {

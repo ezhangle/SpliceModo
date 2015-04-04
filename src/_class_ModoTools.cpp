@@ -24,10 +24,11 @@ bool ModoTools::ExecuteCommand(std::string &command, std::string &out_err)
     return true;
 }
 
-bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err)
 {
-    // init error string.
+    // init error string and ouput.
     out_err = "";
+
 
     // check params.
     if (!ptr_CLxUser_Item)
@@ -44,10 +45,33 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
 
-    // do it.
+    // look up the channel.
     unsigned int index;
-    return (item.ChannelLookup(channelName.c_str(), &index) == LXe_OK);
+    if (item.ChannelLookup(channelName.c_str(), &index) == LXe_OK)
+    {
+        out_actualChannelName = channelName;
+        return true;
+    }
+
+    // we didn't find it, so now we look for a vector/color channel.
+    // NOTE: Modo doesn't have common-sense vector and color channels, instead they are represented as consecutive
+    //       scalar channels with a naming convention. For example a 3D vector called "myVec" would have three
+    //       channels called "myVec.X", "myVec.Y" and "myVec.Z".
+    std::string cname;
+    cname = channelName + ".X"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    {   out_actualChannelName = cname;  return true;    }
+    cname = channelName + ".R"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    {   out_actualChannelName = cname;  return true;    }
+    cname = channelName + ".U"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    {   out_actualChannelName = cname;  return true;    }
+
+    // not found.
+    return false;
 }
+
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
+{
+    std::string tmp;
+    return HasChannel(ptr_CLxUser_Item, channelName, tmp, out_err);
+};
+
 
 bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &dataType, const std::string &structType, std::string &out_err)
 {
@@ -81,8 +105,6 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
                                       + " "              + structType
                                       + " item:"         + itemName)
                                       , out_err);
-
-// channel.create bli float vecXYZ false 0.0 false 0.0 0.0 username:bli
 }
 
 bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
@@ -96,6 +118,11 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     {   out_err = "empty channel name";
         return false;   }
 
+    // get actual channel name.
+    std::string actualNname;
+    if (!HasChannel(ptr_CLxUser_Item, channelName, actualNname, out_err))
+        return false;
+
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
 
@@ -104,7 +131,7 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     item.GetUniqueName(itemName);
 
     // execute command.
-    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + channelName + "} set"), out_err))
+    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualNname + "} set"), out_err))
         return ExecuteCommand(std::string("channel.delete"), out_err);
     else
         return false;
@@ -277,6 +304,52 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
 
     // wrong channel type.
     return -1;
+}
+
+int ModoTools::GetChannelValueAsVector2(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    // init output.
+    out.clear();
+
+    // init.
+    const int N = 2;
+
+    // go.
+    for (int i=0;i<N;i++)
+    {
+        double f;
+        int ret = GetChannelValueAsFloat(attr, eval_index + i, f);
+        if (ret)
+        {   out.clear();
+            return ret; }
+        out.push_back(f);
+    }
+
+    // done.
+    return 0;
+}
+
+int ModoTools::GetChannelValueAsVector3(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    // init output.
+    out.clear();
+
+    // init.
+    const int N = 3;
+
+    // go.
+    for (int i=0;i<N;i++)
+    {
+        double f;
+        int ret = GetChannelValueAsFloat(attr, eval_index + i, f);
+        if (ret)
+        {   out.clear();
+            return ret; }
+        out.push_back(f);
+    }
+
+    // done.
+    return 0;
 }
 
 int ModoTools::GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)

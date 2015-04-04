@@ -406,127 +406,152 @@ namespace dfgModoIM
         // Fabric Engine (step 1): loop through all the DFG's input ports and set
         //                         their values from the matching Modo user channels.
         {
-            char        serr[256];
-            std::string err = "";
-            std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
-            for (int fi=0;fi<ports.size();fi++)
+            try
             {
-                // ref at port.
-                FabricServices::DFGWrapper::Port &port = ports[fi];
+                char        serr[256];
+                std::string err = "";
+                std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
+                for (int fi=0;fi<ports.size();fi++)
+                {
+                    // ref at port.
+                    FabricServices::DFGWrapper::Port &port = ports[fi];
 
-                // if the port has the wrong type then skip it.
-                if (port.getPortType() != FabricCore::DFGPortType_In)
-                    continue;
+                    // if the port has the wrong type then skip it.
+                    if (port.getPortType() != FabricCore::DFGPortType_In)
+                        continue;
 
-                // get pointer at matching channel definition.
-                std::string name = port.getName();
-                ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
-                if (!cd || (*cd).eval_index < 0)
-                {   err = "unable to find a user channel that matches the port \"" + name + "\"";
-                    break;  }
+                    // get pointer at matching channel definition.
+                    std::string name = port.getName();
+                    ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
+                    if (!cd || (*cd).eval_index < 0)
+                    {   err = "unable to find a user channel that matches the port \"" + name + "\"";
+                        break;  }
 
-                // "DFG port value = item user channel".
-                std::string dataType = port.getDataType();
-                FabricCore::RTVal rtval;
-                int retGet = 0;
-                if      (   dataType == "Boolean")
-                {
-                    bool val;
-                    retGet = ModoTools::GetChannelValueAsBoolean(attr, (*cd).eval_index, val);
-                    if (retGet == 0)
+                    // "DFG port value = item user channel".
+                    std::string dataType = port.getDataType();
+                    FabricCore::RTVal rtval;
+                    int retGet = 0;
+                    if      (   dataType == "Boolean")
                     {
-                        rtval = FabricCore::RTVal::ConstructBoolean(client, val);
-                        binding.setArgValue(name.c_str(), rtval);
+                        bool val;
+                        retGet = ModoTools::GetChannelValueAsBoolean(attr, (*cd).eval_index, val);
+                        if (retGet == 0)
+                        {
+                            rtval = FabricCore::RTVal::ConstructBoolean(client, val);
+                            binding.setArgValue(name.c_str(), rtval);
+                        }
                     }
-                }
-                else if (   dataType == "SInt8"
-                         || dataType == "SInt16"
-                         || dataType == "SInt32"
-                         || dataType == "SInt64" )
-                {
-                    int val;
-                    retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, val);
-                    if (retGet == 0)
-                    {   if      (dataType == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
-                        else if (dataType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
-                        else if (dataType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
-                        else if (dataType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
-                        binding.setArgValue(name.c_str(), rtval);   }
-                }
-                else if (   dataType == "UInt8"
-                         || dataType == "UInt16"
-                         || dataType == "UInt32"
-                         || dataType == "UInt64" )
-                {
-                    unsigned int val = 0;
-                    retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
-                    if (retGet == 0)
-                    {   if      (dataType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
-                        else if (dataType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
-                        else if (dataType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
-                        else if (dataType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
-                        binding.setArgValue(name.c_str(), rtval);   }
-                }
-                else if (   dataType == "Float32"
-                         || dataType == "Float64" )
-                {
-                    double val;
-                    retGet = ModoTools::GetChannelValueAsFloat(attr, (*cd).eval_index, val);
-                    if (retGet == 0)
+                    else if (   dataType == "SInt8"
+                             || dataType == "SInt16"
+                             || dataType == "SInt32"
+                             || dataType == "SInt64" )
                     {
-                        if      (dataType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
-                        else if (dataType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
-                        binding.setArgValue(name.c_str(), rtval);
+                        int val;
+                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, val);
+                        if (retGet == 0)
+                        {   if      (dataType == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
+                            else if (dataType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
+                            else if (dataType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
+                            else if (dataType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
+                            binding.setArgValue(name.c_str(), rtval);   }
                     }
-                }
-                else if (   dataType == "String")
-                {
-                    std::string val;
-                    retGet = ModoTools::GetChannelValueAsString(attr, (*cd).eval_index, val);
-                    if (retGet == 0)
+                    else if (   dataType == "UInt8"
+                             || dataType == "UInt16"
+                             || dataType == "UInt32"
+                             || dataType == "UInt64" )
                     {
-                        rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
-                        binding.setArgValue(name.c_str(), rtval);
+                        unsigned int val = 0;
+                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
+                        if (retGet == 0)
+                        {   if      (dataType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
+                            else if (dataType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
+                            else if (dataType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+                            else if (dataType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
+                            binding.setArgValue(name.c_str(), rtval);   }
                     }
-                }
-                else if (   dataType == "Quat")
-                {
-                    std::vector <double> val;
-                    retGet = ModoTools::GetChannelValueAsQuaternion(attr, (*cd).eval_index, val);
-                    if (retGet == 0)
+                    else if (   dataType == "Float32"
+                             || dataType == "Float64" )
                     {
-                        // not yet implemented.
+                        double val;
+                        retGet = ModoTools::GetChannelValueAsFloat(attr, (*cd).eval_index, val);
+                        if (retGet == 0)
+                        {
+                            if      (dataType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
+                            else if (dataType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
+                            binding.setArgValue(name.c_str(), rtval);
+                        }
                     }
-                }
-                else if (   dataType == "Mat44")
-                {
-                    std::vector <double> val;
-                    retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
-                    if (retGet == 0)
+                    else if (   dataType == "String")
                     {
-                        // not yet implemented.
+                        std::string val;
+                        retGet = ModoTools::GetChannelValueAsString(attr, (*cd).eval_index, val);
+                        if (retGet == 0)
+                        {
+                            rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
+                            binding.setArgValue(name.c_str(), rtval);
+                        }
                     }
-                }
-                else
-                {
-                    err = "the port \"" + name + "\" has the unsupported data type \"" + dataType + "\"";
-                    break;
+                    else if (   dataType == "Quat")
+                    {
+                        std::vector <double> val;
+                        retGet = ModoTools::GetChannelValueAsQuaternion(attr, (*cd).eval_index, val);
+                        if (retGet == 0 && val.size() == 4)
+                        {
+                            FabricCore::RTVal xyz[3], v[2];
+                            xyz[0] = FabricCore::RTVal::ConstructFloat32(client, val[0]);
+                            xyz[1] = FabricCore::RTVal::ConstructFloat32(client, val[1]);
+                            xyz[2] = FabricCore::RTVal::ConstructFloat32(client, val[2]);
+                            v[0]   = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
+                            v[1]   = FabricCore::RTVal::ConstructFloat32(client, val[3]);
+                            rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
+                            binding.setArgValue(name.c_str(), rtval);
+                        }
+                    }
+                    else if (   dataType == "Mat44")
+                    {
+                        std::vector <double> val;
+                        retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
+                        if (retGet == 0 && val.size() == 16)
+                        {
+                            FabricCore::RTVal xyzt[4], v[4];
+                            for (int i=0;i<4;i++)
+                            {
+                                int offset = i * 4;
+                                xyzt[0] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 0]);
+                                xyzt[1] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 1]);
+                                xyzt[2] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 2]);
+                                xyzt[3] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 3]);
+                                v[i]    = FabricCore::RTVal::Construct(client, "Vec4", 4, xyzt);
+                            }
+                            rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
+                            binding.setArgValue(name.c_str(), rtval);
+                        }
+                    }
+                    else
+                    {
+                        err = "the port \"" + name + "\" has the unsupported data type \"" + dataType + "\"";
+                        break;
+                    }
+
+                    // error getting value from user channel?
+                    if (retGet != 0)
+                    {
+                        sprintf(serr, "%ld", retGet);
+                        err = "failed to get value from user channel \"" + name + "\" (returned " + serr + ")";
+                        break;
+                    }
                 }
 
-                // error getting value from user channel?
-                if (retGet != 0)
+                // error?
+                if (err != "")
                 {
-                    sprintf(serr, "%ld", retGet);
-                    err = "failed to get value from user channel \"" + name + "\" (returned " + serr + ")";
-                    break;
+                    feLogError(NULL, err.c_str(), err.length());
+                    return;
                 }
             }
-
-            // error?
-            if (err != "")
+            catch(FabricCore::Exception e)
             {
-                feLogError(NULL, err.c_str(), err.length());
-                return;
+                feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
             }
         }
 
@@ -545,105 +570,124 @@ namespace dfgModoIM
         // Fabric Engine (step 3): loop through all the DFG's output ports and set
         //                         the values of the matching Modo user channels.
         {
-            char        serr[256];
-            std::string err = "";
-            std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
-            for (int fi=0;fi<ports.size();fi++)
+            try
             {
-                // ref at port.
-                FabricServices::DFGWrapper::Port &port = ports[fi];
+                char        serr[256];
+                std::string err = "";
+                std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
+                for (int fi=0;fi<ports.size();fi++)
+                {
+                    // ref at port.
+                    FabricServices::DFGWrapper::Port &port = ports[fi];
 
-                // if the port has the wrong type then skip it.
-                if (port.getPortType() != FabricCore::DFGPortType_Out)
-                    continue;
+                    // if the port has the wrong type then skip it.
+                    if (port.getPortType() != FabricCore::DFGPortType_Out)
+                        continue;
 
-                // get pointer at matching channel definition.
-                std::string name = port.getName();
-                ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
-                if (!cd || (*cd).eval_index < 0)
-                {   err = "unable to find a user channel that matches the port \"" + name + "\"";
-                    break;  }
+                    // get pointer at matching channel definition.
+                    std::string name = port.getName();
+                    ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
+                    if (!cd || (*cd).eval_index < 0)
+                    {   err = "unable to find a user channel that matches the port \"" + name + "\"";
+                        break;  }
 
-                // "item user channel = DFG port value".
-                int dataType = attr.Type((*cd).eval_index);
-                const char *typeName = NULL;
-                if (!LXx_OK(attr.TypeName((*cd).eval_index, &typeName)))
-                    typeName = NULL;
-                FabricCore::RTVal rtval;
-                int retGet = 0;
-                int retSet = LXe_OK;
-                if      (dataType == LXi_TYPE_INTEGER)
-                {
-                    int val;
-                    retGet = BaseInterface::GetPortValueAsInteger(port, val);
-                    if (retGet == 0)
-                        retSet = attr.SetInt((*cd).eval_index, val);
-                }
-                else if (dataType == LXi_TYPE_FLOAT)
-                {
-                    double val;
-                    retGet = BaseInterface::GetPortValueAsFloat(port, val);
-                    if (retGet == 0)
-                        retSet = attr.SetFlt((*cd).eval_index, val);
-                }
-                else if (dataType == LXi_TYPE_STRING)
-                {
-                    std::string val;
-                    retGet = BaseInterface::GetPortValueAsString(port, val);
-                    if (retGet == 0)
-                        retSet = attr.SetString((*cd).eval_index, val.c_str());
-                }
-                else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
-                {
-                    std::vector <double> val;
-                    retGet = BaseInterface::GetPortValueAsQuaternion(port, val);
-                    if (retGet == 0)
+                    // "item user channel = DFG port value".
+                    int dataType = attr.Type((*cd).eval_index);
+                    const char *typeName = NULL;
+                    if (!LXx_OK(attr.TypeName((*cd).eval_index, &typeName)))
+                        typeName = NULL;
+                    FabricCore::RTVal rtval;
+                    int retGet = 0;
+                    int retSet = LXe_OK;
+                    if      (dataType == LXi_TYPE_INTEGER)
                     {
-                        CLxUser_Quaternion usrQuaternion;
-                        LXtQuaternion      q;
-                        if (!attr.ObjectRW((*cd).eval_index, usrQuaternion) || !usrQuaternion.test())
-                        {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
-                            break;  }
-                        for (int i=0;i<4;i++)   q[i] = val[i];
-                        usrQuaternion.SetQuaternion(q);
+                        int val;
+                        retGet = BaseInterface::GetPortValueAsInteger(port, val);
+                        if (retGet == 0)
+                            retSet = attr.SetInt((*cd).eval_index, val);
+                    }
+                    else if (dataType == LXi_TYPE_FLOAT)
+                    {
+                        double val;
+                        retGet = BaseInterface::GetPortValueAsFloat(port, val);
+                        if (retGet == 0)
+                            retSet = attr.SetFlt((*cd).eval_index, val);
+                    }
+                    else if (dataType == LXi_TYPE_STRING)
+                    {
+                        std::string val;
+                        retGet = BaseInterface::GetPortValueAsString(port, val);
+                        if (retGet == 0)
+                            retSet = attr.SetString((*cd).eval_index, val.c_str());
+                    }
+                    else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
+                    {
+                        std::vector <double> val;
+                        retGet = BaseInterface::GetPortValueAsQuaternion(port, val);
+                        if (retGet == 0 && val.size() == 4)
+                        {
+                            CLxUser_Quaternion usrQuaternion;
+                            LXtQuaternion      q;
+                            if (!attr.ObjectRW((*cd).eval_index, usrQuaternion) || !usrQuaternion.test())
+                            {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
+                                break;  }
+                            for (int i=0;i<4;i++)   q[i] = val[i];
+                            usrQuaternion.SetQuaternion(q);
+                        }
+                    }
+                    else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
+                    {
+                        std::vector <double> val;
+                        retGet = BaseInterface::GetPortValueAsMatrix44(port, val);
+                        if (retGet == 0 && val.size() == 16)
+                        {
+                            CLxUser_Matrix usrMatrix;
+                            LXtMatrix4     m44;
+                            if (!attr.ObjectRW((*cd).eval_index, usrMatrix) || !usrMatrix.test())
+                            {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
+                                break;  }
+                               for (int j=0;j<4;j++)
+                                   for (int i=0;i<4;i++)
+                                       m44[i][j] = val[j * 4 + i];
+                               usrMatrix.Set4(m44);
+                        }
+                    }
+                    else
+                    {
+                        const char *typeName = NULL;
+                        attr.TypeName((*cd).eval_index, &typeName);
+                        if (typeName)   err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
+                        else            err = "the user channel  \"" + name + "\" has the unsupported data type \"NULL\"";
+                        break;
+                    }
+
+                    // error getting value from DFG port?
+                    if (retGet != 0)
+                    {
+                        sprintf(serr, "%ld", retGet);
+                        err = "failed to get value from port \"" + name + "\" (returned " + serr + ")";
+                        break;
+                    }
+
+                    // error setting value of user channel?
+                    if (retSet != 0)
+                    {
+                        sprintf(serr, "%ld", retGet);
+                        err = "failed to set value of user channel \"" + name + "\" (returned " + serr + ")";
+                        break;
                     }
                 }
-                else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
-                {
-                        {   err = "LXsTYPE_MATRIX4 not yet implemented (user channel  \"" + name + "\")";
-                            break;  }
-                }
-                else
-                {
-                    const char *typeName = NULL;
-                    attr.TypeName((*cd).eval_index, &typeName);
-                    if (typeName)   err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
-                    else            err = "the user channel  \"" + name + "\" has the unsupported data type \"NULL\"";
-                    break;
-                }
 
-                // error getting value from DFG port?
-                if (retGet != 0)
+                // error?
+                if (err != "")
                 {
-                    sprintf(serr, "%ld", retGet);
-                    err = "failed to get value from port \"" + name + "\" (returned " + serr + ")";
-                    break;
-                }
-
-                // error setting value of user channel?
-                if (retSet != 0)
-                {
-                    sprintf(serr, "%ld", retGet);
-                    err = "failed to set value of user channel \"" + name + "\" (returned " + serr + ")";
-                    break;
+                    feLogError(NULL, err.c_str(), err.length());
+                    return;
                 }
             }
-
-            // error?
-            if (err != "")
+            catch(FabricCore::Exception e)
             {
-                feLogError(NULL, err.c_str(), err.length());
-                return;
+                feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
             }
         }
 

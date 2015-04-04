@@ -330,8 +330,8 @@ int ModoTools::GetChannelValueAsMatrix44(CLxUser_Attributes &attr, int eval_inde
             return -3;
         if (usrMatrix.Get4(m44) != LXe_OK)
             return -3;
-        for (int i=0;i<4;i++)
-            for (int j=0;j<4;j++)
+        for (int j=0;j<4;j++)
+            for (int i=0;i<4;i++)
                 out.push_back(m44[i][j]);
         return 0;
     }

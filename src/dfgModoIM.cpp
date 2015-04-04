@@ -545,28 +545,28 @@ namespace dfgModoIM
                     if      (dataType == LXi_TYPE_INTEGER)
                     {
                         int val;
-                        retGet = BaseInterface::GetPortValueAsInteger(port, val);
+                        retGet = BaseInterface::GetPortValueInteger(port, val);
                         if (retGet == 0)
                             retSet = attr.SetInt((*cd).eval_index, val);
                     }
                     else if (dataType == LXi_TYPE_FLOAT)
                     {
                         double val;
-                        retGet = BaseInterface::GetPortValueAsFloat(port, val);
+                        retGet = BaseInterface::GetPortValueFloat(port, val);
                         if (retGet == 0)
                             retSet = attr.SetFlt((*cd).eval_index, val);
                     }
                     else if (dataType == LXi_TYPE_STRING)
                     {
                         std::string val;
-                        retGet = BaseInterface::GetPortValueAsString(port, val);
+                        retGet = BaseInterface::GetPortValueString(port, val);
                         if (retGet == 0)
                             retSet = attr.SetString((*cd).eval_index, val.c_str());
                     }
                     else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
                     {
                         std::vector <double> val;
-                        retGet = BaseInterface::GetPortValueAsQuaternion(port, val);
+                        retGet = BaseInterface::GetPortValueQuat(port, val);
                         if (retGet == 0 && val.size() == 4)
                         {
                             CLxUser_Quaternion usrQuaternion;
@@ -581,7 +581,7 @@ namespace dfgModoIM
                     else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
                     {
                         std::vector <double> val;
-                        retGet = BaseInterface::GetPortValueAsMatrix44(port, val);
+                        retGet = BaseInterface::GetPortValueMat44(port, val);
                         if (retGet == 0 && val.size() == 16)
                         {
                             CLxUser_Matrix usrMatrix;

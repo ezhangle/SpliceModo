@@ -421,115 +421,58 @@ namespace dfgModoIM
                         continue;
 
                     // get pointer at matching channel definition.
-                    std::string name = port.getName();
-                    ChannelDef *cd = usrChannelsGetFromName(name, m_usrChannels);
+                    ChannelDef *cd = usrChannelsGetFromName(port.getName(), m_usrChannels);
                     if (!cd || (*cd).eval_index < 0)
-                    {   err = "unable to find a user channel that matches the port \"" + name + "\"";
+                    {   err = "unable to find a user channel that matches the port \"" + port.getName() + "\"";
                         break;  }
 
                     // "DFG port value = item user channel".
-                    std::string dataType = port.getDataType();
-                    FabricCore::RTVal rtval;
                     int retGet = 0;
-                    if      (   dataType == "Boolean")
-                    {
-                        bool val;
-                        retGet = ModoTools::GetChannelValueAsBoolean(attr, (*cd).eval_index, val);
-                        if (retGet == 0)
-                        {
-                            rtval = FabricCore::RTVal::ConstructBoolean(client, val);
-                            binding.setArgValue(name.c_str(), rtval);
-                        }
-                    }
-                    else if (   dataType == "SInt8"
-                             || dataType == "SInt16"
-                             || dataType == "SInt32"
-                             || dataType == "SInt64" )
-                    {
-                        int val;
-                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, val);
-                        if (retGet == 0)
-                        {   if      (dataType == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
-                            else if (dataType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
-                            else if (dataType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
-                            else if (dataType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
-                            binding.setArgValue(name.c_str(), rtval);   }
-                    }
-                    else if (   dataType == "UInt8"
-                             || dataType == "UInt16"
-                             || dataType == "UInt32"
-                             || dataType == "UInt64" )
-                    {
-                        unsigned int val = 0;
-                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
-                        if (retGet == 0)
-                        {   if      (dataType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
-                            else if (dataType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
-                            else if (dataType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
-                            else if (dataType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
-                            binding.setArgValue(name.c_str(), rtval);   }
-                    }
-                    else if (   dataType == "Float32"
-                             || dataType == "Float64" )
-                    {
-                        double val;
-                        retGet = ModoTools::GetChannelValueAsFloat(attr, (*cd).eval_index, val);
-                        if (retGet == 0)
-                        {
-                            if      (dataType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
-                            else if (dataType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
-                            binding.setArgValue(name.c_str(), rtval);
-                        }
-                    }
-                    else if (   dataType == "String")
-                    {
-                        std::string val;
-                        retGet = ModoTools::GetChannelValueAsString(attr, (*cd).eval_index, val);
-                        if (retGet == 0)
-                        {
-                            rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
-                            binding.setArgValue(name.c_str(), rtval);
-                        }
-                    }
-                    else if (   dataType == "Quat")
-                    {
-                        std::vector <double> val;
-                        retGet = ModoTools::GetChannelValueAsQuaternion(attr, (*cd).eval_index, val);
-                        if (retGet == 0 && val.size() == 4)
-                        {
-                            FabricCore::RTVal xyz[3], v[2];
-                            xyz[0] = FabricCore::RTVal::ConstructFloat32(client, val[0]);
-                            xyz[1] = FabricCore::RTVal::ConstructFloat32(client, val[1]);
-                            xyz[2] = FabricCore::RTVal::ConstructFloat32(client, val[2]);
-                            v[0]   = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
-                            v[1]   = FabricCore::RTVal::ConstructFloat32(client, val[3]);
-                            rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
-                            binding.setArgValue(name.c_str(), rtval);
-                        }
-                    }
-                    else if (   dataType == "Mat44")
-                    {
-                        std::vector <double> val;
-                        retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
-                        if (retGet == 0 && val.size() == 16)
-                        {
-                            FabricCore::RTVal xyzt[4], v[4];
-                            for (int i=0;i<4;i++)
-                            {
-                                int offset = i * 4;
-                                xyzt[0] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 0]);
-                                xyzt[1] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 1]);
-                                xyzt[2] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 2]);
-                                xyzt[3] = FabricCore::RTVal::ConstructFloat32(client, val[offset + 3]);
-                                v[i]    = FabricCore::RTVal::Construct(client, "Vec4", 4, xyzt);
-                            }
-                            rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
-                            binding.setArgValue(name.c_str(), rtval);
-                        }
-                    }
+                    if      (   port.getDataType() == "Boolean")    {
+                                                                        bool val = false;
+                                                                        retGet = ModoTools::GetChannelValueAsBoolean(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortBoolean(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "SInt8"
+                             || port.getDataType() == "SInt16"
+                             || port.getDataType() == "SInt32"
+                             || port.getDataType() == "SInt64" )    {
+                                                                        int val = 0;
+                                                                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortSInt(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "UInt8"
+                             || port.getDataType() == "UInt16"
+                             || port.getDataType() == "UInt32"
+                             || port.getDataType() == "UInt64" )    {
+                                                                        unsigned int val = 0;
+                                                                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortUInt(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "Float32"
+                             || port.getDataType() == "Float64" )   {
+                                                                        double val = 0;
+                                                                        retGet = ModoTools::GetChannelValueAsFloat(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortFloat(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "String")     {
+                                                                        std::string val = "";
+                                                                        retGet = ModoTools::GetChannelValueAsString(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortString(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "Quat")       {
+                                                                        std::vector <double> val;
+                                                                        retGet = ModoTools::GetChannelValueAsQuaternion(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortQuat(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "Mat44")      {
+                                                                        std::vector <double> val;
+                                                                        retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortMat44(client, binding, port, val);
+                                                                    }
                     else
                     {
-                        err = "the port \"" + name + "\" has the unsupported data type \"" + dataType + "\"";
+                        err = "the port \"" + port.getName() + "\" has the unsupported data type \"" + port.getDataType() + "\"";
                         break;
                     }
 
@@ -537,7 +480,7 @@ namespace dfgModoIM
                     if (retGet != 0)
                     {
                         sprintf(serr, "%ld", retGet);
-                        err = "failed to get value from user channel \"" + name + "\" (returned " + serr + ")";
+                        err = "failed to get value from user channel \"" + port.getName() + "\" (returned " + serr + ")";
                         break;
                     }
                 }

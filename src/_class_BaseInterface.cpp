@@ -606,3 +606,135 @@ int BaseInterface::GetPortValueAsMatrix44(FabricServices::DFGWrapper::Port &port
     return 0;
 }
 
+void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const bool val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        rtval = FabricCore::RTVal::ConstructBoolean(client, val);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+void BaseInterface::SetValueOfPortSInt(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const long val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        if      (port.getDataType() == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
+        else if (port.getDataType() == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
+        else if (port.getDataType() == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
+        else if (port.getDataType() == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+void BaseInterface::SetValueOfPortUInt(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const unsigned long val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        if      (port.getDataType() == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
+        else if (port.getDataType() == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
+        else if (port.getDataType() == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+        else if (port.getDataType() == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+void BaseInterface::SetValueOfPortFloat(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const double val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        if      (port.getDataType() == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
+        else if (port.getDataType() == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+void BaseInterface::SetValueOfPortString(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::string &val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+void BaseInterface::SetValueOfPortQuat(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        FabricCore::RTVal xyz[3], v[2];
+        const bool valIsValid = (val.size() >= 4);
+        xyz[0] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[0] : 0);
+        xyz[1] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[1] : 0);
+        xyz[2] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[2] : 0);
+        v[0]   = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
+        v[1]   = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[3] : 0);
+        rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+void BaseInterface::SetValueOfPortMat44(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val)
+{
+    try
+    {
+        FabricCore::RTVal rtval;
+        FabricCore::RTVal xyzt[4], v[4];
+        const bool valIsValid = (val.size() >= 16);
+        for (int i=0;i<4;i++)
+        {
+            int offset = i * 4;
+            xyzt[0] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[offset + 0] : 0);
+            xyzt[1] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[offset + 1] : 0);
+            xyzt[2] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[offset + 2] : 0);
+            xyzt[3] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[offset + 3] : 0);
+            v[i]    = FabricCore::RTVal::Construct(client, "Vec4", 4, xyzt);
+        }
+        rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+
+}
+
+
+

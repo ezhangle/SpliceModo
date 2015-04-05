@@ -106,6 +106,8 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         static int GetPortValueVec2   (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
         static int GetPortValueVec3   (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
         static int GetPortValueVec4   (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
+        static int GetPortValueRGB    (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
+        static int GetPortValueRGBA   (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
         static int GetPortValueQuat   (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
         static int GetPortValueMat44  (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
 
@@ -118,6 +120,8 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         static void SetValueOfPortVec2   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
         static void SetValueOfPortVec3   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
         static void SetValueOfPortVec4   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
+        static void SetValueOfPortRGB    (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
+        static void SetValueOfPortRGBA   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
         static void SetValueOfPortQuat   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
         static void SetValueOfPortMat44  (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
 };

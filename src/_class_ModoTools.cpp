@@ -352,6 +352,52 @@ int ModoTools::GetChannelValueAsVector3(CLxUser_Attributes &attr, int eval_index
     return 0;
 }
 
+int ModoTools::GetChannelValueAsRGB(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    // init output.
+    out.clear();
+
+    // init.
+    const int N = 3;
+
+    // go.
+    for (int i=0;i<N;i++)
+    {
+        double f;
+        int ret = GetChannelValueAsFloat(attr, eval_index + i, f);
+        if (ret)
+        {   out.clear();
+            return ret; }
+        out.push_back(f);
+    }
+
+    // done.
+    return 0;
+}
+
+int ModoTools::GetChannelValueAsRGBA(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    // init output.
+    out.clear();
+
+    // init.
+    const int N = 4;
+
+    // go.
+    for (int i=0;i<N;i++)
+    {
+        double f;
+        int ret = GetChannelValueAsFloat(attr, eval_index + i, f);
+        if (ret)
+        {   out.clear();
+            return ret; }
+        out.push_back(f);
+    }
+
+    // done.
+    return 0;
+}
+
 int ModoTools::GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
 {
     // init output.

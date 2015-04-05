@@ -483,6 +483,16 @@ namespace dfgModoIM
                                                                         retGet = ModoTools::GetChannelValueAsVector3(attr, (*cd).eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortVec3(client, binding, port, val);
                                                                     }
+                    else if (   port.getDataType() == "RGB")        {
+                                                                        std::vector <double> val;
+                                                                        retGet = ModoTools::GetChannelValueAsRGB(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortRGB(client, binding, port, val);
+                                                                    }
+                    else if (   port.getDataType() == "RGBA")       {
+                                                                        std::vector <double> val;
+                                                                        retGet = ModoTools::GetChannelValueAsRGBA(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortRGBA(client, binding, port, val);
+                                                                    }
                     else if (   port.getDataType() == "Mat44")      {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
@@ -626,39 +636,25 @@ namespace dfgModoIM
                     }
                     else
                     {
+                        std::vector <double> val;
+                        int N = 0;
+
                         if (dataType == LXi_TYPE_FLOAT)
                         {
-                            if      ((*cd).isVec2x)
-                            {
-                                std::vector <double> val;
-                                const int                          N = 2;
-                                retGet = BaseInterface::GetPortValueVec2(port, val);
-                                if (retGet == 0 && val.size() == N)
-                                    for (int i=0;i<N;i++)
-                                        if (retSet) break;
-                                        else        retSet = attr.SetFlt((*cd).eval_index + i, val[i]);
-                            }
-                            else if ((*cd).isVec3x)
-                            {
-                                std::vector <double> val;
-                                const int                          N = 3;
-                                retGet = BaseInterface::GetPortValueVec3(port, val);
-                                if (retGet == 0 && val.size() == N)
-                                    for (int i=0;i<N;i++)
-                                        if (retSet) break;
-                                        else        retSet = attr.SetFlt((*cd).eval_index + i, val[i]);
-                            }
-                            else if ((*cd).isRGBr)
-                            {
-                            }
-                            else if ((*cd).isRGBAr)
-                            {
-                            }
+                            if      ((*cd).isVec2x)     {   N = 2;  retGet = BaseInterface::GetPortValueVec2(port, val);   }
+                            else if ((*cd).isVec3x)     {   N = 3;  retGet = BaseInterface::GetPortValueVec3(port, val);   }
+                            else if ((*cd).isRGBr)      {   N = 3;  retGet = BaseInterface::GetPortValueRGB (port, val);   }
+                            else if ((*cd).isRGBAr)     {   N = 4;  retGet = BaseInterface::GetPortValueRGBA(port, val);   }
                             else
                             {
                                 err = "something is wrong with the flags in ChannelDef";
                                 break;
                             }
+
+                            if (retGet == 0 && val.size() == N)
+                                for (int i=0;i<N;i++)
+                                    if (retSet)     break;
+                                    else            retSet = attr.SetFlt((*cd).eval_index + i, val[i]);
                         }
                     }
 

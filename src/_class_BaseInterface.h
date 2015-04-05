@@ -79,6 +79,12 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         static unsigned int s_maxId;
         static std::map<unsigned int, BaseInterface*> s_instances;
 
+    private:
+        // returns true if the graph has a port called portName that matches the port type (input/output).
+        // params:  portName        name of the port.
+        //          testForInput    true: look for input port, else for output port.
+        bool HasPort(const char *portName, const bool testForInput);
+
     public:
         // returns true if the graph has an input port called portName.
         bool HasInputPort(const char *portName);

@@ -281,42 +281,74 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
   }
 }
 
-bool BaseInterface::HasInputPort(const char *portName)
+bool BaseInterface::HasPort(const char *portName, const bool testForInput)
 {
+    const FabricCore::DFGPortType portType = (testForInput ? FabricCore::DFGPortType_In : FabricCore::DFGPortType_Out);
     try
     {
-        FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
-        return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_In);
+        if (portName)
+        {
+            FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
+            if (port.isValid())
+            {
+                // we found a matching port.
+                return (port.getPortType() == portType);
+            }
+            else
+            {
+                // we didn't find a port, but then perhaps we are dealing with a scalar channel belonging to a vector/color channel
+                // => check if the last two characters resemble something like ".X", ".R", etc.
+                std::string pname = portName;
+                if (pname.length() > 2)
+                {
+                    char lastChar       = pname.back();   pname.pop_back();
+                    char beforeLastChar = pname.back();   pname.pop_back();
+                    if (beforeLastChar == '.')
+                        if (   lastChar == 'X'
+                            || lastChar == 'Y'
+                            || lastChar == 'Z'
+                            || lastChar == 'R'
+                            || lastChar == 'G'
+                            || lastChar == 'B'
+                            || lastChar == 'A'
+                            || lastChar == 'U'
+                            || lastChar == 'V'
+                            || lastChar == 'W')
+                        {
+                            port = getGraph().getPort(pname.c_str());
+                            if (port.isValid())
+                                return (port.getPortType() == portType);
+                        }
+                }
+            }
+        }
+        return false;
     }
     catch(FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return false;
     }
+}
+
+bool BaseInterface::HasInputPort(const char *portName)
+{
+    return HasPort(portName, true);
 }
 
 bool BaseInterface::HasInputPort(const std::string &portName)
 {
-    return HasInputPort(portName.c_str());
+    return HasPort(portName.c_str(), true);
 }
 
 bool BaseInterface::HasOutputPort(const char *portName)
 {
-    try
-    {
-        FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
-        return (port.isValid() && port.getPortType() == FabricCore::DFGPortType_Out);
-    }
-    catch(FabricCore::Exception e)
-    {
-        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-        return false;
-    }
+    return HasPort(portName, false);
 }
 
 bool BaseInterface::HasOutputPort(const std::string &portName)
 {
-    return HasOutputPort(portName.c_str());
+    return HasPort(portName.c_str(), false);
 }
 
 int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::Port &port, bool &out, bool strict)

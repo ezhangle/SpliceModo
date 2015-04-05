@@ -283,11 +283,18 @@ namespace dfgModoIM
 
     struct ChannelDef
     {
-        int  chan_index;
-        int  eval_index;
-        std::string chan_name;
+        int  chan_index;            // item channel index.
+        int  eval_index;            // evaluation index.
+        std::string chan_name;      // name of the channnel.
+        bool isSingleton;           // true: all other "is*" flags are equal false.
+        bool isVec2x;               // true: this is the first channel of a 2D vector.
+        bool isVec3x;               // true: this is the first channel of a 3D vector.
+        bool isRGBr;                // true: this is the first channel of a RGB color.
+        bool isRGBAr;               // true: this is the first channel of a RGBA color.
     
-        ChannelDef () : chan_index (-1), eval_index (-1), chan_name("") {}
+        ChannelDef () : chan_index(-1), eval_index(-1), chan_name(""),
+                        isSingleton(true),
+                        isVec2x(false), isVec3x(false), isRGBr(false), isRGBAr(false) {}
     };
 
     class Element : public CLxItemModifierElement
@@ -355,6 +362,7 @@ namespace dfgModoIM
             c.eval_index = eval.AddChan(item, c.chan_index, type);
 
             // debug.
+            if (false)
             {
                 std::string s = "[DBG] eval.AddChan(\"" + c.chan_name + "\")";
                 feLog(NULL, s);
@@ -552,73 +560,113 @@ namespace dfgModoIM
                     FabricCore::RTVal rtval;
                     int retGet = 0;
                     int retSet = LXe_OK;
-                    if      (dataType == LXi_TYPE_INTEGER)
+                    if ((*cd).isSingleton)
                     {
-                        int val;
-                        retGet = BaseInterface::GetPortValueInteger(port, val);
-                        if (retGet == 0)
-                            retSet = attr.SetInt((*cd).eval_index, val);
-                    }
-                    else if (dataType == LXi_TYPE_FLOAT)
-                    {
-                        double val;
-                        retGet = BaseInterface::GetPortValueFloat(port, val);
-                        if (retGet == 0)
-                            retSet = attr.SetFlt((*cd).eval_index, val);
-                    }
-                    else if (dataType == LXi_TYPE_STRING)
-                    {
-                        std::string val;
-                        retGet = BaseInterface::GetPortValueString(port, val);
-                        if (retGet == 0)
-                            retSet = attr.SetString((*cd).eval_index, val.c_str());
-                    }
-                    else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
-                    {
-                        std::vector <double> val;
-                        retGet = BaseInterface::GetPortValueQuat(port, val);
-                        if (retGet == 0 && val.size() == 4)
+                        if      (dataType == LXi_TYPE_INTEGER)
                         {
-                            CLxUser_Quaternion usrQuaternion;
-                            LXtQuaternion      q;
-                            if (!attr.ObjectRW((*cd).eval_index, usrQuaternion) || !usrQuaternion.test())
-                            {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
-                                break;  }
-                            for (int i=0;i<4;i++)   q[i] = val[i];
-                            usrQuaternion.SetQuaternion(q);
+                            int val;
+                            retGet = BaseInterface::GetPortValueInteger(port, val);
+                            if (retGet == 0)
+                                retSet = attr.SetInt((*cd).eval_index, val);
                         }
-                    }
-                    else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
-                    {
-                        std::vector <double> val;
-                        retGet = BaseInterface::GetPortValueMat44(port, val);
-                        if (retGet == 0 && val.size() == 16)
+                        else if (dataType == LXi_TYPE_FLOAT)
                         {
-                            CLxUser_Matrix usrMatrix;
-                            LXtMatrix4     m44;
-                            if (!attr.ObjectRW((*cd).eval_index, usrMatrix) || !usrMatrix.test())
-                            {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
-                                break;  }
-                               for (int j=0;j<4;j++)
-                                   for (int i=0;i<4;i++)
-                                       m44[i][j] = val[j * 4 + i];
-                               usrMatrix.Set4(m44);
+                            double val;
+                            retGet = BaseInterface::GetPortValueFloat(port, val);
+                            if (retGet == 0)
+                                retSet = attr.SetFlt((*cd).eval_index, val);
+                        }
+                        else if (dataType == LXi_TYPE_STRING)
+                        {
+                            std::string val;
+                            retGet = BaseInterface::GetPortValueString(port, val);
+                            if (retGet == 0)
+                                retSet = attr.SetString((*cd).eval_index, val.c_str());
+                        }
+                        else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
+                        {
+                            std::vector <double> val;
+                            retGet = BaseInterface::GetPortValueQuat(port, val);
+                            if (retGet == 0 && val.size() == 4)
+                            {
+                                CLxUser_Quaternion usrQuaternion;
+                                LXtQuaternion      q;
+                                if (!attr.ObjectRW((*cd).eval_index, usrQuaternion) || !usrQuaternion.test())
+                                {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
+                                    break;  }
+                                for (int i=0;i<4;i++)   q[i] = val[i];
+                                usrQuaternion.SetQuaternion(q);
+                            }
+                        }
+                        else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
+                        {
+                            std::vector <double> val;
+                            retGet = BaseInterface::GetPortValueMat44(port, val);
+                            if (retGet == 0 && val.size() == 16)
+                            {
+                                CLxUser_Matrix usrMatrix;
+                                LXtMatrix4     m44;
+                                if (!attr.ObjectRW((*cd).eval_index, usrMatrix) || !usrMatrix.test())
+                                {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
+                                    break;  }
+                                   for (int j=0;j<4;j++)
+                                       for (int i=0;i<4;i++)
+                                           m44[i][j] = val[j * 4 + i];
+                                   usrMatrix.Set4(m44);
+                            }
+                        }
+                        else
+                        {
+                            const char *typeName = NULL;
+                            attr.TypeName((*cd).eval_index, &typeName);
+                            if (typeName)   err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
+                            else            err = "the user channel  \"" + name + "\" has the unsupported data type \"NULL\"";
+                            break;
                         }
                     }
                     else
                     {
-                        const char *typeName = NULL;
-                        attr.TypeName((*cd).eval_index, &typeName);
-                        if (typeName)   err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
-                        else            err = "the user channel  \"" + name + "\" has the unsupported data type \"NULL\"";
-                        break;
+                        if (dataType == LXi_TYPE_FLOAT)
+                        {
+                            if      ((*cd).isVec2x)
+                            {
+                                std::vector <double> val;
+                                const int                          N = 2;
+                                retGet = BaseInterface::GetPortValueVec2(port, val);
+                                if (retGet == 0 && val.size() == N)
+                                    for (int i=0;i<N;i++)
+                                        if (retSet) break;
+                                        else        retSet = attr.SetFlt((*cd).eval_index + i, val[i]);
+                            }
+                            else if ((*cd).isVec3x)
+                            {
+                                std::vector <double> val;
+                                const int                          N = 3;
+                                retGet = BaseInterface::GetPortValueVec3(port, val);
+                                if (retGet == 0 && val.size() == N)
+                                    for (int i=0;i<N;i++)
+                                        if (retSet) break;
+                                        else        retSet = attr.SetFlt((*cd).eval_index + i, val[i]);
+                            }
+                            else if ((*cd).isRGBr)
+                            {
+                            }
+                            else if ((*cd).isRGBAr)
+                            {
+                            }
+                            else
+                            {
+                                err = "something is wrong with the flags in ChannelDef";
+                                break;
+                            }
+                        }
                     }
 
                     // error getting value from DFG port?
                     if (retGet != 0)
                     {
                         sprintf(serr, "%ld", retGet);
-                        err = "failed to get value from port \"" + name + "\" (returned " + serr + ")";
+                        err = "failed to get value from DFG port \"" + name + "\" (returned " + serr + ")";
                         break;
                     }
 
@@ -664,7 +712,7 @@ namespace dfgModoIM
         unsigned count = 0;
         item.ChannelCount(&count);
     
-        // go through all channels and add all valid user channels to usrchn.
+        // go through all channels and add all valid user channels to io_usrChan.
         for (unsigned i=0;i<count;i++)
         {
             // if the channel has a package (i.e. if it is not a user channel) then skip it.
@@ -689,6 +737,50 @@ namespace dfgModoIM
             c.chan_index =  i;
             c.chan_name  = name;
             io_usrChan.push_back(c);
+        }
+
+        // go through io_usrChan and set the isVec2, isVec3, etc. flags.
+        for (int i=0;i<io_usrChan.size();i++)
+        {
+            ChannelDef          &c    = io_usrChan[i];
+            const std::string   &name = c.chan_name;
+
+            //
+            int idx = i;
+
+            // check if we have a 2D or 3D vector.
+            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".X") == io_usrChan[idx].chan_name.length() - 2)
+            {
+                idx++;
+                if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Y") == io_usrChan[idx].chan_name.length() - 2)
+                {
+                    idx++;
+                    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Z") == io_usrChan[idx].chan_name.length() - 2) c.isVec3x = true;
+                    else                                                                                                            c.isVec2x = true;
+                }
+            }
+
+            // check if we have a color.
+            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".R") == io_usrChan[idx].chan_name.length() - 2)
+            {
+                idx++;
+                if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".G") == io_usrChan[idx].chan_name.length() - 2)
+                {
+                    idx++;
+                    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".B") == io_usrChan[idx].chan_name.length() - 2)
+                    {
+                        idx++;
+                        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".A") == io_usrChan[idx].chan_name.length() - 2) c.isRGBAr = true;
+                        else                                                                                                            c.isRGBr  = true;
+                    }
+                }
+            }
+
+            // set singleton flag.
+            c.isSingleton = (   !c.isVec2x
+                             && !c.isVec3x
+                             && !c.isRGBr
+                             && !c.isRGBAr );
         }
     }
 

@@ -352,6 +352,11 @@ int ModoTools::GetChannelValueAsVector3(CLxUser_Attributes &attr, int eval_index
     return 0;
 }
 
+int ModoTools::GetChannelValueAsColor(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+    return GetChannelValueAsRGBA(attr, eval_index, out, strict);
+}
+
 int ModoTools::GetChannelValueAsRGB(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
 {
     // init output.

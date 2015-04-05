@@ -75,6 +75,7 @@ class ModoTools
     static int GetChannelValueAsString    (CLxUser_Attributes &attr, int eval_index, std::string          &out, bool strict = false);
     static int GetChannelValueAsVector2   (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
     static int GetChannelValueAsVector3   (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
+    static int GetChannelValueAsColor     (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
     static int GetChannelValueAsRGB       (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
     static int GetChannelValueAsRGBA      (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
     static int GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);

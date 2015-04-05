@@ -483,6 +483,11 @@ namespace dfgModoIM
                                                                         retGet = ModoTools::GetChannelValueAsVector3(attr, (*cd).eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortVec3(client, binding, port, val);
                                                                     }
+                    else if (   port.getDataType() == "Color")      {
+                                                                        std::vector <double> val;
+                                                                        retGet = ModoTools::GetChannelValueAsColor(attr, (*cd).eval_index, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortColor(client, binding, port, val);
+                                                                    }
                     else if (   port.getDataType() == "RGB")        {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsRGB(attr, (*cd).eval_index, val);

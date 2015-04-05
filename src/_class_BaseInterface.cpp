@@ -684,6 +684,63 @@ int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::Port &port, std:
     return 0;
 }
 
+int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict)
+{
+    // init output.
+    out.clear();
+
+    // invalid port?
+    if (!port.isValid())
+        return -2;
+
+    // set out from port value.
+    try
+    {
+        std::string dataType = port.getDataType();
+        FabricCore::RTVal rtval = port.getRTVal();
+
+        if      (dataType.length() == 0)        return -1;
+
+        else if (dataType == "Color")        {
+                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("a").getFloat32());
+                                            }
+        else if (!strict)
+        {
+            if      (dataType == "Vec4")   {
+                                                out.push_back(rtval.maybeGetMember("x").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("y").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("z").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("t").getFloat32());
+                                            }
+            else if (dataType == "RGB")     {
+                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                out.push_back(1);
+                                            }
+            else if (dataType == "RGBA")    {
+                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                out.push_back(rtval.maybeGetMember("a").getUInt8() / 255.0);
+                                            }
+            else
+                return -1;
+        }
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        return -4;
+    }
+
+    // done.
+    return 0;
+}
+
 int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict)
 {
     // init output.
@@ -712,6 +769,11 @@ int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::Port &port, std::
                                                 out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
                                                 out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
                                                 out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                            }
+            else if (dataType == "Color")   {
+                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
                                             }
             else
                 return -1;
@@ -757,6 +819,12 @@ int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::Port &port, std:
                                                 out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
                                                 out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
                                                 out.push_back(1);
+                                            }
+            else if (dataType == "Color")   {
+                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                out.push_back(rtval.maybeGetMember("a").getFloat32());
                                             }
             else
                 return -1;
@@ -976,6 +1044,26 @@ void BaseInterface::SetValueOfPortVec4(FabricCore::Client &client, FabricService
     {
         const int  N        =     4;
         const char name[16] = "Vec4";
+        FabricCore::RTVal rtval;
+        FabricCore::RTVal v[N];
+        const bool valIsValid  = (val.size() >= N);
+        for (int i=0;i<N;i++)
+            v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
+        rtval  = FabricCore::RTVal::Construct(client, name, N, v);
+        binding.setArgValue(port.getName().c_str(), rtval);
+    }
+    catch(FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    }
+}
+
+void BaseInterface::SetValueOfPortColor(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val)
+{
+    try
+    {
+        const int  N        =      4;
+        const char name[16] = "Color";
         FabricCore::RTVal rtval;
         FabricCore::RTVal v[N];
         const bool valIsValid  = (val.size() >= N);

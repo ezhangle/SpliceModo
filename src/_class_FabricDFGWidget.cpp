@@ -37,34 +37,31 @@ FabricDFGWidget::~FabricDFGWidget()
 FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
 {
     std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
-    if(it == s_instances.end())
+    if (it == s_instances.end())
     {
         // don't create new widget?
         if (!createNewIfNoneFound)
             return NULL;
 
-        // create new widget.
+        // get main window's pointer.
         QMainWindow *mainWindow = NULL;
-        /*
-            NOTE: the parent widget is currently not yet set.
-            This needs to be done to have a "good looking" integration of Fabric in Modo.
-            The following code does not function properly yet:
-        */
-        #ifdef WIP_WIP_WIP_WIP_WIP_WIP_WIP_WIP
-            Q_FOREACH(QWidget* w, QApplication::topLevelWidgets() )
-            {
-                if( qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
-                {
-                    mainWindow = (QMainWindow*)w;
-                    break;
-                }
-            }
-        #endif
-        FabricDFGWidget *newWidget = new FabricDFGWidget(mainWindow, baseInterface);
+        Q_FOREACH(QWidget* w, QApplication::topLevelWidgets())
+        {
+            if( qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
+            {   mainWindow = (QMainWindow*)w;
+                break;  }
+        }
+
+        // create dock widget.
+        QDockWidget *dockWindow = NULL;     // WIP WIP WIP
+
+        // create Fabric DFG widget
+        FabricDFGWidget *newWidget = new FabricDFGWidget((QWidget *)dockWindow, baseInterface);
         s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newWidget));
         Qt::WindowFlags flags = (*newWidget).windowFlags();
         (*newWidget).setWindowFlags(flags | Qt::WindowStaysOnTopHint);
        
+        // done.
         return newWidget;
     }
     return it->second;

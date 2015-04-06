@@ -251,6 +251,19 @@ void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const c
 
         if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
             logErrorFunc(0, err.c_str(), err.length());
+
+        // workaround: there currently is no way to tell Modo (via SceneItemListener) that a port was renamed,
+        // so we simply create a dummy port and delete it right away.
+        std::string dummyName = oldName;
+        dummyName += "tmpWorkaround127";
+        if (!ModoTools::CreateUserChannel(&item, dummyName, "float", "", err))
+        {
+            logErrorFunc(0, err.c_str(), err.length());
+            return;    }
+        if (!ModoTools::DeleteUserChannel(&item, dummyName, err))
+        {
+            logErrorFunc(0, err.c_str(), err.length());
+            return;    }
     }
     catch(FabricCore::Exception e)
     {

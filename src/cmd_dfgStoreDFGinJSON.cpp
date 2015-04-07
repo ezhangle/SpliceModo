@@ -1,14 +1,14 @@
 #include "plugin.h"
 
 // static tag description interface.
-LXtTagInfoDesc cmdStoreDFGinJSON::Command::descInfo[] =
+LXtTagInfoDesc dfgStoreDFGinJSON::Command::descInfo[] =
 {
     { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
     { 0 }
 };
 
 // execute code.
-void cmdStoreDFGinJSON::Command::cmd_Execute(unsigned flags)
+void dfgStoreDFGinJSON::Command::cmd_Execute(unsigned flags)
 {
     // init err string,
     std::string err = "command StoreDFGinJSON failed: ";

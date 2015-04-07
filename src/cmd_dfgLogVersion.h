@@ -1,8 +1,8 @@
 //
-#ifndef SERVER_NAME_cmdOpenFabricCanvas
-#define SERVER_NAME_cmdOpenFabricCanvas "OpenFabricCanvas"
+#ifndef SERVER_NAME_dfgLogVersion
+#define SERVER_NAME_dfgLogVersion "dfgLogVersion"
 
-namespace cmdOpenFabricCanvas
+namespace dfgLogVersion
 {
     class Command : public CLxBasicCommand
     {
@@ -17,7 +17,7 @@ namespace cmdOpenFabricCanvas
             CLxGenericPolymorph *srv =   new CLxPolymorph           <Command>;
             srv->AddInterface           (new CLxIfc_Command         <Command>);
             srv->AddInterface           (new CLxIfc_StaticDesc      <Command>);
-            lx:: AddServer              (SERVER_NAME_cmdOpenFabricCanvas, srv);
+            lx:: AddServer              (SERVER_NAME_dfgLogVersion, srv);
         };
 
         // command service.

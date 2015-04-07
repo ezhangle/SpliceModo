@@ -14,11 +14,11 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmdLogFabricVersion.h"
-#include "cmdOpenFabricCanvas.h"
-#include "cmdStoreDFGinJSON.h"
-#include "dfgModoIM.h"
-#include "dfgModoPI.h"
+#include "cmd_dfgLogVersion.h"
+#include "cmd_dfgOpenCanvas.h"
+#include "cmd_dfgStoreDFGinJSON.h"
+#include "itm_dfgModoIM.h"
+#include "itm_dfgModoPI.h"
 
 // fixed channel names.
 #define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.

@@ -1,8 +1,8 @@
 //
-#ifndef SERVER_NAME_cmdLogFabricVersion
-#define SERVER_NAME_cmdLogFabricVersion "LogFabricVersion"
+#ifndef SERVER_NAME_dfgStoreDFGinJSON
+#define SERVER_NAME_dfgStoreDFGinJSON "dfgStoreDFGinJSON"
 
-namespace cmdLogFabricVersion
+namespace dfgStoreDFGinJSON
 {
     class Command : public CLxBasicCommand
     {
@@ -17,7 +17,7 @@ namespace cmdLogFabricVersion
             CLxGenericPolymorph *srv =   new CLxPolymorph           <Command>;
             srv->AddInterface           (new CLxIfc_Command         <Command>);
             srv->AddInterface           (new CLxIfc_StaticDesc      <Command>);
-            lx:: AddServer              (SERVER_NAME_cmdLogFabricVersion, srv);
+            lx:: AddServer              (SERVER_NAME_dfgStoreDFGinJSON, srv);
         };
 
         // command service.

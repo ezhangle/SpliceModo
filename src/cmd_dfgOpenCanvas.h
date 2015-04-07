@@ -1,8 +1,8 @@
 //
-#ifndef SERVER_NAME_cmdStoreDFGinJSON
-#define SERVER_NAME_cmdStoreDFGinJSON "StoreDFGinJSON"
+#ifndef SERVER_NAME_dfgOpenCanvas
+#define SERVER_NAME_dfgOpenCanvas "dfgOpenCanvas"
 
-namespace cmdStoreDFGinJSON
+namespace dfgOpenCanvas
 {
     class Command : public CLxBasicCommand
     {
@@ -17,7 +17,7 @@ namespace cmdStoreDFGinJSON
             CLxGenericPolymorph *srv =   new CLxPolymorph           <Command>;
             srv->AddInterface           (new CLxIfc_Command         <Command>);
             srv->AddInterface           (new CLxIfc_StaticDesc      <Command>);
-            lx:: AddServer              (SERVER_NAME_cmdStoreDFGinJSON, srv);
+            lx:: AddServer              (SERVER_NAME_dfgOpenCanvas, srv);
         };
 
         // command service.

@@ -24,6 +24,9 @@ void feLogError(void *userData, const std::string &s)
     feLogError(userData, s.c_str(), s.length());
 }
 
+// temporary quickhack.
+BaseInterface *quickhack_baseInterface = NULL;
+
 // plugin initialization.
 void initialize()
 {
@@ -39,7 +42,8 @@ void initialize()
         cmdLogFabricVersion :: Command::  initialize();
         cmdOpenFabricCanvas :: Command::  initialize();
         cmdStoreDFGinJSON   :: Command::  initialize();
-       dfgModoIM::                        initialize();
+        dfgModoIM::                       initialize();
+        OrbItem::                       initialize();
     }
  }
 

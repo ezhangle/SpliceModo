@@ -102,7 +102,7 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     return ExecuteCommand(std::string( "channel.create " + channelName
                                       + " "              + dataType
                                       + " "              + structType
-                                      + " item:"         + itemName)
+                                      + " item:\""       + itemName + "\"")
                                       , out_err);
 }
 
@@ -118,8 +118,8 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
         return false;   }
 
     // get actual channel name.
-    std::string actualNname;
-    if (!HasChannel(ptr_CLxUser_Item, channelName, actualNname, out_err))
+    std::string actualName;
+    if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err))
         return false;
 
     // ref at item.
@@ -130,7 +130,7 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     item.GetUniqueName(itemName);
 
     // execute command.
-    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualNname + "} set"), out_err))
+    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualName + "} set"), out_err))
         return ExecuteCommand(std::string("channel.delete"), out_err);
     else
         return false;
@@ -148,8 +148,8 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
         return false;   }
 
     // get actual channel name.
-    std::string actualNname;
-    if (!HasChannel(ptr_CLxUser_Item, channelName, actualNname, out_err))
+    std::string actualName;
+    if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err))
         return false;
 
     // ref at item.
@@ -165,7 +165,7 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     item.GetUniqueName(itemName);
 
     // execute command.
-    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualNname + "} set"), out_err))
+    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualName + "} set"), out_err))
         if (ExecuteCommand(std::string("channel.name name:" + channelNameNew), out_err))
             return ExecuteCommand(std::string("channel.username username:" + channelNameNew), out_err);
         else

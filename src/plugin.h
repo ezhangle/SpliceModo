@@ -3,7 +3,7 @@
 #define SPLICE_MODO_PLUGIN
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.009
+#define FABRICMODO_PLUGIN_VERSION   0.011
 
 // disable some annoying VS warnings.
 #pragma warning (disable : 4530)    // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
@@ -18,6 +18,7 @@
 #include "cmdOpenFabricCanvas.h"
 #include "cmdStoreDFGinJSON.h"
 #include "dfgModoIM.h"
+#include "dfgModoPI.h"
 
 // fixed channel names.
 #define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.

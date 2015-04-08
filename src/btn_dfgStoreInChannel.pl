@@ -1,5 +1,5 @@
 #perl
 
-# create/display FabricDFGWidget.
-lx("dfgStoreInChannel");
+my $itemName = lxq("item.name ?");
+lx("dfgStoreInChannel " . '"' . $itemName . '"');
 

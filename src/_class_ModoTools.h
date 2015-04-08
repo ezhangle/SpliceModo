@@ -64,9 +64,16 @@ class ModoTools
     static bool ItemExists(const std::string &itemName);
     static bool ItemExists(const char *itemName);
 
+    // gets an item based on the item name.
+    // params   itemName    the name of an item (it can be the user name or the ident, both work).
+    //          out_item    the item.
+    // returns: true if the item was found and out_item successfully set.
+    static bool GetItem(const std::string &itemName, CLxUser_Item  &out_item);
+    static bool GetItem(const char *itemName, CLxUser_Item &out_item);
+
     // gets the type of an item.
     // params   itemName        the name of an item (it can be the user name or the ident, both work).
-    //          out_typeName    the type of the item or "" if the item was not found..
+    //          out_typeName    the type of the item or "" if the item was not found.
     // returns: true if the item was found and out_typeName set..
     static bool GetItemType(const std::string &itemName, std::string &out_typeName);
     static bool GetItemType(const char *itemName, std::string &out_typeName);

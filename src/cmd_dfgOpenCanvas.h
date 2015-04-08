@@ -8,6 +8,9 @@ namespace dfgOpenCanvas
     {
         public:
 
+        // constructor.
+        Command(void);
+
         // tag description interface.
         static LXtTagInfoDesc descInfo[];
 
@@ -16,6 +19,8 @@ namespace dfgOpenCanvas
         {
             CLxGenericPolymorph *srv =   new CLxPolymorph           <Command>;
             srv->AddInterface           (new CLxIfc_Command         <Command>);
+            srv->AddInterface           (new CLxIfc_Attributes      <Command>);
+            srv->AddInterface           (new CLxIfc_AttributesUI    <Command>);
             srv->AddInterface           (new CLxIfc_StaticDesc      <Command>);
             lx:: AddServer              (SERVER_NAME_dfgOpenCanvas, srv);
         };

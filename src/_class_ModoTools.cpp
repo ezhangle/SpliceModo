@@ -124,6 +124,24 @@ bool ModoTools::ItemExists(const char *itemName)
     return ItemExists(std::string(itemName));
 }
 
+bool ModoTools::GetItem(const std::string &itemName, CLxUser_Item  &out_item)
+{
+    CLxSceneSelection   sel;
+    CLxUser_Scene       scn;
+    if (sel.Get(scn))
+        if (scn.test())
+            if (scn.GetItem(itemName.c_str(), out_item))
+                if (out_item.test())
+                    return true;
+    return false;
+}
+
+bool ModoTools::GetItem(const char *itemName, CLxUser_Item &out_item)
+{
+    if (!itemName)      return false;
+    return GetItem(std::string(itemName), out_item);
+}
+
 bool ModoTools::GetItemType(const std::string &itemName, std::string &out_typeName)
 {
     out_typeName.clear();

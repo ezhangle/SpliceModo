@@ -1,5 +1,5 @@
 #perl
 
-# create/display FabricDFGWidget.
-lx("dfgOpenCanvas");
+my $itemName = lxq("item.name ?");
+lx("dfgOpenCanvas " . '"' . $itemName . '"');
 

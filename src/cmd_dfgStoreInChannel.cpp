@@ -24,65 +24,83 @@ dfgStoreInChannel::Command::Command(void)
 void dfgStoreInChannel::Command::cmd_Execute(unsigned flags)
 {
     // init err string,
-    std::string err = "command StoreDFGinJSON failed: ";
+    std::string err = "command " SERVER_NAME_dfgStoreInChannel " failed: ";
 
-    // check pointer and create ref at BaseInterface.
-    if (!quickhack_baseInterface)
-    {   err += "pointer == NULL";
-        feLogError(0, err.c_str(), err.length());
-        return;    }
-    BaseInterface &b = *quickhack_baseInterface;
+    // declare and set item.
+    CLxUser_Item item;
+    {
+        // set from argument.
+        if (dyna_IsSet(0))
+        {
+            // get argument.
+            std::string argItemName;
+            if (!dyna_String(0, argItemName))
+            {   err += "failed to read argument";
+                feLogError(NULL, err);
+                return;  }
 
-    // create item.
-    // WIP: the argument is currently ignored. In the future, when the quickhack is removed,
-    //      all this will have to be finalized.
-    CLxUser_Item item((ILxUnknownID)b.m_item_obj_dfgModoIM);
+            // get the item.
+            if (!ModoTools::GetItem(argItemName, item))
+            {   err += "the item \"" + argItemName + "\" doesn't exists or cannot be used with this command";
+                feLogError(0, err);
+                return;  }
+        }
+        // set from current selection.
+        else
+        {
+            CLxItemSelection sel;
+            if (!sel.GetFirst(item))
+            {   err += "nothing selected";
+                feLogError(0, err);
+                return;  }
+        }
+    }
+
+    // is item invalid?
     if (!item.test())
-    {   err += "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-        feLogError(0, err.c_str(), err.length());
-        return;    }
-
-        
-
-
-
-
-
-
-    std::string argItemName;
-    if (dyna_IsSet(0) && dyna_String(0, argItemName))
-    {
-        // use the argument as item name.
-        std::string tname;
-        if (ModoTools::GetItemType(argItemName, tname))     feLog(0, "the item's type is \"" + tname + "\"");
-        else                                                feLog(0, "the item \"" + argItemName + "\" doesn't exists");
-    }
-    else
-    {
-        // use the current selection as item name(s).
-    }
-
-
-{
-
-    const char *ident;
-    std::string uniqueName;
-    if (item.Ident(&ident) != LXe_OK)
-        feLog(0, "item.Ident(&ident) failed", 0);
-    else
-    {
-        item.GetUniqueName(uniqueName);
-        std::string out = "unique name = \"" + uniqueName + "\"  ident= \"" + ident + "\"";
-        feLog(0, out);
-    }
-}
+    {   err += "invalid item";
+        feLogError(0, err);
+        return;  }
 
     // add item name to err string.
     std::string itemName;
     item.GetUniqueName(itemName);
-    err += "item\"" + itemName + "\": ";
+    err.pop_back();
+    err.pop_back();
+    err += " (\"" + itemName + "\"): ";
 
-    // store JSON string in channel.
+    // check the item's type.
+    std::string typeName;
+    if (!ModoTools::GetItemType(item.IdentPtr(), typeName))
+    {   err += "failed to get item type";
+        feLogError(0, err);
+        return;  }
+    if (   typeName != SERVER_NAME_dfgModoIM
+        && typeName != SERVER_NAME_dfgModoIM)
+    {   err += "item has unsupported type \"" + typeName + "\"";
+        feLogError(0, err);
+        return;  }
+
+    // check pointer at BaseInterface and create reference.
+    if (!quickhack_baseInterface)
+    {   err += "pointer == NULL";
+        feLogError(0, err);
+        return;    }
+    BaseInterface &b = *quickhack_baseInterface;
+
+    // check if the BaseInterface knows the item.
+    // (NOTE: this is WIP and must be done properly once the quickhack stuff gets replaced.)
+    CLxUser_Item tmpItem((ILxUnknownID)b.m_item_obj_dfgModoIM);
+    if (!tmpItem.test())
+    {   err += "tmpItem((ILxUnknownID)m_item_obj_dfgModoIM) failed";
+        feLogError(0, err);
+        return;    }
+    if (strcmp(item.IdentPtr(), tmpItem.IdentPtr()))
+    {   err += "the Fabric Base Interface doesn't know this item";
+        feLogError(0, err);
+        return;    }
+
+    // get the DFG's JSON string and store it in the item's channel.
     CLxUser_ChannelWrite chanWrite;
     if (!chanWrite.from(item))
     {   err += "couldn't create channel writer.";

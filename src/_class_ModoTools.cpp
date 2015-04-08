@@ -106,6 +106,52 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
                                       , out_err);
 }
 
+bool ModoTools::ItemExists(const std::string &itemName)
+{
+    CLxSceneSelection   sel;
+    CLxUser_Scene       scn;
+    CLxLoc_Item         item;
+    if (sel.Get(scn))
+        if (scn.test())
+            if (scn.GetItem(itemName.c_str(), item))
+                return true;
+    return false;
+}
+
+bool ModoTools::ItemExists(const char *itemName)
+{
+    if (!itemName)   return false;
+    return ItemExists(std::string(itemName));
+}
+
+bool ModoTools::GetItemType(const std::string &itemName, std::string &out_typeName)
+{
+    out_typeName.clear();
+    CLxSceneSelection   sel;
+    CLxUser_Scene       scn;
+    CLxLoc_Item         item;
+    if (sel.Get(scn))
+        if (scn.test())
+            if (scn.GetItem(itemName.c_str(), item))
+            {
+                const char *typeName = NULL;
+                CLxUser_SceneService srv;
+                if (srv.ItemTypeName(item.Type(), &typeName) == LXe_OK && typeName)
+                {
+                    out_typeName = typeName;
+                    return (out_typeName.length() > 0);
+                }
+            }
+    return false;
+}
+
+bool ModoTools::GetItemType(const char *itemName, std::string &out_typeName)
+{
+    out_typeName.clear();
+    if (!itemName)      return false;
+    return GetItemType(std::string(itemName), out_typeName);
+}
+
 bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
 {
     // init.

@@ -1,8 +1,6 @@
 #include "plugin.h"
 
-#define SERVER_NAME_dfgModoIM       "dfgModoIM"
-
-static CLxItemType gItemType_dfgModoIM (SERVER_NAME_dfgModoIM);
+static CLxItemType gItemType_dfgModoIM(SERVER_NAME_dfgModoIM);
 
 namespace dfgModoIM
 {

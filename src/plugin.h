@@ -20,6 +20,10 @@
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 
+// Modo item/server names.
+#define SERVER_NAME_dfgModoIM       "dfgModoIM"     // dfgModo "item modifier".
+#define SERVER_NAME_dfgModoPI       "dfgModoPI"     // dfgModo "procedural item".
+
 // fixed channel names.
 #define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.
 #define CHN_NAME_IO_FabricJSON      "FabricJSON"    // io: string for BaseInterface::getJSON() and BaseInterface::setFromJSON().

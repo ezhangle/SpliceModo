@@ -10,12 +10,14 @@ LXtTagInfoDesc dfgStoreInChannel::Command::descInfo[] =
 // constructor.
 dfgStoreInChannel::Command::Command(void)
 {
+    // arguments.
     int idx = 0;
-
-    //
-    dyna_Add("item", LXsTYPE_STRING);
-    basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
-    idx++;
+    {
+        // item's name.
+        dyna_Add("item", LXsTYPE_STRING);
+        basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
+        idx++;
+    }
 }
 
 // execute code.
@@ -32,19 +34,36 @@ void dfgStoreInChannel::Command::cmd_Execute(unsigned flags)
     BaseInterface &b = *quickhack_baseInterface;
 
     // create item.
+    // WIP: the argument is currently ignored. In the future, when the quickhack is removed,
+    //      all this will have to be finalized.
     CLxUser_Item item((ILxUnknownID)b.m_item_obj_dfgModoIM);
     if (!item.test())
     {   err += "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
         feLogError(0, err.c_str(), err.length());
         return;    }
 
-{
-    if (dyna_IsSet(0))
+        
+
+
+
+
+
+
+    std::string argItemName;
+    if (dyna_IsSet(0) && dyna_String(0, argItemName))
     {
-        std::string t;
-        if (dyna_String(0, t))
-            feLog(0, "dyna_String(0, t)" + t);
+        // use the argument as item name.
+        std::string tname;
+        if (ModoTools::GetItemType(argItemName, tname))     feLog(0, "the item's type is \"" + tname + "\"");
+        else                                                feLog(0, "the item \"" + argItemName + "\" doesn't exists");
     }
+    else
+    {
+        // use the current selection as item name(s).
+    }
+
+
+{
 
     const char *ident;
     std::string uniqueName;

@@ -58,6 +58,19 @@ class ModoTools
     // returns: true on success, false otherwise.
     static bool CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &dataType, const std::string &structType, std::string &out_err);
 
+    // returns true if an item with a given name exists in the scene.
+    // params   itemName    the name of an item (it can be the user name or the ident, both work).
+    // returns: true if item exists.
+    static bool ItemExists(const std::string &itemName);
+    static bool ItemExists(const char *itemName);
+
+    // gets the type of an item.
+    // params   itemName        the name of an item (it can be the user name or the ident, both work).
+    //          out_typeName    the type of the item or "" if the item was not found..
+    // returns: true if the item was found and out_typeName set..
+    static bool GetItemType(const std::string &itemName, std::string &out_typeName);
+    static bool GetItemType(const char *itemName, std::string &out_typeName);
+
     // deletes an existing user channel.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
     //          channelName             name of channel to delete.

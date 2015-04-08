@@ -41,7 +41,7 @@ void initialize()
     {
         dfgLogVersion     :: Command::  initialize();
         dfgOpenCanvas     :: Command::  initialize();
-        dfgStoreDFGinJSON :: Command::  initialize();
+        dfgStoreInChannel :: Command::  initialize();
         dfgModoIM::                     initialize();
     }
  }

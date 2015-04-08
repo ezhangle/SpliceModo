@@ -1,5 +1,5 @@
 #perl
 
 # create/display FabricDFGWidget.
-lx("dfgStoreDFGinJSON");
+lx("dfgStoreInChannel");
 

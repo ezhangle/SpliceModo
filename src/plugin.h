@@ -16,7 +16,7 @@
 #include "_class_ModoTools.h"
 #include "cmd_dfgLogVersion.h"
 #include "cmd_dfgOpenCanvas.h"
-#include "cmd_dfgStoreDFGinJSON.h"
+#include "cmd_dfgStoreInChannel.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 

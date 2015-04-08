@@ -22,6 +22,6 @@ installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
 installedPlugin  = env.Install(installDir, plugin[0])
 installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('index.cfg'))
 installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_dfgOpenCanvas.pl'))
-installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_dfgStoreDFGinJSON.pl'))
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_dfgStoreInChannel.pl'))
 
 Return('installedPlugin')

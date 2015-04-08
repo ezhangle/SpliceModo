@@ -1,12 +1,15 @@
 //
-#ifndef SERVER_NAME_dfgStoreDFGinJSON
-#define SERVER_NAME_dfgStoreDFGinJSON "dfgStoreDFGinJSON"
+#ifndef SERVER_NAME_dfgStoreInChannel
+#define SERVER_NAME_dfgStoreInChannel "dfgStoreInChannel"
 
-namespace dfgStoreDFGinJSON
+namespace dfgStoreInChannel
 {
     class Command : public CLxBasicCommand
     {
         public:
+
+        // constructor.
+        Command(void);
 
         // tag description interface.
         static LXtTagInfoDesc descInfo[];
@@ -16,8 +19,10 @@ namespace dfgStoreDFGinJSON
         {
             CLxGenericPolymorph *srv =   new CLxPolymorph           <Command>;
             srv->AddInterface           (new CLxIfc_Command         <Command>);
+            srv->AddInterface           (new CLxIfc_Attributes      <Command>);
+            srv->AddInterface           (new CLxIfc_AttributesUI    <Command>);
             srv->AddInterface           (new CLxIfc_StaticDesc      <Command>);
-            lx:: AddServer              (SERVER_NAME_dfgStoreDFGinJSON, srv);
+            lx:: AddServer              (SERVER_NAME_dfgStoreInChannel, srv);
         };
 
         // command service.

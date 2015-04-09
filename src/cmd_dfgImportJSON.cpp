@@ -28,6 +28,26 @@ dfgImportJSON::Command::Command(void)
 // execute code.
 void dfgImportJSON::Command::cmd_Execute(unsigned flags)
 {
+    // --- ----
+    // WIP/TODO: instead of using the Modo file dialog in the Perl script better use a Qt file dialog.
+    // --- ----
+    /*
+    QString filePath = QFileDialog::getSaveFileName(this, "Save preset", title, filter, &filter);
+    if(filePath.length() == 0)
+      return;
+    QString filter = "DFG Preset (*.dfg.json)";
+    QString filePath = QFileDialog::getSaveFileName(this, "Save preset", title, filter, &filter);
+    if(filePath.length() == 0)
+      return;
+    if(filePath.toLower().endsWith(".dfg.json.dfg.json"))
+      filePath = filePath.left(filePath.length() - 9);
+    std::string filePathStr = filePath.toUtf8().constData();
+
+    [16:53:48] Helge Mathee: fuer load es ist genauso - nur eben getOpenFileName    
+    */
+
+
+
     // init err string,
     std::string err = "command " SERVER_NAME_dfgImportJSON " failed: ";
 
@@ -118,7 +138,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         return;    }
 
     // read JSON file.
-    std::ifstream t(argFilepath, std::ios::in);
+    std::ifstream t(argFilepath, std::ios::binary);
     if (!t.good())
     {   err += "unable to open \"" + argFilepath + "\"";
         feLogError(0, err);
@@ -128,7 +148,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     json.reserve(t.tellg());
     t.seekg(0, std::ios::beg);
     json.assign((std::istreambuf_iterator<char>(t)),
-                    std::istreambuf_iterator<char>());
+                 std::istreambuf_iterator<char>());
 
     // delete widget.
     FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface, false);

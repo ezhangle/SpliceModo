@@ -4,7 +4,7 @@ use File::Basename;
 use File::Path;
 
 lx("dialog.setup fileOpen");
-lx("dialog.title {Import JSON File}");
+lx("dialog.title {Import Fabric DFG JSON File}");
 lx("dialog.fileTypeCustom json JSON *.json json");
 
 if(lx("dialog.open")) 

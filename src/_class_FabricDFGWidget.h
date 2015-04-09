@@ -4,6 +4,7 @@
 
 // includes.
 #include <QtGui/QWidget>
+#include <QtGui/QFileDialog>
 #include <QtGui/QSplitter>
 
 #include <DFGWrapper/DFGWrapper.h>

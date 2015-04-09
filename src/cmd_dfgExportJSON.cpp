@@ -28,6 +28,10 @@ dfgExportJSON::Command::Command(void)
 // execute code.
 void dfgExportJSON::Command::cmd_Execute(unsigned flags)
 {
+    // --- ----
+    // WIP/TODO: instead of using the Modo file dialog in the Perl script better use a Qt file dialog.
+    // --- ----
+
     // init err string,
     std::string err = "command " SERVER_NAME_dfgExportJSON " failed: ";
 
@@ -117,57 +121,24 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
         feLogError(0, err);
         return;    }
 
-    //// read JSON file.
-    //std::ifstream t(argFilepath, std::ios::in);
-    //if (!t.good())
-    //{   err += "unable to open \"" + argFilepath + "\"";
-    //    feLogError(0, err);
-    //    return;    }
-    //t.seekg(0, std::ios::end);   
-    //std::string json;
-    //json.reserve(t.tellg());
-    //t.seekg(0, std::ios::beg);
-    //json.assign((std::istreambuf_iterator<char>(t)),
-    //                std::istreambuf_iterator<char>());
+    // get JSON.
+    std::string json = b.getJSON();
 
-    // delete widget.
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface, false);
-    bool widgetWasVisible = (w != NULL && (*w).isVisible());
-    if (w) delete w;
-
-    //// set DFG from JSON.
-    //b.setFromJSON(json.c_str());
-
-    //// delete all user channels.
-    //std::string oErr;
-    //if (!ModoTools::DeleteAllUserChannels(&item, oErr))
-    //{   err += oErr;
-    //    feLogError(0, err);
-    //    return;    }
-
-    //// re-create all user channels.
-    //std::vector <FabricServices::DFGWrapper::Port> ports = b.getGraph().getPorts();
-    //for (int fi=0;fi<ports.size();fi++)
-    //{
-    //    // ref at port.
-    //    FabricServices::DFGWrapper::Port &port = ports[fi];
-
-    //    // if the port has the wrong type then skip it.
-    //    if (   port.getPortType() != FabricCore::DFGPortType_In
-    //        && port.getPortType() != FabricCore::DFGPortType_Out)
-    //        continue;
-
-    //    if (!b.CreateModoUserChannelForPort(port))
-    //    {   feLogError(0, err + "creating user channel for port \"" + port.getName() + "\" failed. Continuing anyway.");
-    //        return;    }
-    //}
-
-    // create and show widget.
-    if (widgetWasVisible)
+    // write JSON file.
+    std::ofstream t(argFilepath, std::ios::binary);
+    if (!t.good())
+    {   err += "unable to open \"" + argFilepath + "\"";
+        feLogError(0, err);
+        return;    }
+    try
     {
-        w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
-        if (w && !(*w).isVisible())
-            (*w).show();
+        t.write(json.c_str(), json.length());
+    }
+    catch (std::exception &e)
+    {
+        err += "write error for \"" + argFilepath + "\": " + e.what();
+        feLogError(0, err);
+        return;
     }
 }
  

@@ -44,22 +44,16 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseI
             return NULL;
 
         // get main window's pointer.
-        QMainWindow *mainWindow = NULL;
-        Q_FOREACH(QWidget* w, QApplication::topLevelWidgets())
-        {
-            if( qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
-            {   mainWindow = (QMainWindow*)w;
-                break;  }
-        }
+        QMainWindow *mainWindow = GetPointerAtMainWindow();
 
         // create dock widget.
-        QDockWidget *dockWindow = NULL;     // WIP WIP WIP
+        QDockWidget *dockWindow = NULL;     // WIP.
 
         // create Fabric DFG widget
         FabricDFGWidget *newWidget = new FabricDFGWidget((QWidget *)dockWindow, baseInterface);
         s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newWidget));
         Qt::WindowFlags flags = (*newWidget).windowFlags();
-        (*newWidget).setWindowFlags(flags | Qt::WindowStaysOnTopHint);
+        (*newWidget).setWindowFlags(flags | Qt::WindowStaysOnTopHint);     // WIP.
        
         // done.
         return newWidget;
@@ -75,5 +69,14 @@ void FabricDFGWidget::onRecompilation()
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 {
   // ... rename the dynamic attribute also in modo
+}
+
+QMainWindow *FabricDFGWidget::GetPointerAtMainWindow(void)
+{
+    Q_FOREACH(QWidget* w, QApplication::topLevelWidgets())
+    {
+        if(qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
+            return (QMainWindow *)w;
+    }
 }
 

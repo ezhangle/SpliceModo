@@ -38,7 +38,7 @@ class ModoTools
     //          out_err                 contains an error description if the function returns false.
     // returns: true on success, false otherwise.
     static bool ExecuteCommand(const std::string &command, std::string &out_err);
-        
+
     // checks if an item has a specific channel (user or other).
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
     //          channelName             name of channel.

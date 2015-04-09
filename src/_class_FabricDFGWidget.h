@@ -40,6 +40,10 @@ public slots:
 
 private:
     static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
+
+public:
+    // returns the pointer at the main Qt window.
+    static QMainWindow *GetPointerAtMainWindow(void);
 };
 
 #endif 

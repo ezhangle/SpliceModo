@@ -17,35 +17,14 @@ dfgExportJSON::Command::Command(void)
         dyna_Add("item", LXsTYPE_STRING);
         basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
         idx++;
-
-        // JSON filepath.
-        dyna_Add("JSONfile", LXsTYPE_STRING);
-        basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
-        idx++;
     }
 }
 
 // execute code.
 void dfgExportJSON::Command::cmd_Execute(unsigned flags)
 {
-    // --- ----
-    // WIP/TODO: instead of using the Modo file dialog in the Perl script better use a Qt file dialog.
-    // --- ----
-
     // init err string,
     std::string err = "command " SERVER_NAME_dfgExportJSON " failed: ";
-
-    // check filepath argument.
-    const int FILEPATH_ARG_IDX = 1;
-    if (!dyna_IsSet(FILEPATH_ARG_IDX))
-    {   err += "failed to read filepath argument";
-        feLogError(NULL, err);
-        return;  }
-    std::string argFilepath;
-    if (!dyna_String(FILEPATH_ARG_IDX, argFilepath))
-    {   err += "failed to read filepath argument";
-        feLogError(NULL, err);
-        return;  }
 
     // declare and set item.
     CLxUser_Item item;
@@ -121,13 +100,27 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
         feLogError(0, err);
         return;    }
 
+    // get filepath.
+    std::string filePath;
+    {
+        static QString last_fPath;
+        QString filter = "DFG Preset (*.dfg.json)";
+        QString fPath = QFileDialog::getSaveFileName(FabricDFGWidget::GetPointerAtMainWindow(), "Save DFG Preset", last_fPath, filter, &filter);
+        if (fPath.length() == 0)
+            return;
+        if (fPath.toLower().endsWith(".dfg.json.dfg.json"))
+            fPath = fPath.left(fPath.length() - std::string(".dfg.json").length());
+        last_fPath = fPath;
+        filePath   = fPath.toUtf8().constData();
+    }
+
     // get JSON.
     std::string json = b.getJSON();
 
     // write JSON file.
-    std::ofstream t(argFilepath, std::ios::binary);
+    std::ofstream t(filePath, std::ios::binary);
     if (!t.good())
-    {   err += "unable to open \"" + argFilepath + "\"";
+    {   err += "unable to open \"" + filePath + "\"";
         feLogError(0, err);
         return;    }
     try
@@ -136,7 +129,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
     }
     catch (std::exception &e)
     {
-        err += "write error for \"" + argFilepath + "\": " + e.what();
+        err += "write error for \"" + filePath + "\": " + e.what();
         feLogError(0, err);
         return;
     }

@@ -1,6 +1,6 @@
-#include "_class_ModoTools.h"
+#include "plugin.h"
 
-bool ModoTools::ExecuteCommand(std::string &command, std::string &out_err)
+bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
 {
     // init.
     out_err = "";
@@ -29,7 +29,6 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
     // init error string and ouput.
     out_err = "";
 
-
     // check params.
     if (!ptr_CLxUser_Item)
     {
@@ -44,6 +43,9 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+    if (!item.test())
+    {   out_err = "item is not valid ( item.test() == false )";
+        return false;   }
 
     // look up the channel.
     unsigned int index;
@@ -88,21 +90,20 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+    if (!item.test())
+    {   out_err = "item is not valid ( item.test() == false )";
+        return false;   }
 
     // channel already exists?
     if (HasChannel(ptr_CLxUser_Item, channelName, out_err))
     {   out_err = "the channel " + channelName + " already exists";
         return false;   }
 
-    // get item's name.
-    std::string itemName;
-    item.GetUniqueName(itemName);
-
     // execute command.
     return ExecuteCommand(std::string( "channel.create " + channelName
                                       + " "              + dataType
                                       + " "              + structType
-                                      + " item:\""       + itemName + "\"")
+                                      + " item:"         + item.IdentPtr() + "")
                                       , out_err);
 }
 
@@ -170,6 +171,52 @@ bool ModoTools::GetItemType(const char *itemName, std::string &out_typeName)
     return GetItemType(std::string(itemName), out_typeName);
 }
 
+int ModoTools::GetUserChannels(void *ptr_CLxUser_Item, std::vector <std::string> &out_usrChannels, std::string &out_err)
+{
+    // init.
+    out_err = "";
+    out_usrChannels.clear();
+    if (!ptr_CLxUser_Item)
+    {   out_err = "pointer is NULL";
+        return -1;   }
+
+    // ref at item.
+    CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+    if (!item.test())
+    {   out_err = "item is not valid ( item.test() == false )";
+        return -1;   }
+
+    // get amount of channels.
+    unsigned count = 0;
+    item.ChannelCount(&count);
+    
+    // go through all channels and add all valid user channels to out_usrChannels.
+    for (unsigned i=0;i<count;i++)
+    {
+        // if the channel has a package (i.e. if it is not a user channel) then skip it.
+        const char *package = NULL;
+        if (LXx_OK(item.ChannelPackage(i, &package)) || package)
+            continue;
+
+        // if the channel has no type then skip it.
+        const char *channel_type = NULL;
+        if (!LXx_OK(item.ChannelEvalType(i, &channel_type) && channel_type))
+            continue;
+
+        // if the channel type is "none" (i.e. if it is a divider) then skip it.
+        if (!strcmp(channel_type, LXsTYPE_NONE))
+            continue;
+
+        // add the channel to out_usrChannels.
+        const char *name = NULL;
+        item.ChannelName(i, &name);
+        out_usrChannels.push_back(std::string(name));
+    }
+
+    // done.
+    return (int)out_usrChannels.size();
+}
+
 bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
 {
     // init.
@@ -188,16 +235,44 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
-
-    // get item's name.
-    std::string itemName;
-    item.GetUniqueName(itemName);
+    if (!item.test())
+    {   out_err = "item is not valid ( item.test() == false )";
+        return false;   }
 
     // execute command.
-    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualName + "} set"), out_err))
-        return ExecuteCommand(std::string("channel.delete"), out_err);
+    if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), out_err))
+        return ExecuteCommand("channel.delete", out_err);
     else
         return false;
+}
+
+bool ModoTools::DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_err)
+{
+    // init.
+    out_err = "";
+    if (!ptr_CLxUser_Item)
+    {   out_err = "pointer is NULL";
+        return false;   }
+
+    // ref at item.
+    CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+    if (!item.test())
+    {   out_err = "item is not valid ( item.test() == false )";
+        return false;   }
+
+    // get the names of all user channels.
+    std::vector <std::string> usrChannels;
+    const int count = GetUserChannels(ptr_CLxUser_Item, usrChannels, out_err);
+    if (count == 0) return true;
+    if (count <  0) return false;
+
+    // select all user channels.
+    for (int i=0;i<usrChannels.size();i++)
+        if (!ExecuteCommand("select.channel {" + std::string(item.IdentPtr()) + ":" + usrChannels[i] + (i == 0 ? "} set" : "} add"), out_err))
+            return false;
+
+    // delete selection.
+    return ExecuteCommand("channel.delete", out_err);
 }
 
 bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err)
@@ -218,20 +293,19 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
+    if (!item.test())
+    {   out_err = "item is not valid ( item.test() == false )";
+        return false;   }
 
     // channel already exists?
     if (HasChannel(ptr_CLxUser_Item, channelNameNew, out_err))
     {   out_err = "the channel " + channelNameNew + " already exists";
         return false;   }
 
-    // get item's name.
-    std::string itemName;
-    item.GetUniqueName(itemName);
-
     // execute command.
-    if (ExecuteCommand(std::string("select.channel {" + itemName + ":" + actualName + "} set"), out_err))
+    if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), out_err))
         if (ExecuteCommand(std::string("channel.name name:" + channelNameNew), out_err))
-            return ExecuteCommand(std::string("channel.username username:" + channelNameNew), out_err);
+            return ExecuteCommand("channel.username username:" + channelNameNew, out_err);
         else
             return false;
     else

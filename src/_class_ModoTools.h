@@ -37,7 +37,7 @@ class ModoTools
     // params:  command                 command to execute, e.g. "channel.create bla item:myItem username:blabla".
     //          out_err                 contains an error description if the function returns false.
     // returns: true on success, false otherwise.
-    static bool ExecuteCommand(std::string &command, std::string &out_err);
+    static bool ExecuteCommand(const std::string &command, std::string &out_err);
         
     // checks if an item has a specific channel (user or other).
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
@@ -78,12 +78,25 @@ class ModoTools
     static bool GetItemType(const std::string &itemName, std::string &out_typeName);
     static bool GetItemType(const char *itemName, std::string &out_typeName);
 
+    // gets all user channels of an item.
+    // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
+    //          out_usrChannels         output: array of user channel names.
+    //          out_err                 contains an error description if the function returns false.
+    // returns: on success the amount of user channels (0 or more), on failure -1.
+    static int GetUserChannels(void *ptr_CLxUser_Item, std::vector <std::string> &out_usrChannels, std::string &out_err);
+
     // deletes an existing user channel.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
     //          channelName             name of channel to delete.
     //          out_err                 contains an error description if the function returns false.
     // returns: true on success, false otherwise.
     static bool DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
+
+    // deletes all user channels.
+    // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
+    //          out_err                 contains an error description if the function returns false.
+    // returns: true on success, false otherwise.
+    static bool DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_err);
 
     // renames an existing user channel.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.

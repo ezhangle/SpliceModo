@@ -295,9 +295,13 @@ namespace dfgModoIM
     {
         public:
             Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj);
-            bool         Test(ILxUnknownID item_obj)                                LXx_OVERRIDE;
-            void         Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)   LXx_OVERRIDE;
+            bool    Test(ILxUnknownID item_obj)                                LXx_OVERRIDE;
+            void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)   LXx_OVERRIDE;
     
+        private:
+            Instance  *m_Instance;
+    	    Instance  *GetInstance(ILxUnknownID item_obj);
+
         private:
             int                      m_eval_index_FabricActive;
             int                      m_eval_index_FabricJSON;
@@ -322,8 +326,12 @@ namespace dfgModoIM
     Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
     {
         {
-            //
             (*quickhack_baseInterface).m_item_obj_dfgModoIM = item_obj;
+
+
+            // get and store the pointer at the Instance class, so that we can access the user data.
+            m_Instance = GetInstance(item_obj);
+            if (!m_Instance)    feLogError(NULL, "FAILED TO GET POINTER AT INSTANCE CLASS!");
         }
 
         /*
@@ -697,6 +705,17 @@ namespace dfgModoIM
 
         // done.
         return;
+    }
+
+    Instance *Element::GetInstance(ILxUnknownID item_obj)
+    {
+        CLxLoc_PackageInstance pkg_inst(item_obj);
+        CLxSpawner <Instance>  spawn(SERVER_NAME_dfgModoIM ".inst");
+
+        if (pkg_inst.test())
+            return spawn.Cast(pkg_inst);
+
+        return NULL;
     }
 
     void Element::usrChanCollect(CLxUser_Item &item, std::vector <ChannelDef> &io_usrChan)

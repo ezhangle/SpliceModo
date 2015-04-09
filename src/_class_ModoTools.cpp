@@ -231,7 +231,8 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     // get actual channel name.
     std::string actualName;
     if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err))
-        return false;
+    {   out_err = "item does not have a channel called \"" + channelName + "\"";
+        return false;   }
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
@@ -264,7 +265,8 @@ bool ModoTools::DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_e
     std::vector <std::string> usrChannels;
     const int count = GetUserChannels(ptr_CLxUser_Item, usrChannels, out_err);
     if (count == 0) return true;
-    if (count <  0) return false;
+    if (count <  0)
+        return false;
 
     // select all user channels.
     for (int i=0;i<usrChannels.size();i++)
@@ -289,7 +291,8 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     // get actual channel name.
     std::string actualName;
     if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err))
-        return false;
+    {   out_err = "item does not have a channel called \"" + channelName + "\"";
+        return false;   }
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;

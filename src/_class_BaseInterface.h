@@ -126,6 +126,10 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         static void SetValueOfPortRGBA   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
         static void SetValueOfPortQuat   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
         static void SetValueOfPortMat44  (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const std::vector <double> &val);
+
+        // creates a Modo user channel for a Fabric port.
+        // returns: true on success, false otherwise.
+        bool CreateModoUserChannelForPort(FabricServices::DFGWrapper::Port &port);
 };
 
 #endif

@@ -527,7 +527,7 @@ namespace dfgModoIM
                     return;
                 }
             }
-            catch(FabricCore::Exception e)
+            catch (FabricCore::Exception e)
             {
                 feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
             }
@@ -539,7 +539,7 @@ namespace dfgModoIM
             {
                 binding.execute();
             }
-            catch(FabricCore::Exception e)
+            catch (FabricCore::Exception e)
             {
                 feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
             }
@@ -689,7 +689,7 @@ namespace dfgModoIM
                     return;
                 }
             }
-            catch(FabricCore::Exception e)
+            catch (FabricCore::Exception e)
             {
                 feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
             }

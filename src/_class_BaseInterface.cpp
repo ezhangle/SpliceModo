@@ -45,7 +45,7 @@ BaseInterface::BaseInterface()
     // set the graph on the view
       setGraph(m_binding.getGraph());
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
       logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -73,7 +73,7 @@ BaseInterface::~BaseInterface()
         delete(s_host);
         s_client = FabricCore::Client();
       }
-      catch(FabricCore::Exception e)
+      catch (FabricCore::Exception e)
       {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
       }
@@ -125,7 +125,7 @@ std::string BaseInterface::getJSON()
   {
     return m_binding.getGraph().exportJSON();
   }
-  catch(FabricCore::Exception e)
+  catch (FabricCore::Exception e)
   {
     logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
   }
@@ -139,7 +139,7 @@ void BaseInterface::setFromJSON(const std::string & json)
     m_binding = s_host->createBindingFromJSON(json.c_str());
     setGraph(m_binding.getGraph());
   }
-  catch(FabricCore::Exception e)
+  catch (FabricCore::Exception e)
   {
     logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
   }
@@ -157,65 +157,7 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
 
 void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
 {
-    try
-    {
-        std::string err;
-        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-        if (!item.test())
-        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-            logErrorFunc(0, err.c_str(), err.length());
-            return;    }
-
-        std::string dataType   = port.getDataType();
-        std::string structType = "";
-
-        if      (   dataType == "")         {   err = "port.getDataType() == \"\"";
-                                                logErrorFunc(0, err.c_str(), err.length());
-                                                return;    }
-
-        else if (   dataType == "Boolean")  {   dataType = "boolean";                           }
-
-        else if (   dataType == "Integer"
-                 || dataType == "SInt8"
-                 || dataType == "SInt16"
-                 || dataType == "SInt32"
-                 || dataType == "SInt64"
-                 || dataType == "UInt8"
-                 || dataType == "UInt16"
-                 || dataType == "UInt32"
-                 || dataType == "UInt64")   {   dataType = "integer";                           }
-
-        else if (   dataType == "Scalar"
-                 || dataType == "Float32"
-                 || dataType == "Float64")  {   dataType = "float";                             }
-
-        else if (   dataType == "String")   {   dataType = "string";                            }
-
-        else if (   dataType == "Quat")     {   dataType = "quaternion";                        }
-
-        else if (   dataType == "Mat44")    {   dataType = "matrix";                            }
-
-        else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }
-        else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }
-
-        else if (   dataType == "Color")    {   dataType = "float";     structType = "vecRGBA"; }
-        else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }
-        else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }
-
-        else
-        {
-            err = "unable to create user channel, type \"" + dataType + "\" not yet implemented";
-            logErrorFunc(0, err.c_str(), err.length());
-            return;
-        }
-
-        if (!ModoTools::CreateUserChannel(&item, port.getName(), dataType, structType, err))
-            logErrorFunc(0, err.c_str(), err.length());
-    }
-    catch(FabricCore::Exception e)
-    {
-        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-    }
+    CreateModoUserChannelForPort(port);
 }
 
 void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
@@ -232,7 +174,7 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
         if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
             logErrorFunc(0, err.c_str(), err.length());
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -265,7 +207,7 @@ void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const c
             logErrorFunc(0, err.c_str(), err.length());
             return;    }
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -338,7 +280,7 @@ bool BaseInterface::HasPort(const char *portName, const bool testForInput)
         }
         return false;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return false;
@@ -403,7 +345,7 @@ int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::Port &port, b
         }
         else return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -451,7 +393,7 @@ int BaseInterface::GetPortValueInteger(FabricServices::DFGWrapper::Port &port, i
         }
         else return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -499,7 +441,7 @@ int BaseInterface::GetPortValueFloat(FabricServices::DFGWrapper::Port &port, dou
         }
         else return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -560,7 +502,7 @@ int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::Port &port, st
         else
             return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -594,7 +536,7 @@ int BaseInterface::GetPortValueVec2(FabricServices::DFGWrapper::Port &port, std:
         else
             return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -642,7 +584,7 @@ int BaseInterface::GetPortValueVec3(FabricServices::DFGWrapper::Port &port, std:
                 return -1;
         }
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -687,7 +629,7 @@ int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::Port &port, std:
                 return -1;
         }
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -744,7 +686,7 @@ int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::Port &port, std
                 return -1;
         }
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -792,7 +734,7 @@ int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::Port &port, std::
                 return -1;
         }
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -843,7 +785,7 @@ int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::Port &port, std:
                 return -1;
         }
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -881,7 +823,7 @@ int BaseInterface::GetPortValueQuat(FabricServices::DFGWrapper::Port &port, std:
         else
             return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -924,7 +866,7 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::Port &port, std
         else
             return -1;
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
         return -4;
@@ -942,7 +884,7 @@ void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServ
         rtval = FabricCore::RTVal::ConstructBoolean(client, val);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -959,7 +901,7 @@ void BaseInterface::SetValueOfPortSInt(FabricCore::Client &client, FabricService
         else if (port.getDataType() == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -976,7 +918,7 @@ void BaseInterface::SetValueOfPortUInt(FabricCore::Client &client, FabricService
         else if (port.getDataType() == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -991,7 +933,7 @@ void BaseInterface::SetValueOfPortFloat(FabricCore::Client &client, FabricServic
         else if (port.getDataType() == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1005,7 +947,7 @@ void BaseInterface::SetValueOfPortString(FabricCore::Client &client, FabricServi
         rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1025,7 +967,7 @@ void BaseInterface::SetValueOfPortVec2(FabricCore::Client &client, FabricService
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1045,7 +987,7 @@ void BaseInterface::SetValueOfPortVec3(FabricCore::Client &client, FabricService
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1065,7 +1007,7 @@ void BaseInterface::SetValueOfPortVec4(FabricCore::Client &client, FabricService
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1085,7 +1027,7 @@ void BaseInterface::SetValueOfPortColor(FabricCore::Client &client, FabricServic
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1105,7 +1047,7 @@ void BaseInterface::SetValueOfPortRGB(FabricCore::Client &client, FabricServices
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1125,7 +1067,7 @@ void BaseInterface::SetValueOfPortRGBA(FabricCore::Client &client, FabricService
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1146,7 +1088,7 @@ void BaseInterface::SetValueOfPortQuat(FabricCore::Client &client, FabricService
         rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
@@ -1171,10 +1113,77 @@ void BaseInterface::SetValueOfPortMat44(FabricCore::Client &client, FabricServic
         rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
         binding.setArgValue(port.getName().c_str(), rtval);
     }
-    catch(FabricCore::Exception e)
+    catch (FabricCore::Exception e)
     {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
     }
+}
+
+bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Port &port)
+{
+    try
+    {
+        std::string err;
+        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
+        if (!item.test())
+        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
+            logErrorFunc(0, err.c_str(), err.length());
+            return false;    }
+
+        std::string dataType   = port.getDataType();
+        std::string structType = "";
+
+        if      (   dataType == "")         {   err = "port.getDataType() == \"\"";
+                                                logErrorFunc(0, err.c_str(), err.length());
+                                                return false;    }
+
+        else if (   dataType == "Boolean")  {   dataType = "boolean";                           }
+
+        else if (   dataType == "Integer"
+                 || dataType == "SInt8"
+                 || dataType == "SInt16"
+                 || dataType == "SInt32"
+                 || dataType == "SInt64"
+                 || dataType == "UInt8"
+                 || dataType == "UInt16"
+                 || dataType == "UInt32"
+                 || dataType == "UInt64")   {   dataType = "integer";                           }
+
+        else if (   dataType == "Scalar"
+                 || dataType == "Float32"
+                 || dataType == "Float64")  {   dataType = "float";                             }
+
+        else if (   dataType == "String")   {   dataType = "string";                            }
+
+        else if (   dataType == "Quat")     {   dataType = "quaternion";                        }
+
+        else if (   dataType == "Mat44")    {   dataType = "matrix";                            }
+
+        else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }
+        else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }
+
+        else if (   dataType == "Color")    {   dataType = "float";     structType = "vecRGBA"; }
+        else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }
+        else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }
+
+        else
+        {
+            err = "unable to create user channel, type \"" + dataType + "\" not yet implemented";
+            logErrorFunc(0, err.c_str(), err.length());
+            return false;
+        }
+
+        if (!ModoTools::CreateUserChannel(&item, port.getName(), dataType, structType, err))
+            logErrorFunc(0, err.c_str(), err.length());
+    }
+    catch (FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        return false;
+    }
+
+    // done.
+    return true;
 }
 
 

@@ -39,6 +39,7 @@ void initialize()
 
     // Modo.
     {
+        dfgImportJSON     :: Command::  initialize();
         dfgLogVersion     :: Command::  initialize();
         dfgOpenCanvas     :: Command::  initialize();
         dfgStoreInChannel :: Command::  initialize();

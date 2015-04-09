@@ -14,11 +14,16 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
+#include "cmd_dfgImportJSON.h"
 #include "cmd_dfgLogVersion.h"
 #include "cmd_dfgOpenCanvas.h"
 #include "cmd_dfgStoreInChannel.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
+
+// further includes.
+#include <fstream>
+#include <streambuf>
 
 // Modo item/server names.
 #define SERVER_NAME_dfgModoIM       "dfgModoIM"     // dfgModo "item modifier".

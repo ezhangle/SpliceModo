@@ -132,6 +132,7 @@ namespace dfgModoIM
         LxResult    pkg_Attach          (void **ppvObj)                                     LXx_OVERRIDE;
         LxResult    pkg_TestInterface   (const LXtGUID *guid)                               LXx_OVERRIDE;
         
+
         LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE;
     
         void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
@@ -214,6 +215,9 @@ namespace dfgModoIM
                 }
                 else
                 {
+                    // WIP: must be able to somehow access Instance.
+
+
                     //if      ((*quickhack_baseInterface).HasInputPort(channelName))  result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
                     //else if ((*quickhack_baseInterface).HasOutputPort(channelName)) result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
                     //else                                                            result = hints.ChannelFlags(0);
@@ -418,7 +422,7 @@ namespace dfgModoIM
 
                     // get pointer at matching channel definition.
                     ChannelDef *cd = usrChanGetFromName(port.getName(), m_usrChan);
-                    if (!cd || (*cd).eval_index < 0)
+                    if (!cd || cd->eval_index < 0)
                     {   err = "unable to find a user channel that matches the port \"" + port.getName() + "\"";
                         break;  }
 
@@ -426,7 +430,7 @@ namespace dfgModoIM
                     int retGet = 0;
                     if      (   port.getDataType() == "Boolean")    {
                                                                         bool val = false;
-                                                                        retGet = ModoTools::GetChannelValueAsBoolean(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsBoolean(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortBoolean(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "SInt8"
@@ -434,7 +438,7 @@ namespace dfgModoIM
                              || port.getDataType() == "SInt32"
                              || port.getDataType() == "SInt64" )    {
                                                                         int val = 0;
-                                                                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortSInt(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "UInt8"
@@ -442,53 +446,53 @@ namespace dfgModoIM
                              || port.getDataType() == "UInt32"
                              || port.getDataType() == "UInt64" )    {
                                                                         unsigned int val = 0;
-                                                                        retGet = ModoTools::GetChannelValueAsInteger(attr, (*cd).eval_index, *(int *)val);
+                                                                        retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, *(int *)val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortUInt(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "Float32"
                              || port.getDataType() == "Float64" )   {
                                                                         double val = 0;
-                                                                        retGet = ModoTools::GetChannelValueAsFloat(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsFloat(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortFloat(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "String")     {
                                                                         std::string val = "";
-                                                                        retGet = ModoTools::GetChannelValueAsString(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsString(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortString(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "Quat")       {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsQuaternion(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsQuaternion(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortQuat(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "Vec2")       {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsVector2(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsVector2(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortVec2(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "Vec3")       {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsVector3(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsVector3(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortVec3(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "Color")      {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsColor(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsColor(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortColor(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "RGB")        {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsRGB(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsRGB(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortRGB(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "RGBA")       {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsRGBA(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsRGBA(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortRGBA(client, binding, port, val);
                                                                     }
                     else if (   port.getDataType() == "Mat44")      {
                                                                         std::vector <double> val;
-                                                                        retGet = ModoTools::GetChannelValueAsMatrix44(attr, (*cd).eval_index, val);
+                                                                        retGet = ModoTools::GetChannelValueAsMatrix44(attr, cd->eval_index, val);
                                                                         if (retGet == 0)    BaseInterface::SetValueOfPortMat44(client, binding, port, val);
                                                                     }
                     else
@@ -551,40 +555,40 @@ namespace dfgModoIM
                     // get pointer at matching channel definition.
                     std::string name = port.getName();
                     ChannelDef *cd = usrChanGetFromName(name, m_usrChan);
-                    if (!cd || (*cd).eval_index < 0)
+                    if (!cd || cd->eval_index < 0)
                     {   err = "unable to find a user channel that matches the port \"" + name + "\"";
                         break;  }
 
                     // "item user channel = DFG port value".
-                    int dataType = attr.Type((*cd).eval_index);
+                    int dataType = attr.Type(cd->eval_index);
                     const char *typeName = NULL;
-                    if (!LXx_OK(attr.TypeName((*cd).eval_index, &typeName)))
+                    if (!LXx_OK(attr.TypeName(cd->eval_index, &typeName)))
                         typeName = NULL;
                     FabricCore::RTVal rtval;
                     int retGet = 0;
                     int retSet = LXe_OK;
-                    if ((*cd).isSingleton)
+                    if (cd->isSingleton)
                     {
                         if      (dataType == LXi_TYPE_INTEGER)
                         {
                             int val;
                             retGet = BaseInterface::GetPortValueInteger(port, val);
                             if (retGet == 0)
-                                retSet = attr.SetInt((*cd).eval_index, val);
+                                retSet = attr.SetInt(cd->eval_index, val);
                         }
                         else if (dataType == LXi_TYPE_FLOAT)
                         {
                             double val;
                             retGet = BaseInterface::GetPortValueFloat(port, val);
                             if (retGet == 0)
-                                retSet = attr.SetFlt((*cd).eval_index, val);
+                                retSet = attr.SetFlt(cd->eval_index, val);
                         }
                         else if (dataType == LXi_TYPE_STRING)
                         {
                             std::string val;
                             retGet = BaseInterface::GetPortValueString(port, val);
                             if (retGet == 0)
-                                retSet = attr.SetString((*cd).eval_index, val.c_str());
+                                retSet = attr.SetString(cd->eval_index, val.c_str());
                         }
                         else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
                         {
@@ -594,7 +598,7 @@ namespace dfgModoIM
                             {
                                 CLxUser_Quaternion usrQuaternion;
                                 LXtQuaternion      q;
-                                if (!attr.ObjectRW((*cd).eval_index, usrQuaternion) || !usrQuaternion.test())
+                                if (!attr.ObjectRW(cd->eval_index, usrQuaternion) || !usrQuaternion.test())
                                 {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
                                     break;  }
                                 for (int i=0;i<4;i++)   q[i] = val[i];
@@ -609,7 +613,7 @@ namespace dfgModoIM
                             {
                                 CLxUser_Matrix usrMatrix;
                                 LXtMatrix4     m44;
-                                if (!attr.ObjectRW((*cd).eval_index, usrMatrix) || !usrMatrix.test())
+                                if (!attr.ObjectRW(cd->eval_index, usrMatrix) || !usrMatrix.test())
                                 {   err = "the function ObjectRW() failed for the user channel  \"" + name + "\"";
                                     break;  }
                                    for (int j=0;j<4;j++)
@@ -621,7 +625,7 @@ namespace dfgModoIM
                         else
                         {
                             const char *typeName = NULL;
-                            attr.TypeName((*cd).eval_index, &typeName);
+                            attr.TypeName(cd->eval_index, &typeName);
                             if (typeName)   err = "the user channel  \"" + name + "\" has the unsupported data type \"" + typeName + "\"";
                             else            err = "the user channel  \"" + name + "\" has the unsupported data type \"NULL\"";
                             break;
@@ -634,10 +638,10 @@ namespace dfgModoIM
 
                         if (dataType == LXi_TYPE_FLOAT)
                         {
-                            if      ((*cd).isVec2x)     {   N = 2;  retGet = BaseInterface::GetPortValueVec2(port, val);   }
-                            else if ((*cd).isVec3x)     {   N = 3;  retGet = BaseInterface::GetPortValueVec3(port, val);   }
-                            else if ((*cd).isRGBr)      {   N = 3;  retGet = BaseInterface::GetPortValueRGB (port, val);   }
-                            else if ((*cd).isRGBAr)     {   N = 4;  retGet = BaseInterface::GetPortValueRGBA(port, val);   }
+                            if      (cd->isVec2x)     {   N = 2;  retGet = BaseInterface::GetPortValueVec2(port, val);   }
+                            else if (cd->isVec3x)     {   N = 3;  retGet = BaseInterface::GetPortValueVec3(port, val);   }
+                            else if (cd->isRGBr)      {   N = 3;  retGet = BaseInterface::GetPortValueRGB (port, val);   }
+                            else if (cd->isRGBAr)     {   N = 4;  retGet = BaseInterface::GetPortValueRGBA(port, val);   }
                             else
                             {
                                 err = "something is wrong with the flags in ChannelDef";
@@ -647,7 +651,7 @@ namespace dfgModoIM
                             if (retGet == 0 && val.size() == N)
                                 for (int i=0;i<N;i++)
                                     if (retSet)     break;
-                                    else            retSet = attr.SetFlt((*cd).eval_index + i, val[i]);
+                                    else            retSet = attr.SetFlt(cd->eval_index + i, val[i]);
                         }
                     }
 
@@ -779,7 +783,7 @@ namespace dfgModoIM
         for (int i=0;i<usrChan.size();i++)
         {
             ChannelDef *c = &usrChan[i];
-            if (channelName == (*c).chan_name)
+            if (channelName == c->chan_name)
                 return c;
         }
 
@@ -787,9 +791,9 @@ namespace dfgModoIM
         for (int i=0;i<usrChan.size();i++)
         {
             ChannelDef *c = &usrChan[i];
-            if (channelName + ".X" == (*c).chan_name)   return c;
-            if (channelName + ".R" == (*c).chan_name)   return c;
-            if (channelName + ".U" == (*c).chan_name)   return c;
+            if (channelName + ".X" == c->chan_name)   return c;
+            if (channelName + ".R" == c->chan_name)   return c;
+            if (channelName + ".U" == c->chan_name)   return c;
         }
 
         // not found.

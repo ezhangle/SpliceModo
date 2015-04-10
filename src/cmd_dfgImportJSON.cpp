@@ -88,7 +88,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
 
     // delete widget.
     FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
-    bool widgetWasVisible = (w != NULL && (*w).isVisible());
+    bool widgetWasVisible = (w != NULL && w->isVisible());
     if (w) delete w;
 
     // set DFG from JSON.
@@ -122,8 +122,8 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     if (widgetWasVisible)
     {
         w = FabricDFGWidget::getWidgetforBaseInterface(b);
-        if (w && !(*w).isVisible())
-            (*w).show();
+        if (w && !w->isVisible())
+            w->show();
     }
 }
  

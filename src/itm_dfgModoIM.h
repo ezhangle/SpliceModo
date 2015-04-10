@@ -1,7 +1,7 @@
-
-extern BaseInterface *quickhack_baseInterface;
-
 namespace dfgModoIM
 {
     void initialize();
+    class Instance;
+    Instance *GetInstance(ILxUnknownID item_obj);
+    BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
 };

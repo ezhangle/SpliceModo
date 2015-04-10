@@ -26,34 +26,22 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     // init err string,
     std::string err = "command " SERVER_NAME_dfgImportJSON " failed: ";
 
-    // declare and set item.
+    // declare and set item from argument.
     CLxUser_Item item;
+    if (dyna_IsSet(0))
     {
-        // set from argument.
-        if (dyna_IsSet(0))
-        {
-            // get argument.
-            std::string argItemName;
-            if (!dyna_String(0, argItemName))
-            {   err += "failed to read argument";
-                feLogError(NULL, err);
-                return;  }
+        // get argument.
+        std::string argItemName;
+        if (!dyna_String(0, argItemName))
+        {   err += "failed to read argument";
+            feLogError(NULL, err);
+            return;  }
 
-            // get the item.
-            if (!ModoTools::GetItem(argItemName, item))
-            {   err += "the item \"" + argItemName + "\" doesn't exists or cannot be used with this command";
-                feLogError(0, err);
-                return;  }
-        }
-        // set from current selection.
-        else
-        {
-            CLxItemSelection sel;
-            if (!sel.GetFirst(item))
-            {   err += "nothing selected";
-                feLogError(0, err);
-                return;  }
-        }
+        // get the item.
+        if (!ModoTools::GetItem(argItemName, item))
+        {   err += "the item \"" + argItemName + "\" doesn't exists or cannot be used with this command";
+            feLogError(0, err);
+            return;  }
     }
 
     // is item invalid?
@@ -62,43 +50,14 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         feLogError(0, err);
         return;  }
 
-    // add item name to err string.
-    std::string itemName;
-    item.GetUniqueName(itemName);
-    err.pop_back();
-    err.pop_back();
-    err += " (\"" + itemName + "\"): ";
-
-    // check the item's type.
-    std::string typeName;
-    if (!ModoTools::GetItemType(item.IdentPtr(), typeName))
-    {   err += "failed to get item type";
+    // get item's BaseInterface.
+    BaseInterface *b = NULL;
+    if (!b) b = dfgModoIM::GetBaseInterface(item);
+    //if (!b) b = dfgModoPI::GetBaseInterface(item);
+    if (!b)
+    {   err += "failed to get BaseInterface, item probably has the wrong type";
         feLogError(0, err);
         return;  }
-    if (   typeName != SERVER_NAME_dfgModoIM
-        && typeName != SERVER_NAME_dfgModoIM)
-    {   err += "item has unsupported type \"" + typeName + "\"";
-        feLogError(0, err);
-        return;  }
-
-    // check pointer at BaseInterface and create reference.
-    if (!quickhack_baseInterface)
-    {   err += "pointer == NULL";
-        feLogError(0, err);
-        return;    }
-    BaseInterface &b = *quickhack_baseInterface;
-
-    // check if the BaseInterface knows the item.
-    // (NOTE: this is WIP and must be done properly once the quickhack stuff gets replaced.)
-    CLxUser_Item tmpItem((ILxUnknownID)b.m_item_obj_dfgModoIM);
-    if (!tmpItem.test())
-    {   err += "tmpItem((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-        feLogError(0, err);
-        return;    }
-    if (strcmp(item.IdentPtr(), tmpItem.IdentPtr()))
-    {   err += "the Fabric Base Interface doesn't know this item";
-        feLogError(0, err);
-        return;    }
 
     // get filepath.
     std::string filePath;
@@ -128,12 +87,12 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
                  std::istreambuf_iterator<char>());
 
     // delete widget.
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface, false);
+    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
     bool widgetWasVisible = (w != NULL && (*w).isVisible());
     if (w) delete w;
 
     // set DFG from JSON.
-    b.setFromJSON(json.c_str());
+    b->setFromJSON(json.c_str());
 
     // delete all user channels.
     std::string oErr;
@@ -143,7 +102,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         return;    }
 
     // re-create all user channels.
-    std::vector <FabricServices::DFGWrapper::Port> ports = b.getGraph().getPorts();
+    std::vector <FabricServices::DFGWrapper::Port> ports = b->getGraph().getPorts();
     for (int fi=0;fi<ports.size();fi++)
     {
         // ref at port.
@@ -154,7 +113,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
             && port.getPortType() != FabricCore::DFGPortType_Out)
             continue;
 
-        if (!b.CreateModoUserChannelForPort(port))
+        if (!b->CreateModoUserChannelForPort(port))
         {   feLogError(0, err + "creating user channel for port \"" + port.getName() + "\" failed. Continuing anyway.");
             return;    }
     }
@@ -162,7 +121,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     // create and show widget.
     if (widgetWasVisible)
     {
-        w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface);
+        w = FabricDFGWidget::getWidgetforBaseInterface(b);
         if (w && !(*w).isVisible())
             (*w).show();
     }

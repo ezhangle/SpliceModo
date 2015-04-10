@@ -11,43 +11,6 @@ namespace dfgModoIM
      *  allowing us to invalidate the modifier when new channels are added.
      */
 
-    // user data.
-    struct _userdata
-    {
-        BaseInterface *baseInterface; // Fabric Engine base interface.
-
-        _userdata()
-        {
-            gLog.Message(LXe_INFO, "[dfgModoIM]", "init user data  / create quick hack base instance", " ");
-            quickhack_baseInterface = new BaseInterface();
-
-            gLog.Message(LXe_INFO, "[dfgModoIM]", "init user data  / create base instance", " ");
-            memset(this, NULL, sizeof(*this));      // zero out.
-            baseInterface = new BaseInterface();    // create base instance.
-        };
-
-        ~_userdata()
-        {
-            if (quickhack_baseInterface)
-            {
-                gLog.Message(LXe_INFO, "[dfgModoIM]", "clear user data / destroy quick hack base instance", " ");
-                // delete widget and base interface.
-                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(quickhack_baseInterface, false);
-                if (w) delete w;
-                delete quickhack_baseInterface;
-            }
-
-            if (baseInterface)
-            {
-                gLog.Message(LXe_INFO, "[dfgModoIM]", "clear user data / destroy base instance", " ");
-                // delete widget and base interface.
-                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
-                if (w) delete w;
-                delete baseInterface;
-            }
-        };
-    };
-
     class Instance : public CLxImpl_PackageInstance
     {
         public:
@@ -58,31 +21,32 @@ namespace dfgModoIM
                 srv->AddInterface       (new CLxIfc_PackageInstance <Instance>);
                 lx::AddSpawner          (SERVER_NAME_dfgModoIM ".inst", srv);
             }
-
-            _userdata *m_userdata;
-
+            
             Instance()
             {
-                m_item      = NULL;
-                m_userdata  = new _userdata;
+                // init members and create base interface.
+                m_baseInterface = new BaseInterface();
             };
 
             ~Instance()
             {
-                delete m_userdata;
+                // delete widget and base interface.
+                FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+                if (w) delete w;
+                delete m_baseInterface;
             };
 
             LxResult    pins_Initialize(ILxUnknownID item, ILxUnknownID super)  LXx_OVERRIDE;
             LxResult    pins_AfterLoad(void)                                    LXx_OVERRIDE;
 
-        private:
-            ILxUnknownID m_item;
+        public:
+            ILxUnknownID   m_item;          // set in pins_Initialize() and used in ().
+            BaseInterface *m_baseInterface; // set in the constructor.
     };
 
     LxResult Instance::pins_Initialize(ILxUnknownID item, ILxUnknownID super)
     {
         m_item = item;
-
         return LXe_OK;
     }
 
@@ -91,12 +55,8 @@ namespace dfgModoIM
         // init err string,
         std::string err = "pins_AfterLoad() failed: ";
 
-        // check pointer and create ref at BaseInterface.
-        if (!quickhack_baseInterface)
-        {   err += "pointer == NULL";
-            feLogError(0, err.c_str(), err.length());
-            return LXe_OK;  }
-        BaseInterface &b = *quickhack_baseInterface;
+        // get BaseInterface.
+        BaseInterface *b = m_baseInterface;
 
         // create item.
         CLxUser_Item item(m_item);
@@ -126,10 +86,28 @@ namespace dfgModoIM
             return LXe_OK;  }
 
         // do it.
-        b.setFromJSON(json);
+        b->setFromJSON(json);
 
         // done.
         return LXe_OK;
+    }
+
+    Instance *GetInstance(ILxUnknownID item_obj)
+    {
+        CLxLoc_PackageInstance pkg_inst(item_obj);
+        CLxSpawner <Instance>  spawn(SERVER_NAME_dfgModoIM ".inst");
+
+        if (pkg_inst.test())
+            return spawn.Cast(pkg_inst);
+
+        return NULL;
+    }
+
+    BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
+    {
+        Instance *inst = GetInstance(item_obj);
+        if (inst)   return inst->m_baseInterface;
+        else        return NULL;
     }
 
     class Package : public CLxImpl_Package,
@@ -232,9 +210,9 @@ namespace dfgModoIM
                 }
                 else
                 {
-                    if      ((*quickhack_baseInterface).HasInputPort(channelName))  result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
-                    else if ((*quickhack_baseInterface).HasOutputPort(channelName)) result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
-                    else                                                            result = hints.ChannelFlags(0);
+                    //if      ((*quickhack_baseInterface).HasInputPort(channelName))  result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
+                    //else if ((*quickhack_baseInterface).HasOutputPort(channelName)) result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+                    //else                                                            result = hints.ChannelFlags(0);
                 }
             }
             result = LXe_OK;
@@ -299,15 +277,13 @@ namespace dfgModoIM
             void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)   LXx_OVERRIDE;
     
         private:
-            Instance  *m_Instance;
-    	    Instance  *GetInstance(ILxUnknownID item_obj);
-
-        private:
             int                      m_eval_index_FabricActive;
             int                      m_eval_index_FabricJSON;
             std::vector <ChannelDef> m_usrChan;
             void        usrChanCollect    (CLxUser_Item &item, std::vector <ChannelDef> &io_usrChan);
             ChannelDef *usrChanGetFromName(std::string channelName, std::vector <ChannelDef> &usrChan);
+
+            Instance *m_Instance;
     };
 
     class Modifier : public CLxItemModifierServer
@@ -325,14 +301,9 @@ namespace dfgModoIM
 
     Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
     {
-        {
-            (*quickhack_baseInterface).m_item_obj_dfgModoIM = item_obj;
-
-
-            // get and store the pointer at the Instance class, so that we can access the user data.
-            m_Instance = GetInstance(item_obj);
-            if (!m_Instance)    feLogError(NULL, "FAILED TO GET POINTER AT INSTANCE CLASS!");
-        }
+        m_Instance = GetInstance(item_obj);
+        BaseInterface *b = GetBaseInterface(item_obj);
+        b->m_item_obj_dfgModoIM = item_obj;
 
         /*
          *  In the constructor, we want to add the input and output channels
@@ -357,9 +328,9 @@ namespace dfgModoIM
             ChannelDef &c = m_usrChan[i];
 
             unsigned int type;
-            if      ((*quickhack_baseInterface).HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
-            else if ((*quickhack_baseInterface).HasOutputPort(c.chan_name.c_str()))     type =                 LXfECHAN_WRITE;
-            else                                                                        type = LXfECHAN_READ | LXfECHAN_WRITE;
+            if      (b->HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
+            else if (b->HasOutputPort(c.chan_name.c_str()))     type =                 LXfECHAN_WRITE;
+            else                                                type = LXfECHAN_READ | LXfECHAN_WRITE;
 
             c.eval_index = eval.AddChan(item, c.chan_index, type);
 
@@ -410,9 +381,12 @@ namespace dfgModoIM
         if (!eval || !attr)
             return;
 
+        //
+        BaseInterface *b = GetBaseInterface(m_Instance->m_item);
+
         // refs at DFG wrapper members.
-        FabricCore::Client                          &client  = *(*quickhack_baseInterface).getClient();
-        FabricServices::DFGWrapper::Binding         &binding = *(*quickhack_baseInterface).getBinding();
+        FabricCore::Client                          &client  = *b->getClient();
+        FabricServices::DFGWrapper::Binding         &binding = *b->getBinding();
         FabricServices::DFGWrapper::GraphExecutable &graph   = binding.getGraph();
 
         // read the fixed input channels and return early if the FabricActive flag is disabled.
@@ -705,17 +679,6 @@ namespace dfgModoIM
 
         // done.
         return;
-    }
-
-    Instance *Element::GetInstance(ILxUnknownID item_obj)
-    {
-        CLxLoc_PackageInstance pkg_inst(item_obj);
-        CLxSpawner <Instance>  spawn(SERVER_NAME_dfgModoIM ".inst");
-
-        if (pkg_inst.test())
-            return spawn.Cast(pkg_inst);
-
-        return NULL;
     }
 
     void Element::usrChanCollect(CLxUser_Item &item, std::vector <ChannelDef> &io_usrChan)

@@ -3,7 +3,7 @@
 #define SPLICE_MODO_PLUGIN
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.011
+#define FABRICMODO_PLUGIN_VERSION   0.012
 
 // disable some annoying VS warnings.
 #pragma warning (disable : 4530)    // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.

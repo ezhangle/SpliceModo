@@ -190,7 +190,11 @@ namespace dfgModoIM
 
     LxResult Package::cui_UIHints(const char *channelName, ILxUnknownID hints_obj)
     {
-        /*
+        BaseInterface *b = GetBaseInterface(hints_obj);
+        if (!b)
+            feLogError(NULL, "b == NULL!!!");
+
+         /*
          *  Here we set some hints for the built in channels. These allow channels
          *  to be displayed as either inputs or outputs in the schematic. 
          */

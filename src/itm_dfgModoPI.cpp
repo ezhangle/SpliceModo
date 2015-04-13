@@ -220,32 +220,7 @@ class Element :
                 else if (LXx_FAIL (rc))
                         return rc;
 
- #if 0
- {
-                int			 res;
-
-                /*
-                 * Vary the number of sides by the radius and resolution.
-                 */
-                if (scale < 1) {
-                        scale = 1;
-                        res = cv_resolution;
-                }
-                else {
-                        res = 1;
-                }
-                scale = scale / 40.0f;
-                n = (int) (LXx_PI / sqrt (scale / res / cv_radius));
-                if (n < 8)
-                        n = 8;
-                else if (n > 1200)
-                        n = 1200;
-
-                nn = n / 2;
- }
- #else
                 get_segments (n, nn);
- #endif
 
                 switch (cv_axis)
                 {

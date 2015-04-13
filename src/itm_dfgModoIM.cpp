@@ -240,7 +240,7 @@ namespace dfgModoIM
         CLxUser_Item    item(item_obj);
         CLxUser_Scene   scene;
     
-        if (item.test() && item.IsA(gItemType_dfgModoIM.Type ()))
+        if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
         {
             if (item.GetContext(scene))
                 scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
@@ -798,7 +798,7 @@ namespace dfgModoIM
         return NULL;
     }
 
-    const char * Modifier::ItemType()
+    const char *Modifier::ItemType()
     {
         /*
          *  The modifier should only associate itself with this item type.
@@ -807,7 +807,7 @@ namespace dfgModoIM
         return SERVER_NAME_dfgModoIM;
     }
 
-    CLxItemModifierElement * Modifier::Alloc (CLxUser_Evaluation &eval, ILxUnknownID item)
+    CLxItemModifierElement *Modifier::Alloc (CLxUser_Evaluation &eval, ILxUnknownID item)
     {
         /*
          *  Allocate and return the modifier element.

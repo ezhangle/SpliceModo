@@ -1,0 +1,4 @@
+namespace dfgModoPI
+{
+    void initialize();
+};

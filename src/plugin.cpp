@@ -42,6 +42,7 @@ void initialize()
         dfgOpenCanvas     :: Command::  initialize();
         dfgStoreInChannel :: Command::  initialize();
         dfgModoIM::                     initialize();
+        dfgModoPI::                     initialize();
     }
  }
 

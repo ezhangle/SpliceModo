@@ -40,7 +40,7 @@ namespace dfgModoIM
             LxResult    pins_AfterLoad(void)                                    LXx_OVERRIDE;
 
         public:
-            ILxUnknownID   m_item;          // set in pins_Initialize() and used in ().
+            ILxUnknownID   m_item;          // set in pins_Initialize() and used in pins_AfterLoad().
             BaseInterface *m_baseInterface; // set in the constructor.
     };
 
@@ -94,12 +94,29 @@ namespace dfgModoIM
 
     Instance *GetInstance(ILxUnknownID item_obj)
     {
+        // first ckeck the type.
+        {
+            CLxUser_Item item(item_obj);
+            if (!item.test())
+                return NULL;
+
+            const char *typeName = NULL;
+            CLxUser_SceneService srv;
+            if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
+                return NULL;
+
+            const unsigned int numBytes = __min(strlen(typeName), strlen(SERVER_NAME_dfgModoIM));
+            if (memcmp(typeName, SERVER_NAME_dfgModoIM, numBytes))
+                return NULL;
+        }
+
+        // get/return pointer at Instance.
         CLxLoc_PackageInstance pkg_inst(item_obj);
-        CLxSpawner <Instance>  spawn(SERVER_NAME_dfgModoIM ".inst");
-
         if (pkg_inst.test())
+        {
+            CLxSpawner <Instance>  spawn(SERVER_NAME_dfgModoIM ".inst");
             return spawn.Cast(pkg_inst);
-
+        }
         return NULL;
     }
 

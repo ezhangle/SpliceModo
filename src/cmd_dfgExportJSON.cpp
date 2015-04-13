@@ -53,7 +53,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
     // get item's BaseInterface.
     BaseInterface *b = NULL;
     if (!b) b = dfgModoIM::GetBaseInterface(item);
-    //if (!b) b = dfgModoPI::GetBaseInterface(item);
+    if (!b) b = dfgModoPI::GetBaseInterface(item);
     if (!b)
     {   err += "failed to get BaseInterface, item probably has the wrong type";
         feLogError(0, err);

@@ -4,27 +4,23 @@ static CLxItemType gItemType_dfgModoPI(SERVER_NAME_dfgModoPI);
 
 namespace dfgModoPI
 {
+    /*
+     * ----------------------------------------------------------------
+     * Channels
+     *
+     * The Channels class both describes the channels for our item in the
+     * attribute description object, but also serves as a container for
+     * specific channel values. There are also a couple of methods for
+     * computing common values from channel values.
+     */
+    #define Cs_INSTANCEABLEOBJ	"instanceableObj"
+    #define Cs_AXIS			"axis"
+    #define Cs_RADIUS		"radius"
+    #define Cs_RESOLUTION		"resolution"
+    #define Cs_MATERIAL		"material"
 
-
-    
-
-/*
- * ----------------------------------------------------------------
- * Channels
- *
- * The Channels class both describes the channels for our item in the
- * attribute description object, but also serves as a container for
- * specific channel values. There are also a couple of methods for
- * computing common values from channel values.
- */
-#define Cs_INSTANCEABLEOBJ	"instanceableObj"
-#define Cs_AXIS			"axis"
-#define Cs_RADIUS		"radius"
-#define Cs_RESOLUTION		"resolution"
-#define Cs_MATERIAL		"material"
-
-class Channels
-{
+    class Channels
+    {
     public:
         int		 cv_axis;
         double		 cv_radius;
@@ -33,8 +29,7 @@ class Channels
 
         static CLxAttributeDesc		 desc;
 
-                static void
-        initialize ()
+        static void initialize ()
         {
                 Channels		*chan = 0;
 
@@ -50,17 +45,12 @@ class Channels
                 desc.add_channel (Cs_MATERIAL, LXsTYPE_STRING, matr_def, &chan->cv_material, LXfECHAN_READ);
         }
 
-                void
-        copy_channels (
-                Channels		*other)
+        void copy_channels (Channels *other)
         {
                 *this = *other;
         }
 
-                void
-        get_segments (
-                int			&nstrip,
-                int			&nloop)
+        void get_segments(int &nstrip, int &nloop)
         {
                 nloop = cv_resolution * 2;
                 if (nloop < 2)
@@ -69,35 +59,31 @@ class Channels
                 nstrip = nloop * 2;
         }
 
-                void
-        get_bbox (
-                CLxBoundingBox		&bbox)
+        void get_bbox(CLxBoundingBox &bbox)
         {
                 bbox.clear ();
                 bbox.add (0.0, 0.0, 0.0);
                 bbox.inflate (cv_radius);
         }
-};
+    };
 
-CLxAttributeDesc		 Channels::desc;
+    CLxAttributeDesc Channels::desc;
 
 
-/*
- * ----------------------------------------------------------------
- * Tableau Element
- *
- * A tableau surface element lives in the tableau and generates geometry
- * for the renderer. It has a bounding box, vertex features, and a sample
- * method. The tags interface allows it to double as a surface bin.
- */
-class Element :
-                public Channels,
-                public CLxImpl_TableauSurface,
-                public CLxImpl_StringTag
-{
+    /*
+     * ----------------------------------------------------------------
+     * Tableau Element
+     *
+     * A tableau surface element lives in the tableau and generates geometry
+     * for the renderer. It has a bounding box, vertex features, and a sample
+     * method. The tags interface allows it to double as a surface bin.
+     */
+    class Element : public Channels,
+                    public CLxImpl_TableauSurface,
+                    public CLxImpl_StringTag
+    {
     public:
-                static void
-        initialize ()
+        static void initialize()
         {
                 CLxGenericPolymorph	*srv;
 
@@ -118,7 +104,7 @@ class Element :
          * The bounding box is given by the radius. We have to expand it
          * to include the deforming surface, if it makes the ball bigger.
          */
-        LXxO_TableauSurface_Bound
+        LxResult tsrf_Bound (LXtTableauBox bbox)    LXx_OVERRIDE
         {
                 CLxBoundingBox		 bobj;
 
@@ -134,12 +120,12 @@ class Element :
          * These are the required features for any surface. Other features
          * could include UVs, colors, or weights.
          */
-        LXxO_TableauSurface_FeatureCount
+        unsigned int tsrf_FeatureCount (LXtID4 type)    LXx_OVERRIDE
         {
                 return (type == LXiTBLX_BASEFEATURE ? 4 : 0);
         }
 
-        LXxO_TableauSurface_FeatureByIndex
+        LxResult tsrf_FeatureByIndex(LXtID4 type, unsigned int index, const char **name)    LXx_OVERRIDE
         {
                 if (type != LXiTBLX_BASEFEATURE)
                         return LXe_NOTFOUND;
@@ -169,7 +155,7 @@ class Element :
          * The vertex requested by the renderer gives us the offsets
          * for the features we provide.
          */
-        LXxO_TableauSurface_SetVertex
+        LxResult tsrf_SetVertex(ILxUnknownID vdesc)    LXx_OVERRIDE
         {
                 CLxUser_TableauVertex	 desc;
                 LxResult		 rc;
@@ -192,7 +178,7 @@ class Element :
         /*
          * Sampling generates points and polygons on the caller's soup.
          */
-        LXxO_TableauSurface_Sample
+        LxResult tsrf_Sample(const LXtTableauBox bbox, float scale, ILxUnknownID trisoup)    LXx_OVERRIDE
         {
                 CLxUser_TriangleSoup	 soup (trisoup);
                 LXtTableauBox		 box;
@@ -293,7 +279,7 @@ class Element :
                 return LXe_OK;
         }
 
-        LXxO_StringTag_Get
+        LxResult stag_Get(LXtID4 type, const char **tag)    LXx_OVERRIDE
         {
                 if (type == LXi_PTAG_MATR || type == LXi_PTAG_PART)
                 {
@@ -302,20 +288,20 @@ class Element :
                 } else
                         return LXe_NOTFOUND;
         }
-};
+    };
 
 
-/*
- * ----------------------------------------------------------------
- * Surface
- *
- * The surface object is allocated from the surface item interface, and
- * spawns surface bin objects.
- */
-class Surface :
-                public Channels,
-                public CLxImpl_Surface
-{
+    /*
+     * ----------------------------------------------------------------
+     * Surface
+     *
+     * The surface object is allocated from the surface item interface, and
+     * spawns surface bin objects.
+     */
+    class Surface :
+                    public Channels,
+                    public CLxImpl_Surface
+    {
     public:
                 static void
         initialize ()
@@ -327,7 +313,7 @@ class Surface :
                 lx::AddSpawner (SERVER_NAME_dfgModoPI ".surf", srv);
         }
 
-        LXxO_Surface_GetBBox
+        LxResult surf_GetBBox (LXtBBox *bbox)   LXx_OVERRIDE
         {
                 CLxBoundingBox		 bobj;
 
@@ -336,12 +322,12 @@ class Surface :
                 return LXe_OK;
         }
 
-        LXxO_Surface_FrontBBox
+        LxResult surf_FrontBBox (const LXtVector pos, const LXtVector dir, LXtBBox *bbox)   LXx_OVERRIDE
         {
                 return surf_GetBBox (bbox);
         }
 
-        LXxO_Surface_TagCount
+        LxResult surf_TagCount (LXtID4 type, unsigned int *count)   LXx_OVERRIDE
         {
                 if (type == LXi_PTAG_MATR || type == LXi_PTAG_PART)
                         count[0] = 1;
@@ -351,20 +337,20 @@ class Surface :
                 return LXe_OK;
         }
 
-        LXxO_Surface_TagByIndex
+        LxResult surf_TagByIndex (LXtID4 type, unsigned int index, const char **stag)   LXx_OVERRIDE
         {
                 lx_err::check ((type == LXi_PTAG_MATR || type == LXi_PTAG_PART) && index == 0, LXe_OUTOFBOUNDS);
                 stag[0] = cv_material.c_str();
                 return LXe_OK;
         }
 
-        LXxO_Surface_BinCount
+        LxResult surf_BinCount(unsigned int *count)  LXx_OVERRIDE
         {
                 count[0] = 1;
                 return LXe_OK;
         }
 
-        LXxO_Surface_BinByIndex
+        LxResult surf_BinByIndex(unsigned int index, void **ppvObj)    LXx_OVERRIDE
         {
                 lx_err::check (index == 0, LXe_OUTOFBOUNDS);
 
@@ -376,7 +362,7 @@ class Surface :
                 return LXe_OK;
         }
 
-        LXxO_Surface_GLCount
+        LxResult surf_GLCount (unsigned int *count) LXx_OVERRIDE
         {
                 int			n, nn;
 
@@ -384,26 +370,25 @@ class Surface :
                 count[0] = n * nn;
                 return LXe_OK;
         }
-};
+    };
 
 
-/*
- * ----------------------------------------------------------------
- * Instanceable Object
- *
- * Allocated by the eval modifier, this object just stores channel
- * values and serves as a key for adding elements to the tableau.
- * If the orb is changing size we enocde that difference into the
- * delta_R for motion blur.
- *
- * Alternately this can just return a surface object, which can be
- * convenient if the surface object is already defined for other
- * purposes.
- */
-class InstObj :
-                public Channels,
-                public CLxImpl_Instanceable
-{
+    /*
+     * ----------------------------------------------------------------
+     * Instanceable Object
+     *
+     * Allocated by the eval modifier, this object just stores channel
+     * values and serves as a key for adding elements to the tableau.
+     * If the orb is changing size we enocde that difference into the
+     * delta_R for motion blur.
+     *
+     * Alternately this can just return a surface object, which can be
+     * convenient if the surface object is already defined for other
+     * purposes.
+     */
+    class InstObj : public Channels,
+                    public CLxImpl_Instanceable
+    {
     public:
                 static void
         initialize ()
@@ -417,7 +402,7 @@ class InstObj :
 
         CLxPolymorph<InstObj>		*sinst;
 
-        LXxO_Instanceable_Compare
+        int instable_Compare (ILxUnknownID other)   LXx_OVERRIDE
         {
                 InstObj		*that;
 
@@ -425,7 +410,7 @@ class InstObj :
                 return Channels::desc.struct_compare ((Channels * ) this, (Channels*) that);
         }
 
-        LXxO_Instanceable_GetSurface
+        LxResult instable_GetSurface (void **ppvObj)    LXx_OVERRIDE
         {
                 CLxSpawner<Surface>	 spsurf (SERVER_NAME_dfgModoPI ".surf");
                 Surface		*surf;
@@ -434,56 +419,60 @@ class InstObj :
                 surf->copy_channels (this);
                 return LXe_OK;
         }
-};
+    };
 
 
-/*
- * ----------------------------------------------------------------
- * Instance
- *
- * The instance is the implementation of the item, and there will be one
- * allocated for each item in the scene. It can respond to a set of
- * events.
- */
-class Instance :
-                public CLxImpl_PackageInstance,
-                public CLxImpl_SurfaceItem,
-                public CLxImpl_ViewItem3D
-{
+    /*
+     * ----------------------------------------------------------------
+     * Instance
+     *
+     * The instance is the implementation of the item, and there will be one
+     * allocated for each item in the scene. It can respond to a set of
+     * events.
+     */
+    class Instance :    public CLxImpl_PackageInstance,
+                        public CLxImpl_SurfaceItem,
+                        public CLxImpl_ViewItem3D
+    {
     public:
-                static void
-        initialize ()
-        {
-                CLxGenericPolymorph		*srv;
+        ILxUnknownID   m_item;          // set in pins_Initialize() and used in pins_AfterLoad().
+        BaseInterface *m_baseInterface; // set in the constructor.
 
-                srv = new CLxPolymorph<Instance>;
-                srv->AddInterface (new CLxIfc_PackageInstance<Instance>);
-                srv->AddInterface (new CLxIfc_SurfaceItem    <Instance>);
-                srv->AddInterface (new CLxIfc_ViewItem3D     <Instance>);
-                lx::AddSpawner (SERVER_NAME_dfgModoPI ".inst", srv);
+    public:
+        static void initialize()
+        {
+            CLxGenericPolymorph *srv = NULL;
+            srv = new CLxPolymorph                      <Instance>;
+            srv->AddInterface(new CLxIfc_PackageInstance<Instance>);
+            srv->AddInterface(new CLxIfc_SurfaceItem    <Instance>);
+            srv->AddInterface(new CLxIfc_ViewItem3D     <Instance>);
+            lx::AddSpawner   (SERVER_NAME_dfgModoPI ".inst", srv);
         }
 
         CLxSpawner<Surface>	 surf_spawn;
         CLxSpawner<Element>	 elt_spawn;
-        Instance () :
-                surf_spawn (SERVER_NAME_dfgModoPI ".surf"),
-                elt_spawn (SERVER_NAME_dfgModoPI ".element")
-        {}
-
-        CLxUser_Item		 m_item;
-
-        LXxO_PackageInstance_Initialize
+        Instance() : surf_spawn (SERVER_NAME_dfgModoPI ".surf"),
+                     elt_spawn  (SERVER_NAME_dfgModoPI ".element")
         {
-                m_item.set (item);
+            // init members and create base interface.
+            m_baseInterface = new BaseInterface();
+        };
+
+        ~Instance()
+        {
+            // delete widget and base interface.
+            FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+            if (w) delete w;
+            delete m_baseInterface;
+        };
+
+        LxResult pins_Initialize(ILxUnknownID item, ILxUnknownID super)    LXx_OVERRIDE
+        {
+                m_item = item;
                 return LXe_OK;
         }
 
-        LXxO_PackageInstance_Cleanup
-        {
-                m_item.clear ();
-        }
-
-        LXxO_SurfaceItem_GetSurface
+        LxResult isurf_GetSurface(ILxUnknownID chanRead, unsigned morph, void **ppvObj)    LXx_OVERRIDE
         {
                 Surface		*surf;
 
@@ -492,13 +481,13 @@ class Instance :
                 return LXe_OK;
         }
 
-        LXxO_SurfaceItem_Prepare
+        LxResult isurf_Prepare(ILxUnknownID eval, unsigned *index) LXx_OVERRIDE
         {
                 index[0] = Channels::desc.eval_attach (eval, m_item);
                 return LXe_OK;
         }
 
-        LXxO_SurfaceItem_Evaluate
+        LxResult isurf_Evaluate(ILxUnknownID attr, unsigned index, void **ppvObj)  LXx_OVERRIDE
         {
                 Surface		*surf;
 
@@ -511,7 +500,7 @@ class Instance :
          * Based on the channel values, draw the abstract item representation
          * using the stroke drawing interface.
          */
-        LXxO_ViewItem3D_Draw
+        LxResult vitm_Draw(ILxUnknownID chanRead, ILxUnknownID strokeDraw, int selectionFlags, LXtVector itemColor)    LXx_OVERRIDE
         {
                 CLxUser_StrokeDraw	 stroke (strokeDraw);
                 Channels		 chan;
@@ -531,13 +520,13 @@ class Instance :
                 return LXe_OK;
         }
 
-        LXxO_ViewItem3D_HandleCount
+        LxResult vitm_HandleCount(int *count)  LXx_OVERRIDE
         {
                 *count = 1;
                 return LXe_OK;
         }
 
-        LXxO_ViewItem3D_HandleMotion
+        LxResult vitm_HandleMotion(int handleIndex, int *handleFlags, double *min, double *max, LXtVector plane, LXtVector offset)  LXx_OVERRIDE
         {
                 LxResult	result = LXe_OUTOFBOUNDS;
 
@@ -558,19 +547,21 @@ class Instance :
                 return result;
         }
 
-        LXxO_ViewItem3D_HandleChannel
+        LxResult vitm_HandleChannel (int handleIndex, int *chanIndex)   LXx_OVERRIDE
         {
                 LxResult	result = LXe_OUTOFBOUNDS;
 
-                if (handleIndex == 0) {
-                        *chanIndex = m_item.ChannelIndex (Cs_RADIUS);
-                        result = LXe_OK;
+                if (handleIndex == 0)
+                {
+                    CLxUser_Item item(m_item);
+                    *chanIndex = item.ChannelIndex (Cs_RADIUS);
+                    result = LXe_OK;
                 }
 
                 return result;
         }
 
-        LXxO_ViewItem3D_HandleValueToPosition
+        LxResult vitm_HandleValueToPosition (int handleIndex, double *chanValue, LXtVector position)    LXx_OVERRIDE
         {
                 LxResult	result = LXe_OUTOFBOUNDS;
 
@@ -583,7 +574,7 @@ class Instance :
                 return result;
         }
 
-        LXxO_ViewItem3D_HandlePositionToValue
+        LxResult vitm_HandlePositionToValue (int handleIndex, LXtVector position, double *chanValue)    LXx_OVERRIDE
         {
                 LxResult	result = LXe_OUTOFBOUNDS;
 
@@ -594,25 +585,57 @@ class Instance :
 
                 return result;
         }
-};
+    };
 
+    Instance *GetInstance(ILxUnknownID item_obj)
+    {
+        // first ckeck the type.
+        {
+            CLxUser_Item item(item_obj);
+            if (!item.test())
+                return NULL;
 
-/*
- * ----------------------------------------------------------------
- * Package Class
- *
- * Packages implement item types, or simple item extensions. They are
- * like the metatype object for the item type. They define the common
- * set of channels for the item type and spawn new instances.
- *
- * Our item type is a subtype of "locator".
- */
-class Package :
-                public CLxImpl_Package
-{
+            const char *typeName = NULL;
+            CLxUser_SceneService srv;
+            if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
+                return NULL;
+
+            const unsigned int numBytes = __min(strlen(typeName), strlen(SERVER_NAME_dfgModoPI));
+            if (memcmp(typeName, SERVER_NAME_dfgModoPI, numBytes))
+                return NULL;
+        }
+
+        // get/return pointer at Instance.
+        CLxLoc_PackageInstance pkg_inst(item_obj);
+        if (pkg_inst.test())
+        {
+            CLxSpawner <Instance>  spawn(SERVER_NAME_dfgModoPI ".inst");
+            return spawn.Cast(pkg_inst);
+        }
+        return NULL;
+    }
+
+    BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
+    {
+        Instance *inst = GetInstance(item_obj);
+        if (inst)   return inst->m_baseInterface;
+        else        return NULL;
+    }
+
+    /*
+     * ----------------------------------------------------------------
+     * Package Class
+     *
+     * Packages implement item types, or simple item extensions. They are
+     * like the metatype object for the item type. They define the common
+     * set of channels for the item type and spawn new instances.
+     *
+     * Our item type is a subtype of "locator".
+     */
+    class Package : public CLxImpl_Package
+    {
     public:
-                static void
-        initialize ()
+        static void initialize()
         {
                 CLxGenericPolymorph	*srv;
 
@@ -625,85 +648,74 @@ class Package :
         static LXtTagInfoDesc		 descInfo[];
 
         CLxSpawner<Instance> inst_spawn;
-        Package ()
-                : inst_spawn (SERVER_NAME_dfgModoPI ".inst")
-        {}
+        Package () : inst_spawn (SERVER_NAME_dfgModoPI ".inst") {}
 
-        LXxO_Package_TestInterface
+        LxResult pkg_TestInterface (const LXtGUID *guid)    LXx_OVERRIDE
         {
                 return inst_spawn.TestInterfaceRC (guid);
         }
 
-        LXxO_Package_SetupChannels
+        LxResult pkg_SetupChannels (ILxUnknownID addChan)   LXx_OVERRIDE
         {
                 return Channels::desc.setup_channels (addChan);
         }
 
-        LXxO_Package_Attach
+        LxResult pkg_Attach (void **ppvObj) LXx_OVERRIDE
         {
                 inst_spawn.Alloc (ppvObj);
                 return LXe_OK;
         }
-};
+    };
 
-LXtTagInfoDesc	 Package::descInfo[] = {
-        { LXsPKG_SUPERTYPE,	"locator"	},
-        { LXsPKG_IS_MASK,	"."		},
-        { LXsPKG_INSTANCEABLE_CHANNEL,	Cs_INSTANCEABLEOBJ		},
-        { 0 }
-};
+    LXtTagInfoDesc	 Package::descInfo[] = {
+            { LXsPKG_SUPERTYPE,             "locator"           },
+            { LXsSRV_LOGSUBSYSTEM,          LOG_SYSTEM_NAME     },
+            { LXsPKG_IS_MASK,               "."                 },
+            { LXsPKG_INSTANCEABLE_CHANNEL,  Cs_INSTANCEABLEOBJ  },
+            { 0 }
+    };
 
 
-/*
- * ----------------------------------------------------------------
- * Instanceable Modifier
- *
- * The modifier reads the item channels and allocates an object to save
- * in the instanceable channel.
- */
-class Modifier :
-                public CLxObjectRefModifierCore
-{
+    /*
+     * ----------------------------------------------------------------
+     * Instanceable Modifier
+     *
+     * The modifier reads the item channels and allocates an object to save
+     * in the instanceable channel.
+     */
+    class Modifier : public CLxObjectRefModifierCore
+    {
     public:
-                static void
-        initialize ()
+        static void initialize()
         {
-                CLxExport_ItemModifierServer<CLxObjectRefModifier<Modifier> > (SERVER_NAME_dfgModoPI ".mod");
+            CLxExport_ItemModifierServer<CLxObjectRefModifier<Modifier> > (SERVER_NAME_dfgModoPI ".mod");
         }
 
-        const char *	ItemType ()			LXx_OVERRIDE
+        const char *ItemType ()			LXx_OVERRIDE
         {
-                return SERVER_NAME_dfgModoPI;
+            return SERVER_NAME_dfgModoPI;
         }
 
-        const char *	Channel  ()			LXx_OVERRIDE
+        const char *Channel  ()			LXx_OVERRIDE
         {
-                return Cs_INSTANCEABLEOBJ;
+            return Cs_INSTANCEABLEOBJ;
         }
 
-                void
-        Attach (
-                CLxUser_Evaluation	&eval,
-                ILxUnknownID		 item)		LXx_OVERRIDE
+        void Attach(CLxUser_Evaluation &eval, ILxUnknownID item)        LXx_OVERRIDE
         {
-                Channels::desc.eval_attach (eval, item);
+            Channels::desc.eval_attach (eval, item);
         }
 
-                void
-        Alloc (
-                CLxUser_Evaluation	&eval,
-                CLxUser_Attributes	&attr,
-                unsigned		 index,
-                ILxUnknownID		&obj)		LXx_OVERRIDE
+        void Alloc(CLxUser_Evaluation &eval, CLxUser_Attributes	&attr, unsigned index, ILxUnknownID &obj)       LXx_OVERRIDE
         {
-                CLxSpawner<InstObj>	 sp (SERVER_NAME_dfgModoPI ".instobj");
-                InstObj		*cobj;
+            CLxSpawner<InstObj>	 sp (SERVER_NAME_dfgModoPI ".instobj");
+            InstObj		*cobj;
 
-                cobj = sp.Alloc (obj);
-                cobj->sinst = sp.spawn;
-                Channels::desc.eval_read (attr, index, (Channels *) cobj);
+            cobj = sp.Alloc (obj);
+            cobj->sinst = sp.spawn;
+            Channels::desc.eval_read (attr, index, (Channels *) cobj);
         }
-};
+    };
 
 
     // used in the plugin's initialize() function (see plugin.cpp).

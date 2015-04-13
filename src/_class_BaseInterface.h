@@ -19,8 +19,8 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         BaseInterface();
         ~BaseInterface();
 
-        // pointer at ILxUnknownID (for the item modifier node "dfgModoIM").
-        void *m_item_obj_dfgModoIM;
+        void *m_item_obj_dfgModoIM;     // pointer at ILxUnknownID (for the item modifier node "dfgModoIM").
+        void *m_item_obj_dfgModoPI;     // pointer at ILxUnknownID (for the item modifier node "dfgModoPI").
 
         // instance management
         // right now there are no locks in place,

@@ -15,6 +15,7 @@ BaseInterface::BaseInterface()
 {
     m_id                  = s_maxId++;
     m_item_obj_dfgModoIM  = NULL;
+    m_item_obj_dfgModoPI  = NULL;
 
     // construct the client
     if (s_instances.size() == 0)
@@ -165,11 +166,17 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
     try
     {
         std::string err;
-        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-        if (!item.test())
-        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-            logErrorFunc(0, err.c_str(), err.length());
-            return;    }
+        CLxUser_Item item;
+
+        if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
+        else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
+        else                        {   err = "m_item_obj_dfgModo??? == NULL";
+                                        logErrorFunc(0, err.c_str(), err.length());
+                                        return;    }
+
+        if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
+                                logErrorFunc(0, err.c_str(), err.length());
+                                return;    }
 
         if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
             logErrorFunc(0, err.c_str(), err.length());
@@ -185,11 +192,17 @@ void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const c
     try
     {
         std::string err;
-        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-        if (!item.test())
-        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-            logErrorFunc(0, err.c_str(), err.length());
-            return;    }
+        CLxUser_Item item;
+
+        if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
+        else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
+        else                        {   err = "m_item_obj_dfgModo??? == NULL";
+                                        logErrorFunc(0, err.c_str(), err.length());
+                                        return;    }
+
+        if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
+                                logErrorFunc(0, err.c_str(), err.length());
+                                return;    }
 
         if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
             logErrorFunc(0, err.c_str(), err.length());
@@ -1124,11 +1137,17 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Por
     try
     {
         std::string err;
-        CLxUser_Item item((ILxUnknownID)m_item_obj_dfgModoIM);
-        if (!item.test())
-        {   err = "item((ILxUnknownID)m_item_obj_dfgModoIM) failed";
-            logErrorFunc(0, err.c_str(), err.length());
-            return false;    }
+        CLxUser_Item item;
+
+        if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
+        else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
+        else                        {   err = "m_item_obj_dfgModo??? == NULL";
+                                        logErrorFunc(0, err.c_str(), err.length());
+                                        return false;   }
+
+        if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
+                                logErrorFunc(0, err.c_str(), err.length());
+                                return false;    }
 
         std::string dataType   = port.getDataType();
         std::string structType = "";

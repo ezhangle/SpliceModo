@@ -1,5 +1,4 @@
-#include "_class_BaseInterface.h"
-#include "_class_ModoTools.h"
+#include "plugin.h"
 
 using namespace FabricServices;
 
@@ -14,71 +13,72 @@ std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
 
 BaseInterface::BaseInterface()
 {
-  m_id                  = s_maxId++;
-  m_item_obj_dfgModoIM  = NULL;
+    m_id                  = s_maxId++;
+    m_item_obj_dfgModoIM  = NULL;
 
-  // construct the client
-  if(s_instances.size() == 0)
-  {
-    try
+    // construct the client
+    if (s_instances.size() == 0)
     {
-      // create a client
-      FabricCore::Client::CreateOptions options;
-      memset( &options, 0, sizeof( options ) );
-      options.optimizationType = FabricCore::ClientOptimizationType_Background;
-      s_client = FabricCore::Client(&logFunc, NULL, &options);
-      s_client.loadExtension("Math",     "", false);
-      s_client.loadExtension("Geometry", "", false);
+        try
+        {
+            // create a client
+            FabricCore::Client::CreateOptions options;
+            memset( &options, 0, sizeof( options ) );
+            options.optimizationType = FabricCore::ClientOptimizationType_Background;
+            s_client = FabricCore::Client(&logFunc, NULL, &options);
 
-      // create a host for Canvas
-      s_host = new DFGWrapper::Host(s_client);
+            // load basic extensions
+            s_client.loadExtension("Math",     "", false);
+            s_client.loadExtension("Geometry", "", false);
+            s_client.loadExtension("FileIO",   "", false);
 
-      // create an empty binding
-      m_binding = s_host->createBindingToNewGraph();
+            // create a host for Canvas
+            s_host = new DFGWrapper::Host(s_client);
 
-    // create KL AST manager
-      s_manager = new ASTWrapper::KLASTManager(&s_client);
+            // create KL AST manager
+            s_manager = new ASTWrapper::KLASTManager(&s_client);
+        }
+        catch (FabricCore::Exception e)
+        {
+            logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        }
+    }
 
-    // command stack
-    s_stack;
+    //
+    s_instances.insert(std::pair<unsigned int, BaseInterface*>(m_id, this));
+
+    // create an empty binding
+    m_binding = s_host->createBindingToNewGraph();
 
     // set the graph on the view
-      setGraph(m_binding.getGraph());
-    }
-    catch (FabricCore::Exception e)
-    {
-      logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-    }
-  }
-
-  s_instances.insert(std::pair<unsigned int, BaseInterface*>(m_id, this));
+    DFGWrapper::View::setGraph(m_binding.getGraph());
 }
 
 BaseInterface::~BaseInterface()
 {
-  std::map<unsigned int, BaseInterface*>::iterator it = s_instances.find(m_id);
+    std::map<unsigned int, BaseInterface*>::iterator it = s_instances.find(m_id);
 
-  m_binding = DFGWrapper::Binding();
+    m_binding = DFGWrapper::Binding();
 
-  if(it != s_instances.end())
-  {
-    s_instances.erase(it);
-    if(s_instances.size() == 0)
+    if (it != s_instances.end())
     {
-      try
-      {
-        printf("Destructing client...\n");
-    s_stack.clear();
-    delete(s_manager);
-        delete(s_host);
-        s_client = FabricCore::Client();
-      }
-      catch (FabricCore::Exception e)
-      {
-        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-      }
+        s_instances.erase(it);
+        if (s_instances.size() == 0)
+        {
+            try
+            {
+                printf("Destructing client...\n");
+                s_stack.clear();
+                delete(s_manager);
+                delete(s_host);
+                s_client = FabricCore::Client();
+            }
+            catch (FabricCore::Exception e)
+            {
+                logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+            }
+        }
     }
-  }
 }
 
 unsigned int BaseInterface::getId()

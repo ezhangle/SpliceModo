@@ -191,11 +191,9 @@ namespace dfgModoIM
 
     LxResult Package::cui_UIHints(const char *channelName, ILxUnknownID hints_obj)
     {
-        BaseInterface *b = GetBaseInterface(hints_obj);
-        if (!b)
-            feLogError(NULL, "b == NULL!!!");
-
-         /*
+         // WIP: we must be able to somehow access Instance, so that we can get the BaseInterface and the DFG input/output ports and set the channel hints accordingly.
+        
+        /*
          *  Here we set some hints for the built in channels. These allow channels
          *  to be displayed as either inputs or outputs in the schematic. 
          */

@@ -466,9 +466,16 @@ namespace dfgModoPI
             delete m_baseInterface;
         };
 
-        LxResult pins_Initialize(ILxUnknownID item, ILxUnknownID super)    LXx_OVERRIDE
+        LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)    LXx_OVERRIDE
         {
-                m_item = item;
+                m_item = item_obj;
+
+                BaseInterface *b = GetBaseInterface(item_obj);
+                if (!b)
+                {   feLogError(NULL, "GetBaseInterface() returned NULL");
+                    return LXe_FAILED;   }
+                b->m_item_obj_dfgModoPI = item_obj;
+
                 return LXe_OK;
         }
 

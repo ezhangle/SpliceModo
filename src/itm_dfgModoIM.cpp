@@ -326,6 +326,9 @@ namespace dfgModoIM
     {
         m_Instance = GetInstance(item_obj);
         BaseInterface *b = GetBaseInterface(item_obj);
+        if (!b)
+        {   feLogError(NULL, "GetBaseInterface() returned NULL");
+            return;   }
         b->m_item_obj_dfgModoIM = item_obj;
 
         /*

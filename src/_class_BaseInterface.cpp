@@ -889,6 +889,65 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::Port &port, std
     return 0;
 }
 
+int BaseInterface::GetPortValuePolygonMesh( FabricServices::DFGWrapper::Port    &port,
+                                            unsigned int                        &out_numVertices,
+                                            unsigned int                        &out_numPolygons,
+                                            unsigned int                        &out_numSamples,
+                                            std::vector <float>                 *out_positions,
+                                            bool                                 strict)
+{
+    // init output.
+    out_numVertices = 0;
+    out_numPolygons = 0;
+    out_numSamples  = 0;
+    if (out_positions)  out_positions->clear();
+
+    // invalid port?
+    if (!port.isValid())
+        return -2;
+
+    // set out from port value.
+    try
+    {
+        std::string dataType = port.getDataType();
+        FabricCore::RTVal rtMesh = port.getRTVal();
+
+        if      (dataType.length() == 0)        return -1;
+
+        else if (dataType == "PolygonMesh") {
+                                                // get amounts.
+                                                out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
+                                                out_numPolygons = rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
+                                                out_numSamples  = rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
+
+                                                // get vertex positions.
+                                                if (out_positions && out_numVertices)
+                                                {
+                                                    std::vector <float> &positions = *out_positions;
+                                                    const unsigned int num = 3 * out_numVertices;
+                                                    positions.resize(num);
+                                                    if (positions.size() == num)
+                                                    {
+                                                        std::vector <FabricCore::RTVal> args(2);
+                                                        args[0] = FabricSplice::constructExternalArrayRTVal("Float32", num, &positions[0]);
+                                                        args[1] = FabricSplice::constructUInt32RTVal(3); // #components.
+                                                        rtMesh.callMethod("", "getPointsAsExternalArray", 2, &args[0]);
+                                                    }
+                                                }
+                                            }
+        else
+            return -1;
+    }
+    catch (FabricCore::Exception e)
+    {
+        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        return -4;
+    }
+
+    // done.
+    return 0;
+}
+
 void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const bool val)
 {
     try

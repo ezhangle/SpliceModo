@@ -267,8 +267,23 @@ namespace dfgModoPI
 
                             // get the port's mesh data.
                             FabricCore::RTVal rtMesh = port.getRTVal();
-                            unsigned int numVertices = rtMesh.callMethod("UInt64", "pointCount",   0, 0).getUInt64();
-                            unsigned int numPolygons = rtMesh.callMethod("UInt64", "polygonCount", 0, 0).getUInt64();
+                            unsigned int        numVertices;
+                            unsigned int        numPolygons;
+                            unsigned int        numSamples;
+                            std::vector <float> positions;
+                            int retGet = BaseInterface::GetPortValuePolygonMesh( port,
+                                                                                 numVertices,
+                                                                                 numPolygons,
+                                                                                 numSamples,
+                                                                                &positions);
+                            if (retGet)
+                            {
+                                sprintf(serr, "%ld", retGet);
+                                err = "failed to get value from DFG port \"" + port.getName() + "\" (returned " + serr + ")";
+                                break;
+                            }
+
+                            // log.
                             {
                                 char s[256];
                                 sprintf(s, "geometry has %ld vertices and %ld polygons", numVertices, numPolygons);

@@ -12,6 +12,10 @@ void feLog(void *userData, const std::string &s)
 {
     feLog(userData, s.c_str(), s.length());
 }
+void feLog(const std::string &s)
+{
+    feLog(NULL, s.c_str(), s.length());
+}
 void feLogError(void *userData, const char *s, unsigned int length)
 {
     gLog.Message(LXe_FAILED, "[FABRIC ERROR]", s, " ");
@@ -22,6 +26,10 @@ void feLogError(void *userData, const char *s, unsigned int length)
 void feLogError(void *userData, const std::string &s)
 {
     feLogError(userData, s.c_str(), s.length());
+}
+void feLogError(const std::string &s)
+{
+    feLogError(NULL, s.c_str(), s.length());
 }
 
 // plugin initialization.

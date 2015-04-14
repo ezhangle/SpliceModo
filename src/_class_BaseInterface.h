@@ -112,6 +112,19 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         static int GetPortValueQuat   (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
         static int GetPortValueMat44  (FabricServices::DFGWrapper::Port &port, std::vector <double> &out, bool strict = false);
 
+        // gets the value of a "PolygonMesh" port.
+        // params:  port        the port.
+        //          out_*       will contain the result. These may be NULL. See parameters for more information.
+        //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
+        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 unknown, -4 Fabric exception.
+        static int GetPortValuePolygonMesh( FabricServices::DFGWrapper::Port    &port,
+                                            unsigned int                        &out_numVertices,   
+                                            unsigned int                        &out_numPolygons,
+                                            unsigned int                        &out_numSamples,
+                                            std::vector <double>                *out_positions,     // vertex 3D positions (as a flat array).
+                                            std::vector <double>                *out_positions      = NULL,     // vertex 3D positions (as a flat array).
+                                            bool                                 strict             = false);
+
         // sets the value of a port.
         static void SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const bool                  val);
         static void SetValueOfPortSInt   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const long                  val);

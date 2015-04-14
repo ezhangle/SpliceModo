@@ -327,7 +327,7 @@ namespace dfgModoIM
         m_Instance = GetInstance(item_obj);
         BaseInterface *b = GetBaseInterface(item_obj);
         if (!b)
-        {   feLogError(NULL, "GetBaseInterface() returned NULL");
+        {   feLogError("GetBaseInterface() returned NULL");
             return;   }
         b->m_item_obj_dfgModoIM = item_obj;
 
@@ -364,7 +364,7 @@ namespace dfgModoIM
             if (false)
             {
                 std::string s = "[DBG] eval.AddChan(\"" + c.chan_name + "\")";
-                feLog(NULL, s);
+                feLog(s);
             }
         }
     }
@@ -531,13 +531,13 @@ namespace dfgModoIM
                 // error?
                 if (err != "")
                 {
-                    feLogError(NULL, err.c_str(), err.length());
+                    feLogError(err);
                     return;
                 }
             }
             catch (FabricCore::Exception e)
             {
-                feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
+                feLogError(e.getDesc_cstr());
             }
         }
 
@@ -549,7 +549,7 @@ namespace dfgModoIM
             }
             catch (FabricCore::Exception e)
             {
-                feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
+                feLogError(e.getDesc_cstr());
             }
         }
 
@@ -693,13 +693,13 @@ namespace dfgModoIM
                 // error?
                 if (err != "")
                 {
-                    feLogError(NULL, err.c_str(), err.length());
+                    feLogError(err);
                     return;
                 }
             }
             catch (FabricCore::Exception e)
             {
-                feLogError(NULL, e.getDesc_cstr(), e.getDescLength());
+                feLogError(e.getDesc_cstr());
             }
         }
 

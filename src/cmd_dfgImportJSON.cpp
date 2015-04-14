@@ -34,7 +34,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         std::string argItemName;
         if (!dyna_String(0, argItemName))
         {   err += "failed to read argument";
-            feLogError(NULL, err);
+            feLogError(err);
             return;  }
 
         // get the item.

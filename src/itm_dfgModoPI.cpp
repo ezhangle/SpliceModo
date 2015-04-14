@@ -4,6 +4,10 @@ static CLxItemType gItemType_dfgModoPI(SERVER_NAME_dfgModoPI);
 
 namespace dfgModoPI
 {
+    // quickhack.
+    BaseInterface *quickhack_baseInterface = NULL;
+
+
     /*
      * ----------------------------------------------------------------
      * Channels
@@ -37,7 +41,7 @@ namespace dfgModoPI
 
                 desc.add_channel (Cs_AXIS, LXsTYPE_AXIS, 1, &chan->cv_axis, LXfECHAN_READ);
 
-                desc.add_channel (Cs_RADIUS, LXsTYPE_DISTANCE, 0.5, &chan->cv_radius, LXfECHAN_READ);
+                desc.add_channel (Cs_RADIUS, LXsTYPE_FLOAT, 0.5, &chan->cv_radius, LXfECHAN_READ);
 
                 desc.add_channel (Cs_RESOLUTION, LXsTYPE_INTEGER, 8, &chan->cv_resolution, LXfECHAN_READ);
 
@@ -93,10 +97,10 @@ namespace dfgModoPI
                 lx::AddSpawner (SERVER_NAME_dfgModoPI ".element", srv);
         }
 
-        int			 f_pos[4];
-        LXtVector		 m_offset;
-        LXtMatrix		 m_xfrm;
-        double			 delta_R;
+        int			f_pos[4];
+        LXtVector   m_offset;
+        LXtMatrix	m_xfrm;
+        double		delta_R;
 
         Element () : delta_R (0.0) {}
 
@@ -196,6 +200,102 @@ namespace dfgModoPI
                 if (!soup.TestBox (box))
                         return LXe_OK;
 
+                // 
+                if (!quickhack_baseInterface)
+                    return LXe_OK;
+                BaseInterface *b = quickhack_baseInterface;
+
+                // refs at DFG wrapper members.
+                FabricCore::Client                          &client  = *b->getClient();
+                FabricServices::DFGWrapper::Binding         &binding = *b->getBinding();
+                FabricServices::DFGWrapper::GraphExecutable &graph   = binding.getGraph();
+
+                // Fabric Engine (step 1): loop through all the DFG's input ports and set
+                //                         their values from the matching Modo user channels.
+                {
+                    // WIP.
+                }
+
+                // Fabric Engine (step 2): execute the DFG.
+                {
+                    try
+                    {
+                        binding.execute();
+                    }
+                    catch (FabricCore::Exception e)
+                    {
+                        feLogError(e.getDesc_cstr());
+                    }
+                }
+
+                // Fabric Engine (step 3): loop through all the DFG's output ports and set
+                //                         the values of the matching Modo user channels.
+                //
+                // note: the first Fabric "PolygonMesh" port will be used
+                //       to set the actual geometry of the Modo item.
+                {
+
+
+                    // WIP: find the first Fabric output port of type "PolygonMesh" and set the item's geo from it.
+
+                    try
+                    {
+                        char        serr[256];
+                        std::string err = "";
+                        std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
+                        for (int fi=0;fi<ports.size();fi++)
+                        {
+                            // ref at port.
+                            FabricServices::DFGWrapper::Port &port = ports[fi];
+
+                            // wrong type?
+                            if (port.getPortType() != FabricCore::DFGPortType_Out)
+                            {
+                                feLog("skipping input port \"" + port.getName() + "\"");
+                                continue;
+                            }
+
+                            // wrong data type?
+                            if (port.getDataType() != "PolygonMesh")
+                            {
+                                feLog("skipping output port \"" + port.getName() + "\" (data type is \"" + port.getDataType() + "\")");
+                                continue;
+                            }
+
+                            // found one.
+                            feLog("setting Modo geometry from Fabric output port \"" + port.getName() + "\"");
+
+                            // get the port's mesh data.
+                            FabricCore::RTVal rtMesh = port.getRTVal();
+                            unsigned int numVertices = rtMesh.callMethod("UInt64", "pointCount",   0, 0).getUInt64();
+                            unsigned int numPolygons = rtMesh.callMethod("UInt64", "polygonCount", 0, 0).getUInt64();
+                            {
+                                char s[256];
+                                sprintf(s, "geometry has %ld vertices and %ld polygons", numVertices, numPolygons);
+                                feLog(s);
+                            }
+
+
+
+
+                            // done.
+                            break;
+                        }
+
+                        // error?
+                        if (err != "")
+                        {
+                            feLogError(err);
+                            return LXe_OK;
+                        }
+                    }
+                    catch (FabricCore::Exception e)
+                    {
+                        feLogError(e.getDesc_cstr());
+                    }
+                }
+
+
                 /*
                  * Our surface consists of one segment containing triangles.
                  * If the caller doesn't want it we can drop out here.
@@ -206,36 +306,9 @@ namespace dfgModoPI
                 else if (LXx_FAIL (rc))
                         return rc;
 
-                get_segments (n, nn);
-
-                switch (cv_axis)
-                {
-                    case 0:
-                        i_x = 1;
-                        i_y = 2;
-                        i_z = 0;
-                        break;
-
-                    case 1:
-                        i_x = 2;
-                        i_y = 0;
-                        i_z = 1;
-                        break;
-
-                    case 2:
-                        i_x = 0;
-                        i_y = 1;
-                        i_z = 2;
-                        break;
-                }
-
+#ifdef NONONONONONONONONO
                 /*
-                 * Build the vertex list. This is NN+1 rings of N verts.
-                 * We compute a normal vector first, describing a point on
-                 * a unit sphere. Position and object-space position are
-                 * scaled to cv_radius. The surface normal is the normal
-                 * vector itself. The velocity is the same vector again
-                 * scaled by delta_R.
+                 * Build the vertex list. 
                  */
                 for (k = 0; k <= nn; k++)
                 {
@@ -275,6 +348,7 @@ namespace dfgModoPI
                                 lx_err::check (soup.Polygon (C, B, D));
                         }
                 }
+#endif
 
                 return LXe_OK;
         }
@@ -456,6 +530,7 @@ namespace dfgModoPI
         {
             // init members and create base interface.
             m_baseInterface = new BaseInterface();
+            quickhack_baseInterface = m_baseInterface;
         };
 
         ~Instance()
@@ -464,6 +539,7 @@ namespace dfgModoPI
             FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
             if (w) delete w;
             delete m_baseInterface;
+            quickhack_baseInterface = NULL;
         };
 
         LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)    LXx_OVERRIDE
@@ -472,7 +548,7 @@ namespace dfgModoPI
 
                 BaseInterface *b = GetBaseInterface(item_obj);
                 if (!b)
-                {   feLogError(NULL, "GetBaseInterface() returned NULL");
+                {   feLogError("GetBaseInterface() returned NULL");
                     return LXe_FAILED;   }
                 b->m_item_obj_dfgModoPI = item_obj;
 
@@ -628,6 +704,8 @@ namespace dfgModoPI
         if (inst)   return inst->m_baseInterface;
         else        return NULL;
     }
+
+
 
     /*
      * ----------------------------------------------------------------

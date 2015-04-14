@@ -12,6 +12,6 @@ void dfgLogVersion::Command::cmd_Execute(unsigned flags)
 {
     char s[1024];
     sprintf(s, "plugin v. %.3f  /  core v. %s", FABRICMODO_PLUGIN_VERSION, FabricCore::GetVersionStr());
-    feLog(NULL, s, strlen(s));
+    feLog(s);
 }
  

@@ -894,58 +894,133 @@ int BaseInterface::GetPortValuePolygonMesh( FabricServices::DFGWrapper::Port    
                                             unsigned int                        &out_numPolygons,
                                             unsigned int                        &out_numSamples,
                                             std::vector <float>                 *out_positions,
+                                            std::vector <uint32_t>              *out_polygonNumVertices,
+                                            std::vector <uint32_t>              *out_polygonVertices,
+                                            std::vector <float>                 *out_polygonNodeNormals,
                                             bool                                 strict)
 {
     // init output.
     out_numVertices = 0;
     out_numPolygons = 0;
     out_numSamples  = 0;
-    if (out_positions)  out_positions->clear();
+    if (out_positions)          out_positions          -> clear();
+    if (out_polygonNumVertices) out_polygonNumVertices -> clear();
+    if (out_polygonVertices)    out_polygonVertices    -> clear();
+    if (out_polygonNodeNormals) out_polygonNodeNormals -> clear();
 
     // invalid port?
     if (!port.isValid())
         return -2;
 
     // set out from port value.
-    try
+    int errID = 0;
+    do
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtMesh = port.getRTVal();
+        try
+        {
+            // check type.
+            std::string dataType = port.getDataType();
+            if (   dataType.length() == 0
+                || dataType != "PolygonMesh")
+                return -1;
 
-        if      (dataType.length() == 0)        return -1;
+            // RTVal of the polygon mesh.
+            FabricCore::RTVal rtMesh = port.getRTVal();
 
-        else if (dataType == "PolygonMesh") {
-                                                // get amounts.
-                                                out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
-                                                out_numPolygons = rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
-                                                out_numSamples  = rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
+            // get amount of points, polys, etc.
+            out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
+            out_numPolygons = rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
+            out_numSamples  = rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
 
-                                                // get vertex positions.
-                                                if (out_positions && out_numVertices)
-                                                {
-                                                    std::vector <float> &positions = *out_positions;
-                                                    const unsigned int num = 3 * out_numVertices;
-                                                    positions.resize(num);
-                                                    if (positions.size() == num)
-                                                    {
-                                                        std::vector <FabricCore::RTVal> args(2);
-                                                        args[0] = FabricSplice::constructExternalArrayRTVal("Float32", num, &positions[0]);
-                                                        args[1] = FabricSplice::constructUInt32RTVal(3); // #components.
-                                                        rtMesh.callMethod("", "getPointsAsExternalArray", 2, &args[0]);
-                                                    }
-                                                }
-                                            }
-        else
-            return -1;
-    }
-    catch (FabricCore::Exception e)
-    {
-        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-        return -4;
-    }
+            // get vertex positions.
+            if (   out_positions  != NULL
+                && out_numVertices > 0  )
+            {
+                std::vector <float> &data = *out_positions;
+
+                // resize output array(s).
+                    data.resize   (3 * out_numVertices);
+                if (data.size() != 3 * out_numVertices)
+                {   errID = -3;
+                    break;  }
+
+                // fill output array(s).
+                std::vector <FabricCore::RTVal> args(2);
+                args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "Float32", data.size(), (void *)data.data());
+                args[1] = FabricCore::RTVal::ConstructUInt32(*getClient(), 3);
+                rtMesh.callMethod("", "getPointsAsExternalArray", 2, &args[0]);
+            }
+
+            // get polygonal description.
+            if (  (   out_polygonNumVertices != NULL
+                   || out_polygonVertices    != NULL)
+                && out_numPolygons            > 0
+                && out_numSamples             > 0  )
+            {
+                std::vector <uint32_t> tmpNum;
+                std::vector <uint32_t> tmpIdx;
+                std::vector <uint32_t> &dataNum = (out_polygonNumVertices ? *out_polygonNumVertices : tmpNum);
+                std::vector <uint32_t> &dataIdx = (out_polygonVertices    ? *out_polygonVertices    : tmpIdx);
+
+                // resize output array(s).
+                    dataNum.resize   (out_numPolygons);
+                if (dataNum.size() != out_numPolygons)
+                {   errID = -3;
+                    break;  }
+                    dataIdx.resize   (out_numSamples);
+                if (dataIdx.size() != out_numSamples)
+                {   errID = -3;
+                    break;  }
+
+                // fill output array(s).
+                std::vector <FabricCore::RTVal> args(2);
+                args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "UInt32", dataNum.size(), (void *)dataNum.data());
+                args[1] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "UInt32", dataIdx.size(), (void *)dataIdx.data());
+                rtMesh.callMethod("", "getTopologyAsCountsIndicesExternalArrays", 2, &args[0]);
+            }
+
+            // get polygon node normals.
+            if (   out_polygonNodeNormals != NULL
+                && out_numPolygons         > 0
+                && out_numSamples          > 0  )
+            {
+                std::vector <float> &data = *out_polygonNodeNormals;
+
+                // resize output array(s).
+                    data.resize   (3 * out_numSamples);
+                if (data.size() != 3 * out_numSamples)
+                {   errID = -3;
+                    break;  }
+
+                // fill output array(s).
+                std::vector <FabricCore::RTVal> args(1);
+                args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "Float32", data.size(), (void *)data.data());
+                rtMesh.callMethod("", "getNormalsAsExternalArray", 1, &args[0]);
+            }
+        }
+        catch (FabricCore::Exception e)
+        {
+            logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+            errID = -4;
+            break;
+        }
+    } while (false);
 
     // done.
-    return 0;
+    if (errID)
+    {
+        if (errID == -3)
+        {   std::string s = "memory error: failed to resize std::vector<>";
+            logErrorFunc(NULL, s.c_str(), s.length());  }
+        out_numVertices = 0;
+        out_numPolygons = 0;
+        out_numSamples  = 0;
+        if (out_positions)          out_positions          -> clear();
+        if (out_polygonNumVertices) out_polygonNumVertices -> clear();
+        if (out_polygonVertices)    out_polygonVertices    -> clear();
+        if (out_polygonNodeNormals) out_polygonNodeNormals -> clear();
+    }
+    return errID;
 }
 
 void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const bool val)

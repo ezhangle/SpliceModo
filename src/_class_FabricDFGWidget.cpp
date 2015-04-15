@@ -78,5 +78,6 @@ QMainWindow *FabricDFGWidget::GetPointerAtMainWindow(void)
         if(qobject_cast<QMainWindow*>(w) && w->parent() == NULL)
             return (QMainWindow *)w;
     }
+    return NULL;
 }
 

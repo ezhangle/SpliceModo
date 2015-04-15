@@ -116,13 +116,16 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         // params:  port        the port.
         //          out_*       will contain the result. These may be NULL. See parameters for more information.
         //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
-        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 unknown, -4 Fabric exception.
+        // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
         static int GetPortValuePolygonMesh( FabricServices::DFGWrapper::Port    &port,
-                                            unsigned int                        &out_numVertices,               // amount of vertices.
-                                            unsigned int                        &out_numPolygons,               // amount of polygons.
-                                            unsigned int                        &out_numSamples,                // amount of samples.
-                                            std::vector <float>                 *out_positions      = NULL,     // vertex positions (as a flat array).
-                                            bool                                 strict             = false);
+                                            unsigned int                        &out_numVertices,                       // amount of vertices.
+                                            unsigned int                        &out_numPolygons,                       // amount of polygons.
+                                            unsigned int                        &out_numSamples,                        // amount of samples.
+                                            std::vector <float>                 *out_positions              = NULL,     // vertex positions (as a flat array).
+                                            std::vector <uint32_t>              *out_polygonNumVertices     = NULL,     // polygon vertex counts.
+                                            std::vector <uint32_t>              *out_polygonVertices        = NULL,     // polygon vertex indices.
+                                            std::vector <float>                 *out_polygonNodeNormals     = NULL,     // polygon node normals.
+                                            bool                                 strict                     = false);
 
         // sets the value of a port.
         static void SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::Port &port, const bool                  val);

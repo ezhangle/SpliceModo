@@ -208,7 +208,7 @@ namespace dfgModoPI
                 // refs at DFG wrapper members.
                 FabricCore::Client                          &client  = *b->getClient();
                 FabricServices::DFGWrapper::Binding         &binding = *b->getBinding();
-                FabricServices::DFGWrapper::GraphExecutable &graph   = binding.getGraph();
+                FabricServices::DFGWrapper::GraphExecutable &graph   = *DFGWrapper::GraphExecutablePtr::StaticCast(binding.getExecutable());
 
                 // Fabric Engine (step 1): loop through all the DFG's input ports and set
                 //                         their values from the matching Modo user channels.
@@ -242,19 +242,20 @@ namespace dfgModoPI
                     {
                         char        serr[256];
                         std::string err = "";
-                        std::vector <FabricServices::DFGWrapper::Port> ports = graph.getPorts();
-                        for (int fi=0;fi<ports.size();fi++)
+                        FabricServices::DFGWrapper::PortList portlist = graph.getPorts();
+                        for (int fi=0;fi<portlist.size();fi++)
                         {
                             // ref at port.
-                            FabricServices::DFGWrapper::Port &port = ports[fi];
+                            FabricServices::DFGWrapper::Port &port = *portlist[fi];
 
                             // wrong type of port?
+                            std::string resolvedType = port.getResolvedType();
                             if (   port.getPortType() != FabricCore::DFGPortType_Out
-                                || port.getDataType() != "PolygonMesh"  )
+                                || resolvedType       != "PolygonMesh"  )
                                 continue;
 
                             // get the port's mesh data.
-                            FabricCore::RTVal rtMesh = port.getRTVal();
+                            FabricCore::RTVal rtMesh = port.getArgValue();
                             unsigned int            numVertices;
                             unsigned int            numPolygons;
                             unsigned int            numSamples;
@@ -275,7 +276,7 @@ namespace dfgModoPI
                             if (retGet)
                             {
                                 sprintf(serr, "%ld", retGet);
-                                err = "failed to get value from DFG port \"" + port.getName() + "\" (returned " + serr + ")";
+                                err = "failed to get value from DFG port \"" + std::string(port.getName()) + "\" (returned " + serr + ")";
                                 break;
                             }
 

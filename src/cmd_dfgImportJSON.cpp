@@ -102,19 +102,19 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         return;    }
 
     // re-create all user channels.
-    std::vector <FabricServices::DFGWrapper::Port> ports = b->getGraph().getPorts();
-    for (int fi=0;fi<ports.size();fi++)
+    FabricServices::DFGWrapper::PortList portlist = b->getGraph()->getPorts();
+    for (int fi=0;fi<portlist.size();fi++)
     {
         // ref at port.
-        FabricServices::DFGWrapper::Port &port = ports[fi];
+        FabricServices::DFGWrapper::PortPtr port = portlist[fi];
 
         // if the port has the wrong type then skip it.
-        if (   port.getPortType() != FabricCore::DFGPortType_In
-            && port.getPortType() != FabricCore::DFGPortType_Out)
+        if (   port->getPortType() != FabricCore::DFGPortType_In
+            && port->getPortType() != FabricCore::DFGPortType_Out)
             continue;
 
-        if (!b->CreateModoUserChannelForPort(port))
-        {   feLogError(0, err + "creating user channel for port \"" + port.getName() + "\" failed. Continuing anyway.");
+        if (!b->CreateModoUserChannelForPort(*port))
+        {   feLogError(0, err + "creating user channel for port \"" + port->getName() + "\" failed. Continuing anyway.");
             return;    }
     }
 

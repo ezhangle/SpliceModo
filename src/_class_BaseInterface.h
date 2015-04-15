@@ -47,22 +47,25 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         // notifications
         // for now we only implement onPortInserted and onPortRemoved
         virtual void onNotification(char const * json) {}
-        virtual void onNodeInserted(FabricServices::DFGWrapper::Node node) {}
-        virtual void onNodeRemoved(FabricServices::DFGWrapper::Node node) {}
-        virtual void onPinInserted(FabricServices::DFGWrapper::Pin pin) {}
-        virtual void onPinRemoved(FabricServices::DFGWrapper::Pin pin) {}
-        virtual void onPortInserted(FabricServices::DFGWrapper::Port port);
-        virtual void onPortRemoved(FabricServices::DFGWrapper::Port port);
-        virtual void onEndPointsConnected(FabricServices::DFGWrapper::Port src, FabricServices::DFGWrapper::Port dst) {}
-        virtual void onEndPointsDisconnected(FabricServices::DFGWrapper::Port src, FabricServices::DFGWrapper::Port dst) {}
-        virtual void onNodeMetadataChanged(FabricServices::DFGWrapper::Node node, const char * key, const char * metadata) {}
-        virtual void onNodeTitleChanged(FabricServices::DFGWrapper::Node node, const char * title) {}
-        virtual void onPortRenamed(FabricServices::DFGWrapper::Port port, const char * oldName);
-        virtual void onPinRenamed(FabricServices::DFGWrapper::Pin pin, const char * oldName) {}
-        virtual void onExecMetadataChanged(FabricServices::DFGWrapper::Executable exec, const char * key, const char * metadata) {}
+        virtual void onNodeInserted(FabricServices::DFGWrapper::NodePtr node) {}
+        virtual void onNodeRemoved(FabricServices::DFGWrapper::NodePtr node) {}
+        virtual void onPinInserted(FabricServices::DFGWrapper::PinPtr pin) {}
+        virtual void onPinRemoved(FabricServices::DFGWrapper::PinPtr pin) {}
+        virtual void onPortInserted(FabricServices::DFGWrapper::PortPtr port);
+        virtual void onPortRemoved(FabricServices::DFGWrapper::PortPtr port);
+        virtual void onEndPointsConnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst) {}
+        virtual void onEndPointsDisconnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst) {}
+        virtual void onNodeMetadataChanged(FabricServices::DFGWrapper::NodePtr node, const char * key, const char * metadata) {}
+        virtual void onNodeTitleChanged(FabricServices::DFGWrapper::NodePtr node, const char * title) {}
+        virtual void onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char * oldName);
+        virtual void onPinRenamed(FabricServices::DFGWrapper::PinPtr pin, const char * oldName) {}
+        virtual void onExecMetadataChanged(FabricServices::DFGWrapper::ExecutablePtr exec, const char * key, const char * metadata) {}
         virtual void onExtDepAdded(const char * extension, const char * version) {}
+        virtual void onExtDepRemoved(const char * extension, const char * version) {}
         virtual void onNodeCacheRuleChanged(const char * path, const char * rule) {}
         virtual void onExecCacheRuleChanged(const char * path, const char * rule) {}
+        virtual void onPortResolvedTypeChanged(FabricServices::DFGWrapper::PortPtr port, const char * resolvedType) {}
+        virtual void onPinResolvedTypeChanged(FabricServices::DFGWrapper::PinPtr pin, const char * resolvedType) {}
 
     private:
         static void logFunc(void * userData, const char * message, unsigned int length);

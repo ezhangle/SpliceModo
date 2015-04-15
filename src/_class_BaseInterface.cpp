@@ -52,7 +52,7 @@ BaseInterface::BaseInterface()
     m_binding = s_host->createBindingToNewGraph();
 
     // set the graph on the view
-    DFGWrapper::View::setGraph(m_binding.getGraph());
+    DFGWrapper::View::setGraph(DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
 }
 
 BaseInterface::~BaseInterface()
@@ -124,7 +124,7 @@ std::string BaseInterface::getJSON()
 {
   try
   {
-    return m_binding.getGraph().exportJSON();
+      return m_binding.exportJSON();
   }
   catch (FabricCore::Exception e)
   {
@@ -138,7 +138,7 @@ void BaseInterface::setFromJSON(const std::string & json)
   try
   {
     m_binding = s_host->createBindingFromJSON(json.c_str());
-    setGraph(m_binding.getGraph());
+    DFGWrapper::View::setGraph(DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
   catch (FabricCore::Exception e)
   {
@@ -156,73 +156,82 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
   s_logErrorFunc = in_logErrorFunc;
 }
 
-void BaseInterface::onPortInserted(FabricServices::DFGWrapper::Port port)
+void BaseInterface::onPortInserted(FabricServices::DFGWrapper::PortPtr port)
 {
-    CreateModoUserChannelForPort(port);
-}
-
-void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::Port port)
-{
-    try
+    if (port)
     {
-        std::string err;
-        CLxUser_Item item;
-
-        if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
-        else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
-        else                        {   err = "m_item_obj_dfgModo??? == NULL";
-                                        logErrorFunc(0, err.c_str(), err.length());
-                                        return;    }
-
-        if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
-                                logErrorFunc(0, err.c_str(), err.length());
-                                return;    }
-
-        if (!ModoTools::DeleteUserChannel(&item, port.getName(), err))
-            logErrorFunc(0, err.c_str(), err.length());
-    }
-    catch (FabricCore::Exception e)
-    {
-        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        CreateModoUserChannelForPort(*port);
     }
 }
 
-void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::Port port, const char *oldName)
+void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::PortPtr port)
 {
-    try
+    if (port)
     {
-        std::string err;
-        CLxUser_Item item;
-
-        if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
-        else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
-        else                        {   err = "m_item_obj_dfgModo??? == NULL";
-                                        logErrorFunc(0, err.c_str(), err.length());
-                                        return;    }
-
-        if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
-                                logErrorFunc(0, err.c_str(), err.length());
-                                return;    }
-
-        if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port.getName(), err))
-            logErrorFunc(0, err.c_str(), err.length());
-
-        // workaround: there currently is no way to tell Modo (via SceneItemListener) that a port was renamed,
-        // so we simply create a dummy port and delete it right away.
-        std::string dummyName = oldName;
-        dummyName += "tmpWorkaround127";
-        if (!ModoTools::CreateUserChannel(&item, dummyName, "float", "", err))
+        try
         {
-            logErrorFunc(0, err.c_str(), err.length());
-            return;    }
-        if (!ModoTools::DeleteUserChannel(&item, dummyName, err))
+            std::string err;
+            CLxUser_Item item;
+
+            if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
+            else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
+            else                        {   err = "m_item_obj_dfgModo??? == NULL";
+                                            logErrorFunc(0, err.c_str(), err.length());
+                                            return;    }
+
+            if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
+                                    logErrorFunc(0, err.c_str(), err.length());
+                                    return;    }
+
+            if (!ModoTools::DeleteUserChannel(&item, port->getName(), err))
+                logErrorFunc(0, err.c_str(), err.length());
+        }
+        catch (FabricCore::Exception e)
         {
-            logErrorFunc(0, err.c_str(), err.length());
-            return;    }
+            logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        }
     }
-    catch (FabricCore::Exception e)
+}
+
+void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char *oldName)
+{
+    if (port)
     {
-        logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        try
+        {
+            std::string err;
+            CLxUser_Item item;
+
+            if      (m_item_obj_dfgModoIM)  item.set((ILxUnknownID)m_item_obj_dfgModoIM);
+            else if (m_item_obj_dfgModoPI)  item.set((ILxUnknownID)m_item_obj_dfgModoPI);
+            else                        {   err = "m_item_obj_dfgModo??? == NULL";
+                                            logErrorFunc(0, err.c_str(), err.length());
+                                            return;    }
+
+            if (!item.test())   {   err = "item((ILxUnknownID)m_item_obj_dfgModo???) failed";
+                                    logErrorFunc(0, err.c_str(), err.length());
+                                    return;    }
+
+            if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port->getName(), err))
+                logErrorFunc(0, err.c_str(), err.length());
+
+            // workaround: there currently is no way to tell Modo (via SceneItemListener) that a port was renamed,
+            // so we simply create a dummy port and delete it right away.
+            std::string dummyName = oldName;
+            dummyName += "tmpWorkaround127";
+            if (!ModoTools::CreateUserChannel(&item, dummyName, "float", "", err))
+            {
+                logErrorFunc(0, err.c_str(), err.length());
+                return;    }
+            if (!ModoTools::DeleteUserChannel(&item, dummyName, err))
+            {
+                logErrorFunc(0, err.c_str(), err.length());
+                return;    }
+        }
+        catch (FabricCore::Exception e)
+        {
+            logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        }
     }
 }
 
@@ -257,11 +266,11 @@ bool BaseInterface::HasPort(const char *portName, const bool testForInput)
     {
         if (portName)
         {
-            FabricServices::DFGWrapper::Port port = getGraph().getPort(portName);
-            if (port.isValid())
+            FabricServices::DFGWrapper::PortPtr port = getGraph()->getPort(portName);
+            if (port)
             {
                 // we found a matching port.
-                return (port.getPortType() == portType);
+                return (port->getPortType() == portType);
             }
             else
             {
@@ -284,9 +293,9 @@ bool BaseInterface::HasPort(const char *portName, const bool testForInput)
                             || lastChar == 'V'
                             || lastChar == 'W')
                         {
-                            port = getGraph().getPort(pname.c_str());
-                            if (port.isValid())
-                                return (port.getPortType() == portType);
+                            port = getGraph()->getPort(pname.c_str());
+                            if (port)
+                                return (port->getPortType() == portType);
                         }
                 }
             }
@@ -332,27 +341,27 @@ int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::Port &port, b
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)    return -1;
+        if      (resolvedType.length() == 0)    return -1;
 
-        else if (dataType == "Boolean")     out = rtval.getBoolean();
+        else if (resolvedType == "Boolean")     out = rtval.getBoolean();
 
         else if (!strict)
         {
-            if      (dataType == "Float32") out = (0 != rtval.getFloat32());
-            else if (dataType == "Float64") out = (0 != rtval.getFloat64());
+            if      (resolvedType == "Float32") out = (0 != rtval.getFloat32());
+            else if (resolvedType == "Float64") out = (0 != rtval.getFloat64());
 
-            else if (dataType == "SInt8")   out = (0 != rtval.getSInt8());
-            else if (dataType == "SInt16")  out = (0 != rtval.getSInt16());
-            else if (dataType == "SInt32")  out = (0 != rtval.getSInt32());
-            else if (dataType == "SInt64")  out = (0 != rtval.getSInt64());
+            else if (resolvedType == "SInt8")   out = (0 != rtval.getSInt8());
+            else if (resolvedType == "SInt16")  out = (0 != rtval.getSInt16());
+            else if (resolvedType == "SInt32")  out = (0 != rtval.getSInt32());
+            else if (resolvedType == "SInt64")  out = (0 != rtval.getSInt64());
 
-            else if (dataType == "UInt8")   out = (0 != rtval.getUInt8());
-            else if (dataType == "UInt16")  out = (0 != rtval.getUInt16());
-            else if (dataType == "UInt32")  out = (0 != rtval.getUInt32());
-            else if (dataType == "UInt64")  out = (0 != rtval.getUInt64());
+            else if (resolvedType == "UInt8")   out = (0 != rtval.getUInt8());
+            else if (resolvedType == "UInt16")  out = (0 != rtval.getUInt16());
+            else if (resolvedType == "UInt32")  out = (0 != rtval.getUInt32());
+            else if (resolvedType == "UInt64")  out = (0 != rtval.getUInt64());
 
             else return -1;
         }
@@ -380,27 +389,27 @@ int BaseInterface::GetPortValueInteger(FabricServices::DFGWrapper::Port &port, i
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)    return -1;
+        if      (resolvedType.length() == 0)    return -1;
 
-        else if (dataType == "SInt8")       out = (int)rtval.getSInt8();
-        else if (dataType == "SInt16")      out = (int)rtval.getSInt16();
-        else if (dataType == "SInt32")      out = (int)rtval.getSInt32();
-        else if (dataType == "SInt64")      out = (int)rtval.getSInt64();
+        else if (resolvedType == "SInt8")       out = (int)rtval.getSInt8();
+        else if (resolvedType == "SInt16")      out = (int)rtval.getSInt16();
+        else if (resolvedType == "SInt32")      out = (int)rtval.getSInt32();
+        else if (resolvedType == "SInt64")      out = (int)rtval.getSInt64();
 
-        else if (dataType == "UInt8")       out = (int)rtval.getUInt8();
-        else if (dataType == "UInt16")      out = (int)rtval.getUInt16();
-        else if (dataType == "UInt32")      out = (int)rtval.getUInt32();
-        else if (dataType == "UInt64")      out = (int)rtval.getUInt64();
+        else if (resolvedType == "UInt8")       out = (int)rtval.getUInt8();
+        else if (resolvedType == "UInt16")      out = (int)rtval.getUInt16();
+        else if (resolvedType == "UInt32")      out = (int)rtval.getUInt32();
+        else if (resolvedType == "UInt64")      out = (int)rtval.getUInt64();
 
         else if (!strict)
         {
-            if      (dataType == "Boolean") out = (int)rtval.getBoolean();
+            if      (resolvedType == "Boolean") out = (int)rtval.getBoolean();
 
-            else if (dataType == "Float32") out = (int)rtval.getFloat32();
-            else if (dataType == "Float64") out = (int)rtval.getFloat64();
+            else if (resolvedType == "Float32") out = (int)rtval.getFloat32();
+            else if (resolvedType == "Float64") out = (int)rtval.getFloat64();
 
             else return -1;
         }
@@ -428,27 +437,27 @@ int BaseInterface::GetPortValueFloat(FabricServices::DFGWrapper::Port &port, dou
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)    return -1;
+        if      (resolvedType.length() == 0)    return -1;
 
-        else if (dataType == "Float32")     out = (double)rtval.getFloat32();
-        else if (dataType == "Float64")     out = (double)rtval.getFloat64();
+        else if (resolvedType == "Float32")     out = (double)rtval.getFloat32();
+        else if (resolvedType == "Float64")     out = (double)rtval.getFloat64();
 
         else if (!strict)
         {
-            if      (dataType == "Boolean") out = (double)rtval.getBoolean();
+            if      (resolvedType == "Boolean") out = (double)rtval.getBoolean();
 
-            else if (dataType == "SInt8")   out = (double)rtval.getSInt8();
-            else if (dataType == "SInt16")  out = (double)rtval.getSInt16();
-            else if (dataType == "SInt32")  out = (double)rtval.getSInt32();
-            else if (dataType == "SInt64")  out = (double)rtval.getSInt64();
+            else if (resolvedType == "SInt8")   out = (double)rtval.getSInt8();
+            else if (resolvedType == "SInt16")  out = (double)rtval.getSInt16();
+            else if (resolvedType == "SInt32")  out = (double)rtval.getSInt32();
+            else if (resolvedType == "SInt64")  out = (double)rtval.getSInt64();
 
-            else if (dataType == "UInt8")   out = (double)rtval.getUInt8();
-            else if (dataType == "UInt16")  out = (double)rtval.getUInt16();
-            else if (dataType == "UInt32")  out = (double)rtval.getUInt32();
-            else if (dataType == "UInt64")  out = (double)rtval.getUInt64();
+            else if (resolvedType == "UInt8")   out = (double)rtval.getUInt8();
+            else if (resolvedType == "UInt16")  out = (double)rtval.getUInt16();
+            else if (resolvedType == "UInt32")  out = (double)rtval.getUInt32();
+            else if (resolvedType == "UInt64")  out = (double)rtval.getUInt64();
 
             else return -1;
         }
@@ -476,12 +485,12 @@ int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::Port &port, st
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)    return -1;
+        if      (resolvedType.length() == 0)    return -1;
 
-        else if (dataType == "String")      out = rtval.getStringCString();
+        else if (resolvedType == "String")      out = rtval.getStringCString();
 
         else if (!strict)
         {
@@ -537,15 +546,15 @@ int BaseInterface::GetPortValueVec2(FabricServices::DFGWrapper::Port &port, std:
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "Vec2")        {
-                                                out.push_back(rtval.maybeGetMember("x").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("y").getFloat32());
-                                            }
+        else if (resolvedType == "Vec2")        {
+                                                    out.push_back(rtval.maybeGetMember("x").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("y").getFloat32());
+                                                }
         else
             return -1;
     }
@@ -571,28 +580,28 @@ int BaseInterface::GetPortValueVec3(FabricServices::DFGWrapper::Port &port, std:
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "Vec3")        {
-                                                out.push_back(rtval.maybeGetMember("x").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("y").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("z").getFloat32());
-                                            }
+        else if (resolvedType == "Vec3")        {
+                                                    out.push_back(rtval.maybeGetMember("x").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("y").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("z").getFloat32());
+                                                }
         else if (!strict)
         {
-            if      (dataType == "Color")   {
-                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
-                                            }
-            else if (dataType == "Vec4")    {
-                                                out.push_back(rtval.maybeGetMember("x").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("y").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("z").getFloat32());
-                                            }
+            if      (resolvedType == "Color")   {
+                                                    out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                }
+            else if (resolvedType == "Vec4")    {
+                                                    out.push_back(rtval.maybeGetMember("x").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("y").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("z").getFloat32());
+                                                }
             else
                 return -1;
         }
@@ -619,25 +628,25 @@ int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::Port &port, std:
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "Vec4")        {
-                                                out.push_back(rtval.maybeGetMember("x").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("y").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("z").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("t").getFloat32());
-                                            }
+        else if (resolvedType == "Vec4")        {
+                                                    out.push_back(rtval.maybeGetMember("x").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("y").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("z").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("t").getFloat32());
+                                                }
         else if (!strict)
         {
-            if      (dataType == "Color")   {
-                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("a").getFloat32());
-                                            }
+            if      (resolvedType == "Color")   {
+                                                    out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("a").getFloat32());
+                                                }
             else
                 return -1;
         }
@@ -664,37 +673,37 @@ int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::Port &port, std
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "Color")        {
-                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("a").getFloat32());
-                                            }
+        else if (resolvedType == "Color")        {
+                                                    out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("a").getFloat32());
+                                                }
         else if (!strict)
         {
-            if      (dataType == "Vec4")   {
-                                                out.push_back(rtval.maybeGetMember("x").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("y").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("z").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("t").getFloat32());
-                                            }
-            else if (dataType == "RGB")     {
-                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
-                                                out.push_back(1);
-                                            }
-            else if (dataType == "RGBA")    {
-                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("a").getUInt8() / 255.0);
-                                            }
+            if      (resolvedType == "Vec4")   {
+                                                    out.push_back(rtval.maybeGetMember("x").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("y").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("z").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("t").getFloat32());
+                                                }
+            else if (resolvedType == "RGB")     {
+                                                    out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                    out.push_back(1);
+                                                }
+            else if (resolvedType == "RGBA")    {
+                                                    out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("a").getUInt8() / 255.0);
+                                                }
             else
                 return -1;
         }
@@ -721,28 +730,28 @@ int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::Port &port, std::
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "RGB")         {
-                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
-                                            }
+        else if (resolvedType == "RGB")         {
+                                                    out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                }
         else if (!strict)
         {
-            if      (dataType == "RGBA")    {
-                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
-                                            }
-            else if (dataType == "Color")   {
-                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
-                                            }
+            if      (resolvedType == "RGBA")    {
+                                                    out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                }
+            else if (resolvedType == "Color")   {
+                                                    out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                }
             else
                 return -1;
         }
@@ -769,31 +778,31 @@ int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::Port &port, std:
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "RGBA")        {
-                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("a").getUInt8() / 255.0);
-                                            }
+        else if (resolvedType == "RGBA")        {
+                                                    out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("a").getUInt8() / 255.0);
+                                                }
         else if (!strict)
         {
-            if      (dataType == "RGB")     {
-                                                out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
-                                                out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
-                                                out.push_back(1);
-                                            }
-            else if (dataType == "Color")   {
-                                                out.push_back(rtval.maybeGetMember("r").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("g").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("b").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("a").getFloat32());
-                                            }
+            if      (resolvedType == "RGB")     {
+                                                    out.push_back(rtval.maybeGetMember("r").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("g").getUInt8() / 255.0);
+                                                    out.push_back(rtval.maybeGetMember("b").getUInt8() / 255.0);
+                                                    out.push_back(1);
+                                                }
+            else if (resolvedType == "Color")   {
+                                                    out.push_back(rtval.maybeGetMember("r").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("g").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("b").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("a").getFloat32());
+                                                }
             else
                 return -1;
         }
@@ -820,19 +829,19 @@ int BaseInterface::GetPortValueQuat(FabricServices::DFGWrapper::Port &port, std:
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "Quat")        {
-                                                FabricCore::RTVal v;
-                                                v = rtval.maybeGetMember("v");
-                                                out.push_back(v.    maybeGetMember("x").getFloat32());
-                                                out.push_back(v.    maybeGetMember("y").getFloat32());
-                                                out.push_back(v.    maybeGetMember("z").getFloat32());
-                                                out.push_back(rtval.maybeGetMember("w").getFloat32());
-                                            }
+        else if (resolvedType == "Quat")        {
+                                                    FabricCore::RTVal v;
+                                                    v = rtval.maybeGetMember("v");
+                                                    out.push_back(v.    maybeGetMember("x").getFloat32());
+                                                    out.push_back(v.    maybeGetMember("y").getFloat32());
+                                                    out.push_back(v.    maybeGetMember("z").getFloat32());
+                                                    out.push_back(rtval.maybeGetMember("w").getFloat32());
+                                                }
         else
             return -1;
     }
@@ -858,24 +867,24 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::Port &port, std
     // set out from port value.
     try
     {
-        std::string dataType = port.getDataType();
-        FabricCore::RTVal rtval = port.getRTVal();
+        std::string resolvedType = port.getResolvedType();
+        FabricCore::RTVal rtval  = port.getArgValue();
 
-        if      (dataType.length() == 0)        return -1;
+        if      (resolvedType.length() == 0)        return -1;
 
-        else if (dataType == "Mat44")       {
-                                                char member[32];
-                                                FabricCore::RTVal rtRow;
-                                                for (int i=0;i<4;i++)
-                                                {
-                                                    sprintf(member, "row%ld", i);
-                                                    rtRow = rtval.maybeGetMember(member);
-                                                    out.push_back(rtRow.maybeGetMember("x").getFloat32());
-                                                    out.push_back(rtRow.maybeGetMember("y").getFloat32());
-                                                    out.push_back(rtRow.maybeGetMember("z").getFloat32());
-                                                    out.push_back(rtRow.maybeGetMember("t").getFloat32());
+        else if (resolvedType == "Mat44")       {
+                                                    char member[32];
+                                                    FabricCore::RTVal rtRow;
+                                                    for (int i=0;i<4;i++)
+                                                    {
+                                                        sprintf(member, "row%ld", i);
+                                                        rtRow = rtval.maybeGetMember(member);
+                                                        out.push_back(rtRow.maybeGetMember("x").getFloat32());
+                                                        out.push_back(rtRow.maybeGetMember("y").getFloat32());
+                                                        out.push_back(rtRow.maybeGetMember("z").getFloat32());
+                                                        out.push_back(rtRow.maybeGetMember("t").getFloat32());
+                                                    }
                                                 }
-                                            }
         else
             return -1;
     }
@@ -919,13 +928,13 @@ int BaseInterface::GetPortValuePolygonMesh( FabricServices::DFGWrapper::Port    
         try
         {
             // check type.
-            std::string dataType = port.getDataType();
-            if (   dataType.length() == 0
-                || dataType != "PolygonMesh")
+            std::string resolvedType = port.getResolvedType();
+            if (   resolvedType.length() == 0
+                || resolvedType != "PolygonMesh")
                 return -1;
 
             // RTVal of the polygon mesh.
-            FabricCore::RTVal rtMesh = port.getRTVal();
+            FabricCore::RTVal rtMesh = port.getArgValue();
 
             // get amount of points, polys, etc.
             out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
@@ -1029,7 +1038,7 @@ void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServ
     {
         FabricCore::RTVal rtval;
         rtval = FabricCore::RTVal::ConstructBoolean(client, val);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1042,11 +1051,12 @@ void BaseInterface::SetValueOfPortSInt(FabricCore::Client &client, FabricService
     try
     {
         FabricCore::RTVal rtval;
-        if      (port.getDataType() == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
-        else if (port.getDataType() == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
-        else if (port.getDataType() == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
-        else if (port.getDataType() == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        std::string resolvedType = port.getResolvedType();
+        if      (resolvedType == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
+        else if (resolvedType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
+        else if (resolvedType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
+        else if (resolvedType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1059,11 +1069,12 @@ void BaseInterface::SetValueOfPortUInt(FabricCore::Client &client, FabricService
     try
     {
         FabricCore::RTVal rtval;
-        if      (port.getDataType() == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
-        else if (port.getDataType() == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
-        else if (port.getDataType() == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
-        else if (port.getDataType() == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        std::string resolvedType = port.getResolvedType();
+        if      (resolvedType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
+        else if (resolvedType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
+        else if (resolvedType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+        else if (resolvedType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1076,9 +1087,10 @@ void BaseInterface::SetValueOfPortFloat(FabricCore::Client &client, FabricServic
     try
     {
         FabricCore::RTVal rtval;
-        if      (port.getDataType() == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
-        else if (port.getDataType() == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        std::string resolvedType = port.getResolvedType();
+        if      (resolvedType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
+        else if (resolvedType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1092,7 +1104,7 @@ void BaseInterface::SetValueOfPortString(FabricCore::Client &client, FabricServi
     {
         FabricCore::RTVal rtval;
         rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1112,7 +1124,7 @@ void BaseInterface::SetValueOfPortVec2(FabricCore::Client &client, FabricService
         for (int i=0;i<N;i++)
             v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1132,7 +1144,7 @@ void BaseInterface::SetValueOfPortVec3(FabricCore::Client &client, FabricService
         for (int i=0;i<N;i++)
             v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1152,7 +1164,7 @@ void BaseInterface::SetValueOfPortVec4(FabricCore::Client &client, FabricService
         for (int i=0;i<N;i++)
             v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1172,7 +1184,7 @@ void BaseInterface::SetValueOfPortColor(FabricCore::Client &client, FabricServic
         for (int i=0;i<N;i++)
             v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1192,7 +1204,7 @@ void BaseInterface::SetValueOfPortRGB(FabricCore::Client &client, FabricServices
         for (int i=0;i<N;i++)
             v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)__max(0.0, __min(255.0, 255.0 * val[i])) : 0);
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1212,7 +1224,7 @@ void BaseInterface::SetValueOfPortRGBA(FabricCore::Client &client, FabricService
         for (int i=0;i<N;i++)
             v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)__max(0.0, __min(255.0, 255.0 * val[i])) : 0);
         rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1233,7 +1245,7 @@ void BaseInterface::SetValueOfPortQuat(FabricCore::Client &client, FabricService
         v[0]   = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
         v[1]   = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[3] : 0);
         rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1258,7 +1270,7 @@ void BaseInterface::SetValueOfPortMat44(FabricCore::Client &client, FabricServic
             v[i]    = FabricCore::RTVal::Construct(client, "Vec4", 4, xyzt);
         }
         rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
-        binding.setArgValue(port.getName().c_str(), rtval);
+        binding.setArgValue(port.getName(), rtval);
     }
     catch (FabricCore::Exception e)
     {
@@ -1283,50 +1295,50 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Por
                                 logErrorFunc(0, err.c_str(), err.length());
                                 return false;    }
 
-        std::string dataType   = port.getDataType();
-        std::string structType = "";
+        std::string resolvedType = port.getResolvedType();
+        std::string structType   = "";
 
-        if      (   dataType == "")         {   err = "port.getDataType() == \"\"";
-                                                logErrorFunc(0, err.c_str(), err.length());
-                                                return false;    }
+        if      (   resolvedType == "")         {   err = "port.getResolvedType() == \"\"";
+                                                    logErrorFunc(0, err.c_str(), err.length());
+                                                    return false;    }
 
-        else if (   dataType == "Boolean")  {   dataType = "boolean";                           }
+        else if (   resolvedType == "Boolean")  {   resolvedType = "boolean";                           }
 
-        else if (   dataType == "Integer"
-                 || dataType == "SInt8"
-                 || dataType == "SInt16"
-                 || dataType == "SInt32"
-                 || dataType == "SInt64"
-                 || dataType == "UInt8"
-                 || dataType == "UInt16"
-                 || dataType == "UInt32"
-                 || dataType == "UInt64")   {   dataType = "integer";                           }
+        else if (   resolvedType == "Integer"
+                 || resolvedType == "SInt8"
+                 || resolvedType == "SInt16"
+                 || resolvedType == "SInt32"
+                 || resolvedType == "SInt64"
+                 || resolvedType == "UInt8"
+                 || resolvedType == "UInt16"
+                 || resolvedType == "UInt32"
+                 || resolvedType == "UInt64")   {   resolvedType = "integer";                           }
 
-        else if (   dataType == "Scalar"
-                 || dataType == "Float32"
-                 || dataType == "Float64")  {   dataType = "float";                             }
+        else if (   resolvedType == "Scalar"
+                 || resolvedType == "Float32"
+                 || resolvedType == "Float64")  {   resolvedType = "float";                             }
 
-        else if (   dataType == "String")   {   dataType = "string";                            }
+        else if (   resolvedType == "String")   {   resolvedType = "string";                            }
 
-        else if (   dataType == "Quat")     {   dataType = "quaternion";                        }
+        else if (   resolvedType == "Quat")     {   resolvedType = "quaternion";                        }
 
-        else if (   dataType == "Mat44")    {   dataType = "matrix";                            }
+        else if (   resolvedType == "Mat44")    {   resolvedType = "matrix";                            }
 
-        else if (   dataType == "Vec2")     {   dataType = "float";     structType = "vecXY";   }
-        else if (   dataType == "Vec3")     {   dataType = "float";     structType = "vecXYZ";  }
+        else if (   resolvedType == "Vec2")     {   resolvedType = "float";     structType = "vecXY";   }
+        else if (   resolvedType == "Vec3")     {   resolvedType = "float";     structType = "vecXYZ";  }
 
-        else if (   dataType == "Color")    {   dataType = "float";     structType = "vecRGBA"; }
-        else if (   dataType == "RGB")      {   dataType = "float";     structType = "vecRGB";  }
-        else if (   dataType == "RGBA")     {   dataType = "float";     structType = "vecRGBA"; }
+        else if (   resolvedType == "Color")    {   resolvedType = "float";     structType = "vecRGBA"; }
+        else if (   resolvedType == "RGB")      {   resolvedType = "float";     structType = "vecRGB";  }
+        else if (   resolvedType == "RGBA")     {   resolvedType = "float";     structType = "vecRGBA"; }
 
         else
         {
-            err = "unable to create user channel, type \"" + dataType + "\" not yet implemented";
+            err = "unable to create user channel, data type \"" + resolvedType + "\" not yet implemented";
             logErrorFunc(0, err.c_str(), err.length());
             return false;
         }
 
-        if (!ModoTools::CreateUserChannel(&item, port.getName(), dataType, structType, err))
+        if (!ModoTools::CreateUserChannel(&item, port.getName(), resolvedType, structType, err))
             logErrorFunc(0, err.c_str(), err.length());
     }
     catch (FabricCore::Exception e)

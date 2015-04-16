@@ -40,7 +40,7 @@ public slots:
   virtual void onPortRenamed(QString path, QString newName);
 
 private:
-    static std::map<BaseInterface*, QDockWidget*> s_instances;
+    static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
 
 public:
     // returns the pointer at the main Qt window.

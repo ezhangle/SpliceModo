@@ -6,7 +6,7 @@
 
 #include "plugin.h"
 
-std::map<BaseInterface*, QDockWidget*> FabricDFGWidget::s_instances;
+std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
 {
@@ -24,9 +24,9 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
 
 FabricDFGWidget::~FabricDFGWidget()
 {
-    for(std::map<BaseInterface*, QDockWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
+    for(std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
     {
-        if(it->second->widget() == this)
+        if(it->second == this)
         {
             s_instances.erase(it);
             break;
@@ -36,7 +36,7 @@ FabricDFGWidget::~FabricDFGWidget()
 
 QDockWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
 {
-    std::map<BaseInterface*, QDockWidget*>::iterator it = s_instances.find(baseInterface);
+    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
     if (it == s_instances.end())
     {
         // don't create new widget?
@@ -53,12 +53,12 @@ QDockWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInter
         dockWidget->setAttribute(Qt::WA_DeleteOnClose, true);
             
         // insert in map.
-        s_instances.insert(std::pair<BaseInterface*, QDockWidget*>(baseInterface, dockWidget));
+        s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newWidget));
        
         // done.
         return dockWidget;
     }
-    return it->second;
+    return (QDockWidget *)it->second->parent();
 }
 
 void FabricDFGWidget::onRecompilation()

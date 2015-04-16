@@ -89,9 +89,9 @@ class BaseInterface : public FabricServices::DFGWrapper::View
 
     private:
         // returns true if the binding's executable has a port called portName that matches the port type (input/output).
-        // params:  portName        name of the port.
+        // params:  in_portName     name of the port.
         //          testForInput    true: look for input port, else for output port.
-        bool HasPort(const char *portName, const bool testForInput);
+        bool HasPort(const char *in_portName, const bool testForInput);
 
     public:
         // returns true if the binding's executable has an input port called portName.

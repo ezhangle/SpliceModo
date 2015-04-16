@@ -348,11 +348,22 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
   }
 }
 
-bool BaseInterface::HasPort(const char *portName, const bool testForInput)
+bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
 {
     // check/init.
-    if (!portName || portName[0] == '\0')  return false;
+    if (!in_portName || in_portName[0] == '\0')  return false;
     const FabricCore::DFGPortType portType = (testForInput ? FabricCore::DFGPortType_In : FabricCore::DFGPortType_Out);
+
+    // set the port name we will use for the search, i.e. check if the last two characters resemble
+    // something like ".X", ".R", etc. meaning we are dealing with a scalar channel belonging to a vector/color channel.
+    std::string portName = in_portName;
+    if (portName.length() > 2)
+    {
+        char lastChar       = portName.back();   portName.pop_back();
+        char beforeLastChar = portName.back();   portName.pop_back();
+        if (beforeLastChar  != '.')
+            portName = in_portName;
+    }
 
     // go.
     try
@@ -366,40 +377,13 @@ bool BaseInterface::HasPort(const char *portName, const bool testForInput)
             return false;
         }
 
-        // attempt to get the port.
-        FabricServices::DFGWrapper::PortPtr port = graph->getPort(portName);
-        if (port.isNull())
-        {
-            // we didn't find a port, but then perhaps we are dealing with a scalar channel belonging to a vector/color channel
-            // => check if the last two characters resemble something like ".X", ".R", etc.
-            std::string pname = portName;
-            if (pname.length() > 2)
-            {
-                char lastChar       = pname.back();   pname.pop_back();
-                char beforeLastChar = pname.back();   pname.pop_back();
-                if (beforeLastChar == '.')
-                    if (   lastChar == 'X'
-                        || lastChar == 'Y'
-                        || lastChar == 'Z'
-                        || lastChar == 'R'
-                        || lastChar == 'G'
-                        || lastChar == 'B'
-                        || lastChar == 'A'
-                        || lastChar == 'U'
-                        || lastChar == 'V'
-                        || lastChar == 'W')
-                    {
-                        port = graph->getPort(pname.c_str());
-                    }
-            }
-        }
+        // get the port.
+        FabricServices::DFGWrapper::PortPtr port = graph->getPort(portName.c_str());
 
-        // no port found?
-        if (port.isNull())
-            return false;
-
-        // we found a port and return true if it has the correct type.
-        return (port->getPortType() == portType);
+        // return result.
+        return (   !port.isNull()
+                &&  port->isValid()
+                &&  port->getPortType() == portType);
     }
     catch (FabricCore::Exception e)
     {

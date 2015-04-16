@@ -12,13 +12,12 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
 {
     if (baseInterface)
     {
-        BaseInterface &b = *baseInterface;
-        init( b.getClient(),
-              b.getManager(),
-              b.getHost(),
-             *b.getBinding(),
-              b.getGraph(),
-              b.getStack(),
+        init( baseInterface->getClient(),
+              baseInterface->getManager(),
+              baseInterface->getHost(),
+             *baseInterface->getBinding(),
+              baseInterface->getGraph(),
+              baseInterface->getStack(),
               false);
     }
 }
@@ -51,9 +50,10 @@ QDockWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInter
         QDockWidget * dockWidget = new QDockWidget("Fabric Canvas", mainWindow);
         FabricDFGWidget *newWidget = new FabricDFGWidget((QWidget *)dockWidget, baseInterface);
         dockWidget->setWidget(newWidget);
+        dockWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+            
+        // insert in map.
         s_instances.insert(std::pair<BaseInterface*, QDockWidget*>(baseInterface, dockWidget));
-        Qt::WindowFlags flags = (*newWidget).windowFlags();
-        (*newWidget).setWindowFlags(flags | Qt::WindowStaysOnTopHint);     // WIP.
        
         // done.
         return dockWidget;

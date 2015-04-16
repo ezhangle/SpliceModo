@@ -201,7 +201,7 @@ void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::PortPtr port)
     }
     catch (FabricCore::Exception e)
     {
-        std::string s = std::string("BaseInterface::onPortRemoved(): ") + e.getDesc_cstr();
+        std::string s = std::string("BaseInterface::onPortRemoved(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
         logErrorFunc(NULL, s.c_str(), s.length());
     }
 }
@@ -262,7 +262,7 @@ void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::PortPtr port, cons
     }
     catch (FabricCore::Exception e)
     {
-        std::string s = std::string("BaseInterface::onPortRenamed(): ") + e.getDesc_cstr();
+        std::string s = std::string("BaseInterface::onPortRenamed(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
         logErrorFunc(NULL, s.c_str(), s.length());
     }
 }
@@ -316,7 +316,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     }
     catch (FabricCore::Exception e)
     {
-        std::string s = std::string("BaseInterface::bindingNotificationCallback(): ") + e.getDesc_cstr();
+        std::string s = std::string("BaseInterface::bindingNotificationCallback(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
         logErrorFunc(NULL, s.c_str(), s.length());
         return;
     }
@@ -326,7 +326,8 @@ void BaseInterface::logFunc(void * userData, const char * message, unsigned int 
 {
   if (s_logFunc)
   {
-    s_logFunc(userData, message, length);
+      if (message)
+        s_logFunc(userData, message, length);
   }
   else
   {
@@ -338,7 +339,8 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
 {
   if (s_logErrorFunc)
   {
-    s_logErrorFunc(userData, message, length);
+      if (message)
+        s_logErrorFunc(userData, message, length);
   }
   else
   {
@@ -349,7 +351,7 @@ void BaseInterface::logErrorFunc(void * userData, const char * message, unsigned
 bool BaseInterface::HasPort(const char *portName, const bool testForInput)
 {
     // check/init.
-    if (!portName)  return false;
+    if (!portName || portName[0] == '\0')  return false;
     const FabricCore::DFGPortType portType = (testForInput ? FabricCore::DFGPortType_In : FabricCore::DFGPortType_Out);
 
     // go.
@@ -401,7 +403,7 @@ bool BaseInterface::HasPort(const char *portName, const bool testForInput)
     }
     catch (FabricCore::Exception e)
     {
-        std::string s = std::string("BaseInterface::HasPort(): ") + e.getDesc_cstr();
+        std::string s = std::string("BaseInterface::HasPort(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
         logErrorFunc(NULL, s.c_str(), s.length());
         return false;
     }

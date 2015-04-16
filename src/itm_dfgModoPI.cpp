@@ -206,9 +206,18 @@ namespace dfgModoPI
                 BaseInterface *b = quickhack_baseInterface;
 
                 // refs at DFG wrapper members.
-                FabricCore::Client                          &client  = *b->getClient();
-                FabricServices::DFGWrapper::Binding         &binding = *b->getBinding();
-                FabricServices::DFGWrapper::GraphExecutable &graph   = *DFGWrapper::GraphExecutablePtr::StaticCast(binding.getExecutable());
+                FabricCore::Client                            *client  = b->getClient();
+                if (!client)
+                {   feLogError("Element::Eval(): getClient() returned NULL");
+                    return LXe_OK;     }
+                FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
+                if (!binding)
+                {   feLogError("Element::Eval(): getBinding() returned NULL");
+                    return LXe_OK;     }
+                FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
+                if (graph.isNull())
+                {   feLogError("Element::Eval(): getExecutable() returned NULL");
+                    return LXe_OK;     }
 
                 // Fabric Engine (step 1): loop through all the DFG's input ports and set
                 //                         their values from the matching Modo user channels.
@@ -220,7 +229,7 @@ namespace dfgModoPI
                 {
                     try
                     {
-                        binding.execute();
+                        binding->execute();
                     }
                     catch (FabricCore::Exception e)
                     {
@@ -242,12 +251,12 @@ namespace dfgModoPI
                     {
                         char        serr[256];
                         std::string err = "";
-                        FabricServices::DFGWrapper::PortList portlist = graph.getPorts();
+                        FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
                         for (int fi=0;fi<portlist.size();fi++)
                         {
                             // get port.
-                            if (portlist[fi].isNull())  continue;
                             FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+                            if (port.isNull())  continue;
 
                             // wrong type of port?
                             std::string resolvedType = port->getResolvedType();

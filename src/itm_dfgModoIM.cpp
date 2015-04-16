@@ -409,11 +409,23 @@ namespace dfgModoIM
 
         //
         BaseInterface *b = GetBaseInterface(m_Instance->m_item);
+        if (!b)
+        {   feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item) returned NULL");
+            return;     }
 
         // refs at DFG wrapper members.
-        FabricCore::Client                          &client  = *b->getClient();
-        FabricServices::DFGWrapper::Binding         &binding = *b->getBinding();
-        FabricServices::DFGWrapper::GraphExecutable &graph   = *DFGWrapper::GraphExecutablePtr::StaticCast(binding.getExecutable());
+        FabricCore::Client                            *client  = b->getClient();
+        if (!client)
+        {   feLogError("Element::Eval(): getClient() returned NULL");
+            return;     }
+        FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
+        if (!binding)
+        {   feLogError("Element::Eval(): getBinding() returned NULL");
+            return;     }
+        FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
+        if (graph.isNull())
+        {   feLogError("Element::Eval(): getExecutable() returned NULL");
+            return;     }
 
 
         // read the fixed input channels and return early if the FabricActive flag is disabled.
@@ -429,13 +441,13 @@ namespace dfgModoIM
             {
                 char        serr[256];
                 std::string err = "";
-                FabricServices::DFGWrapper::PortList portlist = graph.getPorts();
+                FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
 
                 for (int fi=0;fi<portlist.size();fi++)
                 {
                     // get port.
-                    if (portlist[fi].isNull())  continue;
                     FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+                    if (port.isNull())  continue;
 
                     // if the port has the wrong type then skip it.
                     if (port->getPortType() != FabricCore::DFGPortType_In)
@@ -453,7 +465,7 @@ namespace dfgModoIM
                     if      (   port__resolvedType == "Boolean")    {
                                                                         bool val = false;
                                                                         retGet = ModoTools::GetChannelValueAsBoolean(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortBoolean(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortBoolean(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "SInt8"
                              || port__resolvedType == "SInt16"
@@ -461,7 +473,7 @@ namespace dfgModoIM
                              || port__resolvedType == "SInt64" )    {
                                                                         int val = 0;
                                                                         retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortSInt(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortSInt(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "UInt8"
                              || port__resolvedType == "UInt16"
@@ -469,53 +481,53 @@ namespace dfgModoIM
                              || port__resolvedType == "UInt64" )    {
                                                                         unsigned int val = 0;
                                                                         retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, *(int *)val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortUInt(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortUInt(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "Float32"
                              || port__resolvedType == "Float64" )   {
                                                                         double val = 0;
                                                                         retGet = ModoTools::GetChannelValueAsFloat(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortFloat(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortFloat(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "String")     {
                                                                         std::string val = "";
                                                                         retGet = ModoTools::GetChannelValueAsString(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortString(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortString(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "Quat")       {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsQuaternion(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortQuat(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortQuat(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "Vec2")       {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsVector2(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortVec2(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortVec2(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "Vec3")       {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsVector3(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortVec3(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortVec3(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "Color")      {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsColor(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortColor(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortColor(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "RGB")        {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsRGB(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortRGB(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortRGB(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "RGBA")       {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsRGBA(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortRGBA(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortRGBA(*client, *binding, port, val);
                                                                     }
                     else if (   port__resolvedType == "Mat44")      {
                                                                         std::vector <double> val;
                                                                         retGet = ModoTools::GetChannelValueAsMatrix44(attr, cd->eval_index, val);
-                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortMat44(client, binding, port, val);
+                                                                        if (retGet == 0)    BaseInterface::SetValueOfPortMat44(*client, *binding, port, val);
                                                                     }
                     else
                     {
@@ -541,7 +553,8 @@ namespace dfgModoIM
             }
             catch (FabricCore::Exception e)
             {
-                feLogError(e.getDesc_cstr());
+                std::string s = std::string("Element::Eval()(step 1): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+                feLogError(s);
             }
         }
 
@@ -549,11 +562,12 @@ namespace dfgModoIM
         {
             try
             {
-                binding.execute();
+                binding->execute();
             }
             catch (FabricCore::Exception e)
             {
-                feLogError(e.getDesc_cstr());
+                std::string s = std::string("Element::Eval()(step 2): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+                feLogError(s);
             }
         }
 
@@ -564,7 +578,7 @@ namespace dfgModoIM
             {
                 char        serr[256];
                 std::string err = "";
-                FabricServices::DFGWrapper::PortList portlist = graph.getPorts();
+                FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
 
                 for (int fi=0;fi<portlist.size();fi++)
                 {
@@ -705,7 +719,8 @@ namespace dfgModoIM
             }
             catch (FabricCore::Exception e)
             {
-                feLogError(e.getDesc_cstr());
+                std::string s = std::string("Element::Eval()(step 3): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+                feLogError(s);
             }
         }
 

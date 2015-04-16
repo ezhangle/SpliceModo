@@ -2,10 +2,11 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QLabel>
+#include <QtGui/QDockWidget>
 
 #include "plugin.h"
 
-std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
+std::map<BaseInterface*, QDockWidget*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
 {
@@ -24,9 +25,9 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
 
 FabricDFGWidget::~FabricDFGWidget()
 {
-    for(std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
+    for(std::map<BaseInterface*, QDockWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
     {
-        if(it->second == this)
+        if(it->second->widget() == this)
         {
             s_instances.erase(it);
             break;
@@ -34,9 +35,9 @@ FabricDFGWidget::~FabricDFGWidget()
     }
 }
 
-FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
+QDockWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
 {
-    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
+    std::map<BaseInterface*, QDockWidget*>::iterator it = s_instances.find(baseInterface);
     if (it == s_instances.end())
     {
         // don't create new widget?
@@ -46,17 +47,16 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseI
         // get main window's pointer.
         QMainWindow *mainWindow = GetPointerAtMainWindow();
 
-        // create dock widget.
-        QDockWidget *dockWindow = NULL;     // WIP.
-
         // create Fabric DFG widget
-        FabricDFGWidget *newWidget = new FabricDFGWidget((QWidget *)dockWindow, baseInterface);
-        s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newWidget));
+        QDockWidget * dockWidget = new QDockWidget("Fabric Canvas", mainWindow);
+        FabricDFGWidget *newWidget = new FabricDFGWidget((QWidget *)dockWidget, baseInterface);
+        dockWidget->setWidget(newWidget);
+        s_instances.insert(std::pair<BaseInterface*, QDockWidget*>(baseInterface, dockWidget));
         Qt::WindowFlags flags = (*newWidget).windowFlags();
         (*newWidget).setWindowFlags(flags | Qt::WindowStaysOnTopHint);     // WIP.
        
         // done.
-        return newWidget;
+        return dockWidget;
     }
     return it->second;
 }

@@ -6,6 +6,7 @@
 #include <QtGui/QWidget>
 #include <QtGui/QFileDialog>
 #include <QtGui/QSplitter>
+#include <QtGui/QDockWidget>
 
 #include <DFGWrapper/DFGWrapper.h>
 #include <ASTWrapper/KLASTManager.h>
@@ -32,14 +33,14 @@ public:
   FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface);
   ~FabricDFGWidget();
 
-  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
+  static QDockWidget *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
 
 public slots:
   virtual void onRecompilation();
   virtual void onPortRenamed(QString path, QString newName);
 
 private:
-    static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
+    static std::map<BaseInterface*, QDockWidget*> s_instances;
 
 public:
     // returns the pointer at the main Qt window.

@@ -90,9 +90,9 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     try
     {
         // delete widget.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
+        QWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
         bool widgetWasVisible = (w != NULL && w->isVisible());
-        if (w) delete w;
+        w->close();
 
         // set DFG from JSON.
         b->setFromJSON(json.c_str());

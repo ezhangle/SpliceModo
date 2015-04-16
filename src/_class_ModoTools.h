@@ -40,14 +40,16 @@ class ModoTools
     static bool ExecuteCommand(const std::string &command, std::string &out_err);
 
     // checks if an item has a specific channel (user or other).
-    // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
-    //          channelName             name of channel.
-    //          out_err                 contains an error description if the function returns false.
-    //          out_actualChannelName   if the channel was found then this contains the "actual" channel name, typically it is
-    //                                  equal channelName, but for vector or color channels it can differ.
+    // params:  ptr_CLxUser_Item                        pointer at CLxUser_Item (or ILxUnknownID, see parameter interpretate_ptr_as_ILxUnknownID).
+    //          channelName                             name of channel.
+    //          out_err                                 contains an error description if the function returns false.
+    //          out_actualChannelName                   if the channel was found then this contains the "actual" channel name, typically
+    //                                                  it is equal channelName, but for vector or color channels it can differ.
+    //          interpretate_ptr_as_ILxUnknownID        if true then the parameter ptr_CLxUser_Item is not interpretated
+    //                                                  as being a pointer at CLxUser_Item but as being a ILxUnknownID.
     // returns: true if the item ptr_CLxUser_Item has a channel called channelName, false otherwise.
-    static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err);
-    static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
+    static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID = false);
+    static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID = false);
 
     // creates a new user channel.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
@@ -85,12 +87,13 @@ class ModoTools
     // returns: on success the amount of user channels (0 or more), on failure -1.
     static int GetUserChannels(void *ptr_CLxUser_Item, std::vector <std::string> &out_usrChannels, std::string &out_err);
 
-    // deletes an existing user channel.
-    // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
-    //          channelName             name of channel to delete.
-    //          out_err                 contains an error description if the function returns false.
+    // params:  ptr_CLxUser_Item                        pointer at CLxUser_Item (or ILxUnknownID, see parameter interpretate_ptr_as_ILxUnknownID).
+    //          channelName                             name of channel.
+    //          out_err                                 contains an error description if the function returns false.
+    //          interpretate_ptr_as_ILxUnknownID        if true then the parameter ptr_CLxUser_Item is not interpretated
+    //                                                  as being a pointer at CLxUser_Item but as being a ILxUnknownID.
     // returns: true on success, false otherwise.
-    static bool DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err);
+    static bool DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID = false);
 
     // deletes all user channels.
     // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.

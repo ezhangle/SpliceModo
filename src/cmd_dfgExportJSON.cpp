@@ -73,9 +73,6 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
         filePath   = fPath.toUtf8().constData();
     }
 
-    // get JSON.
-    std::string json = b->getJSON();
-
     // write JSON file.
     std::ofstream t(filePath, std::ios::binary);
     if (!t.good())
@@ -84,6 +81,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
         return;    }
     try
     {
+        std::string json = b->getJSON();
         t.write(json.c_str(), json.length());
     }
     catch (std::exception &e)

@@ -329,7 +329,7 @@ namespace dfgModoIM
         if (!b)
         {   feLogError("GetBaseInterface() returned NULL");
             return;   }
-        b->m_item_obj_dfgModoIM = item_obj;
+        b->m_ILxUnknownID_dfgModoIM = item_obj;
 
         /*
          *  In the constructor, we want to add the input and output channels
@@ -433,22 +433,23 @@ namespace dfgModoIM
 
                 for (int fi=0;fi<portlist.size();fi++)
                 {
-                    // ref at port.
-                    FabricServices::DFGWrapper::Port &port = *portlist[fi];
+                    // get port.
+                    if (portlist[fi].isNull())  continue;
+                    FabricServices::DFGWrapper::PortPtr port = portlist[fi];
 
                     // if the port has the wrong type then skip it.
-                    if (port.getPortType() != FabricCore::DFGPortType_In)
+                    if (port->getPortType() != FabricCore::DFGPortType_In)
                         continue;
 
                     // get pointer at matching channel definition.
-                    ChannelDef *cd = usrChanGetFromName(port.getName(), m_usrChan);
+                    ChannelDef *cd = usrChanGetFromName(port->getName(), m_usrChan);
                     if (!cd || cd->eval_index < 0)
-                    {   err  = "unable to find a user channel that matches the port \"" + std::string(port.getName()) + "\"";
+                    {   err  = "unable to find a user channel that matches the port \"" + std::string(port->getName()) + "\"";
                         break;  }
 
                     // "DFG port value = item user channel".
                     int retGet = 0;
-                    std::string port__resolvedType = port.getResolvedType();
+                    std::string port__resolvedType = port->getResolvedType();
                     if      (   port__resolvedType == "Boolean")    {
                                                                         bool val = false;
                                                                         retGet = ModoTools::GetChannelValueAsBoolean(attr, cd->eval_index, val);
@@ -518,7 +519,7 @@ namespace dfgModoIM
                                                                     }
                     else
                     {
-                        err = "the port \"" + std::string(port.getName()) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
+                        err = "the port \"" + std::string(port->getName()) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
                         break;
                     }
 
@@ -526,7 +527,7 @@ namespace dfgModoIM
                     if (retGet != 0)
                     {
                         sprintf(serr, "%ld", retGet);
-                        err = "failed to get value from user channel \"" + std::string(port.getName()) + "\" (returned " + serr + ")";
+                        err = "failed to get value from user channel \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
                         break;
                     }
                 }
@@ -567,15 +568,16 @@ namespace dfgModoIM
 
                 for (int fi=0;fi<portlist.size();fi++)
                 {
-                    // ref at port.
-                    FabricServices::DFGWrapper::Port &port = *portlist[fi];
+                    // get port.
+                    if (portlist[fi].isNull())  continue;
+                    FabricServices::DFGWrapper::PortPtr port = portlist[fi];
 
                     // if the port has the wrong type then skip it.
-                    if (port.getPortType() != FabricCore::DFGPortType_Out)
+                    if (port->getPortType() != FabricCore::DFGPortType_Out)
                         continue;
 
                     // get pointer at matching channel definition.
-                    std::string name = port.getName();
+                    std::string name = port->getName();
                     ChannelDef *cd = usrChanGetFromName(name, m_usrChan);
                     if (!cd || cd->eval_index < 0)
                     {   err = "unable to find a user channel that matches the port \"" + name + "\"";

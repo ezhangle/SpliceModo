@@ -86,44 +86,54 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     json.assign((std::istreambuf_iterator<char>(t)),
                  std::istreambuf_iterator<char>());
 
-    // delete widget.
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
-    bool widgetWasVisible = (w != NULL && w->isVisible());
-    if (w) delete w;
-
-    // set DFG from JSON.
-    b->setFromJSON(json.c_str());
-
-    // delete all user channels.
-    std::string oErr;
-    if (!ModoTools::DeleteAllUserChannels(&item, oErr))
-    {   err += oErr;
-        feLogError(0, err);
-        return;    }
-
-    // re-create all user channels.
-    FabricServices::DFGWrapper::PortList portlist = b->getGraph()->getPorts();
-    for (int fi=0;fi<portlist.size();fi++)
+    // do it.
+    try
     {
-        // ref at port.
-        FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+        // delete widget.
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
+        bool widgetWasVisible = (w != NULL && w->isVisible());
+        if (w) delete w;
 
-        // if the port has the wrong type then skip it.
-        if (   port->getPortType() != FabricCore::DFGPortType_In
-            && port->getPortType() != FabricCore::DFGPortType_Out)
-            continue;
+        // set DFG from JSON.
+        b->setFromJSON(json.c_str());
 
-        if (!b->CreateModoUserChannelForPort(*port))
-        {   feLogError(0, err + "creating user channel for port \"" + port->getName() + "\" failed. Continuing anyway.");
+        // delete all user channels.
+        std::string oErr;
+        if (!ModoTools::DeleteAllUserChannels(&item, oErr))
+        {   err += oErr;
+            feLogError(0, err);
             return;    }
-    }
 
-    // create and show widget.
-    if (widgetWasVisible)
+        // re-create all user channels.
+        FabricServices::DFGWrapper::PortList portlist = b->getGraph()->getPorts();
+        for (int fi=0;fi<portlist.size();fi++)
+        {
+            // get pointer at port.
+            if (portlist[fi].isNull())
+                continue;
+            FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+
+            // if the port has the wrong type then skip it.
+            if (   port->getPortType() != FabricCore::DFGPortType_In
+                && port->getPortType() != FabricCore::DFGPortType_Out)
+                continue;
+
+            if (!b->CreateModoUserChannelForPort(port))
+            {   feLogError(0, err + "creating user channel for port \"" + port->getName() + "\" failed. Continuing anyway.");
+                return;    }
+        }
+
+        // create and show widget.
+        if (widgetWasVisible)
+        {
+            w = FabricDFGWidget::getWidgetforBaseInterface(b);
+            if (w && !w->isVisible())
+                w->show();
+        }
+    }
+    catch (FabricCore::Exception e)
     {
-        w = FabricDFGWidget::getWidgetforBaseInterface(b);
-        if (w && !w->isVisible())
-            w->show();
+        feLogError(e.getDesc_cstr());
     }
 }
  

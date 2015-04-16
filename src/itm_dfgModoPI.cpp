@@ -245,17 +245,18 @@ namespace dfgModoPI
                         FabricServices::DFGWrapper::PortList portlist = graph.getPorts();
                         for (int fi=0;fi<portlist.size();fi++)
                         {
-                            // ref at port.
-                            FabricServices::DFGWrapper::Port &port = *portlist[fi];
+                            // get port.
+                            if (portlist[fi].isNull())  continue;
+                            FabricServices::DFGWrapper::PortPtr port = portlist[fi];
 
                             // wrong type of port?
-                            std::string resolvedType = port.getResolvedType();
-                            if (   port.getPortType() != FabricCore::DFGPortType_Out
-                                || resolvedType       != "PolygonMesh"  )
+                            std::string resolvedType = port->getResolvedType();
+                            if (   port->getPortType() != FabricCore::DFGPortType_Out
+                                || resolvedType        != "PolygonMesh"  )
                                 continue;
 
                             // get the port's mesh data.
-                            FabricCore::RTVal rtMesh = port.getArgValue();
+                            FabricCore::RTVal rtMesh = port->getArgValue();
                             unsigned int            numVertices;
                             unsigned int            numPolygons;
                             unsigned int            numSamples;
@@ -276,7 +277,7 @@ namespace dfgModoPI
                             if (retGet)
                             {
                                 sprintf(serr, "%ld", retGet);
-                                err = "failed to get value from DFG port \"" + std::string(port.getName()) + "\" (returned " + serr + ")";
+                                err = "failed to get value from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
                                 break;
                             }
 
@@ -647,7 +648,7 @@ namespace dfgModoPI
                 if (!b)
                 {   feLogError("GetBaseInterface() returned NULL");
                     return LXe_FAILED;   }
-                b->m_item_obj_dfgModoPI = item_obj;
+                b->m_ILxUnknownID_dfgModoPI = item_obj;
 
                 return LXe_OK;
         }

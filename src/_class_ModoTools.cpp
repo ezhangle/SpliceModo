@@ -24,11 +24,8 @@ bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
     return true;
 }
 
-bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err)
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
 {
-    // init error string and ouput.
-    out_err = "";
-
     // check params.
     if (!ptr_CLxUser_Item)
     {
@@ -40,6 +37,16 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
         out_err = "empty channel name";
         return false;
     }
+
+    // interpretate first parameter as ILxUnknownID?
+    if (interpretate_ptr_as_ILxUnknownID)
+    {
+        CLxUser_Item item((ILxUnknownID)ptr_CLxUser_Item);
+        return HasChannel(&item, channelName, out_actualChannelName, out_err);
+    }
+
+    // init error string and ouput.
+    out_err = "";
 
     // ref at item.
     CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
@@ -68,10 +75,10 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
     return false;
 }
 
-bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
 {
     std::string tmp;
-    return HasChannel(ptr_CLxUser_Item, channelName, tmp, out_err);
+    return HasChannel(ptr_CLxUser_Item, channelName, tmp, out_err, interpretate_ptr_as_ILxUnknownID);
 };
 
 bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &dataType, const std::string &structType, std::string &out_err)
@@ -217,7 +224,7 @@ int ModoTools::GetUserChannels(void *ptr_CLxUser_Item, std::vector <std::string>
     return (int)out_usrChannels.size();
 }
 
-bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err)
+bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
 {
     // init.
     out_err = "";
@@ -227,6 +234,13 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     if (channelName.length() <= 0)
     {   out_err = "empty channel name";
         return false;   }
+
+    // interpretate first parameter as ILxUnknownID?
+    if (interpretate_ptr_as_ILxUnknownID)
+    {
+        CLxUser_Item item((ILxUnknownID)ptr_CLxUser_Item);
+        return DeleteUserChannel(&item, channelName, out_err);
+    }
 
     // get actual channel name.
     std::string actualName;

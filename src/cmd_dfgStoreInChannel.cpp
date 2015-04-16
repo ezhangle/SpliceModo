@@ -60,15 +60,22 @@ void dfgStoreInChannel::Command::cmd_Execute(unsigned flags)
         return;  }
 
     // get the DFG's JSON string and store it in the item's channel.
-    CLxUser_ChannelWrite chanWrite;
-    if (!chanWrite.from(item))
-    {   err += "couldn't create channel writer.";
-        feLogError(0, err.c_str(), err.length());
-        return;    }
-    std::string json = b->getJSON();
-    if (!chanWrite.Set(item, CHN_NAME_IO_FabricJSON, json.c_str()))
-    {   err += "failed to set channel \"" CHN_NAME_IO_FabricJSON "\"";
-        feLogError(0, err.c_str(), err.length());
-        return;    }
+    try
+    {
+        CLxUser_ChannelWrite chanWrite;
+        if (!chanWrite.from(item))
+        {   err += "couldn't create channel writer.";
+            feLogError(0, err.c_str(), err.length());
+            return;    }
+        std::string json = b->getJSON();
+        if (!chanWrite.Set(item, CHN_NAME_IO_FabricJSON, json.c_str()))
+        {   err += "failed to set channel \"" CHN_NAME_IO_FabricJSON "\"";
+            feLogError(0, err.c_str(), err.length());
+            return;    }
+    }
+    catch (FabricCore::Exception e)
+    {
+        feLogError(e.getDesc_cstr());
+    }
 }
  

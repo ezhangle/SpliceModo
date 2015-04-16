@@ -5,8 +5,9 @@
 CItemLog gLog;
 void feLog(void *userData, const char *s, unsigned int length)
 {
-    gLog.Message(LXe_INFO, "[FABRIC]", s, " ");
-    FabricUI::DFG::DFGLogWidget::log(s);
+    const char *p = (s != NULL ? s : "s == NULL");
+    gLog.Message(LXe_INFO, "[FABRIC]", p, " ");
+    FabricUI::DFG::DFGLogWidget::log(p);
 }
 void feLog(void *userData, const std::string &s)
 {
@@ -18,8 +19,9 @@ void feLog(const std::string &s)
 }
 void feLogError(void *userData, const char *s, unsigned int length)
 {
-    gLog.Message(LXe_FAILED, "[FABRIC ERROR]", s, " ");
-    std::string t = s;
+    const char *p = (s != NULL ? s : "s == NULL");
+    gLog.Message(LXe_FAILED, "[FABRIC ERROR]", p, " ");
+    std::string t = p;
     t = "Error: " + t;
     FabricUI::DFG::DFGLogWidget::log(t.c_str());
 }

@@ -59,9 +59,16 @@ void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
         feLogError(0, err);
         return;  }
 
-    // get and display DFG widget.
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
-    if (w && !w->isVisible())
-        w->show();
+    // get/display DFG widget.
+    try
+    {
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
+        if (w && !w->isVisible())
+            w->show();
+    }
+    catch (FabricCore::Exception e)
+    {
+        feLogError(e.getDesc_cstr());
+    }
 }
  

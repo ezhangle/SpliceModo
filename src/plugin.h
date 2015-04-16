@@ -3,7 +3,7 @@
 #define SPLICE_MODO_PLUGIN
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.012
+#define FABRICMODO_PLUGIN_VERSION   0.015
 
 // disable some annoying VS warnings.
 #pragma warning (disable : 4530)    // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
@@ -32,7 +32,7 @@
 
 // fixed channel names.
 #define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.
-#define CHN_NAME_IO_FabricJSON      "FabricJSON"    // io: string for BaseInterface::getJSON() and BaseInterface::setFromJSON().
+#define CHN_NAME_IO_FabricJSON      "FabricJSON"    // io: string for BaseInterface's JSON stuff.
 
 // log system.
 #define LOG_SYSTEM_NAME "Fabric"

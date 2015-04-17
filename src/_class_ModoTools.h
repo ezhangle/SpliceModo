@@ -28,6 +28,9 @@
 #include "lxu_modifier.hpp"
 #include "lxlog.h"
 #include <lxvmath.h>
+#include "lx_wrap.hpp"
+#include "lxw_command.hpp"
+#include "lxw_customview.hpp"
 
 class ModoTools
 {

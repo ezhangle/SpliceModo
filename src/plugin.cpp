@@ -53,6 +53,7 @@ void initialize()
         dfgStoreInChannel :: Command::  initialize();
         dfgModoIM::                     initialize();
         dfgModoPI::                     initialize();
+        FabricView::                    initialize();
     }
  }
 

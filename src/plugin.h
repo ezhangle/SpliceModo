@@ -13,6 +13,7 @@
 // includes.
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
+#include "_class_FabricView.h"
 #include "_class_ModoTools.h"
 #include "cmd_dfgExportJSON.h"
 #include "cmd_dfgImportJSON.h"

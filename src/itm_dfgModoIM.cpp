@@ -74,7 +74,6 @@ namespace dfgModoIM
 
         // get content of channel CHN_NAME_IO_FabricJSON.
         CLxUser_ChannelRead chanRead;
-        chanRead.from(item);
         if (!chanRead.from(item))
         {   err += "couldn't create channel reader.";
             feLogError(0, err.c_str(), err.length());
@@ -127,6 +126,28 @@ namespace dfgModoIM
         else        return NULL;
     }
 
+    void InvalidateItem(ILxUnknownID item_obj)
+    {
+        /*
+         *  pseudo-invalidate the item by modifying the value of the channel "evalCount".
+         */
+          CLxUser_Item    item(item_obj);
+          if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
+          {
+            CLxUser_ChannelRead chanRead;
+            if (chanRead.from(item))
+            {
+              CLxUser_ChannelWrite chanWrite;
+              if (chanWrite.from(item))
+              {
+                int evalCount = chanRead.IValue(item, CHN_NAME_IO_evalCount);
+                evalCount++;
+                chanWrite.Set(item, CHN_NAME_IO_evalCount, evalCount);
+              }
+            }
+          }
+    }
+
     class Package : public CLxImpl_Package,
                     public CLxImpl_ChannelUI,
                     public CLxImpl_SceneItemListener
@@ -177,6 +198,10 @@ namespace dfgModoIM
             add_chan.NewChannel(CHN_NAME_IO_FabricJSON, LXsTYPE_STRING);
             add_chan.SetStorage(LXsTYPE_STRING);
             add_chan.SetInternal();
+
+            add_chan.NewChannel(CHN_NAME_IO_evalCount, LXsTYPE_INTEGER);
+            add_chan.SetDefault(0, 0);
+            //add_chan.SetInternal();
 
             result = LXe_OK;
         }

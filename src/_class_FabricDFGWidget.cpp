@@ -21,6 +21,8 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
               m_baseInterface->getStack(),
               false);
     }
+
+    QObject::connect(this, SIGNAL(valueChanged()), this, SLOT(onDefaultValueChanged()));
 }
 
 FabricDFGWidget::~FabricDFGWidget()
@@ -86,6 +88,19 @@ void FabricDFGWidget::onRecompilation()
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 {
   // ... rename the dynamic attribute also in modo
+}
+
+void FabricDFGWidget::onDefaultValueChanged()
+{
+  if (!m_baseInterface)
+    return;
+
+  static int count = 0;
+  char s[256];
+  sprintf(s, "%ld - default val changed - m_ILxUnknownID_dfgModoIM = %ld", count++, (int)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+  feLog(s);
+  dfgModoIM::InvalidateItem(m_baseInterface->m_ILxUnknownID_dfgModoIM);
+  //dfgModoPI::InvalidateItem(m_baseInterface->m_ILxUnknownID_dfgModoPI);
 }
 
 void FabricDFGWidget::showEvent(QShowEvent *event)

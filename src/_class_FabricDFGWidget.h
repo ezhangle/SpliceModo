@@ -41,6 +41,7 @@ public:
 public slots:
   virtual void onRecompilation();
   virtual void onPortRenamed(QString path, QString newName);
+  void onDefaultValueChanged();
 
 protected:
   virtual void showEvent(QShowEvent *event);

@@ -6,7 +6,7 @@
 
 #include "plugin.h"
 
-std::map<BaseInterface*, FabricView*> FabricDFGWidget::s_instances;
+std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
 {
@@ -25,9 +25,9 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
 
 FabricDFGWidget::~FabricDFGWidget()
 {
-    for(std::map<BaseInterface*, FabricView*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
+    for(std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
     {
-        if(it->second->widget() == this)
+        if(it->second == this)
         {
             s_instances.erase(it);
             break;
@@ -35,34 +35,46 @@ FabricDFGWidget::~FabricDFGWidget()
     }
 }
 
-FabricView *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
+FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
 {
-    std::map<BaseInterface*, FabricView*>::iterator it = s_instances.find(baseInterface);
+    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
     if (it == s_instances.end())
     {
         // don't create new widget?
         if (!createNewIfNoneFound)
             return NULL;
 
-        FabricView *fv = new FabricView();
-        if (fv)
+        // if necessary create FabricView.
+        if (FabricView::s_FabricViews.size() == 0)
         {
-
+          std::string cmdEerr;
+          if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", cmdEerr))
+            ModoTools::ExecuteCommand("customview.view FabricCanvas", cmdEerr);
         }
+
+        // no FabricView?
+        if (FabricView::s_FabricViews.size() == 0)
+          return NULL;
+
+        // get the last FabricView.
+        FabricView *fv = FabricView::s_FabricViews.back();
+        if (!fv)
+          return NULL;
 
         // create Fabric DFG widget
         FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
-
         fv->setWidget(newDFGWidget);
-
         fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
             
         // insert in map.
-        s_instances.insert(std::pair<BaseInterface*, FabricView*>(baseInterface, fv));
-       
+        s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newDFGWidget));
+
         // done.
-        return fv;
+        return newDFGWidget;
     }
+
+    if (it->second)
+      it->second->refreshGraph();
     return it->second;
 }
 

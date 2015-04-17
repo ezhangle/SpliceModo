@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "plugin.h"
 
+std::vector <FabricView *> FabricView::s_FabricViews;
+
 LxResult FabricView::customview_Init(ILxUnknownID pane)
 {
 	CLxLoc_CustomPane p(pane);
@@ -14,7 +16,9 @@ LxResult FabricView::customview_Init(ILxUnknownID pane)
 		return LXe_FAILED;
 
 	m_parentWidget = static_cast<QWidget*>(parent);
+  m_parentWidget->setContentsMargins(0, 0, 0, 0);
   QVBoxLayout * layout = new QVBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
 	m_parentWidget->setLayout(layout);
 
   m_dfgWidget = NULL;
@@ -43,7 +47,7 @@ FabricDFGWidget * FabricView::widget()
 
 void FabricView::setWidget(FabricDFGWidget * dfgWidget)
 {
-  if(m_dfgWidget != NULL)
+  if (m_dfgWidget)
   {
     m_dfgWidget->close();
     m_dfgWidget->deleteLater();
@@ -60,5 +64,5 @@ void FabricView::initialize()
   CLxGenericPolymorph* cmd = NULL;
   cmd = new CLxPolymorph<FabricView>();
   cmd->AddInterface(new CLxIfc_CustomView< FabricView >() );
-  // lx::AddServer("OpenGL", cmd);
+   lx::AddServer("FabricCanvas", cmd);
 }

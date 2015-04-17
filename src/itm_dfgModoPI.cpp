@@ -643,7 +643,7 @@ namespace dfgModoPI
         ~Instance()
         {
             // delete widget and base interface.
-            FabricView *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+            FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
             if (w) delete w;
             delete m_baseInterface;
             quickhack_baseInterface = NULL;

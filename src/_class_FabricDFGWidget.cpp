@@ -6,7 +6,7 @@
 
 #include "plugin.h"
 
-std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
+std::map<BaseInterface*, FabricView*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
 {
@@ -25,9 +25,9 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
 
 FabricDFGWidget::~FabricDFGWidget()
 {
-    for(std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
+    for(std::map<BaseInterface*, FabricView*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
     {
-        if(it->second == this)
+        if(it->second->widget() == this)
         {
             s_instances.erase(it);
             break;
@@ -35,31 +35,35 @@ FabricDFGWidget::~FabricDFGWidget()
     }
 }
 
-QDockWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
+FabricView *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
 {
-    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
+    std::map<BaseInterface*, FabricView*>::iterator it = s_instances.find(baseInterface);
     if (it == s_instances.end())
     {
         // don't create new widget?
         if (!createNewIfNoneFound)
             return NULL;
 
-        // get main window's pointer.
-        QMainWindow *mainWindow = getPointerAtMainWindow();
+        FabricView *fv = new FabricView();
+        if (fv)
+        {
+
+        }
 
         // create Fabric DFG widget
-        QDockWidget * dockWidget = new QDockWidget("Fabric Canvas", mainWindow);
-        FabricDFGWidget *newDFGWidget = new FabricDFGWidget((QWidget *)dockWidget, baseInterface);
-        dockWidget->setWidget(newDFGWidget);
-        dockWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+        FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
+
+        fv->setWidget(newDFGWidget);
+
+        fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
             
         // insert in map.
-        s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newDFGWidget));
+        s_instances.insert(std::pair<BaseInterface*, FabricView*>(baseInterface, fv));
        
         // done.
-        return dockWidget;
+        return fv;
     }
-    return (QDockWidget *)it->second->parent();
+    return it->second;
 }
 
 void FabricDFGWidget::onRecompilation()
@@ -94,5 +98,5 @@ void FabricDFGWidget::refreshGraph(void)
     getDfgWidget()->setGraph( m_baseInterface->getHost(),
                              *m_baseInterface->getBinding(),
                               m_baseInterface->getGraph());
-    m_baseInterface->getBinding()->setNotificationCallback(BaseInterface::bindingNotificationCallback, this);
+    //m_baseInterface->getBinding()->setNotificationCallback(BaseInterface::bindingNotificationCallback, this);
 }

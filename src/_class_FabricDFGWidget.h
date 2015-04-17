@@ -23,6 +23,8 @@
 
 #include "_class_BaseInterface.h"
 
+#include "_class_FabricView.h"
+
 using namespace FabricServices;
 using namespace FabricUI;
 
@@ -34,7 +36,7 @@ public:
   FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface);
   ~FabricDFGWidget();
 
-  static QDockWidget *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
+  static FabricView *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
 
 public slots:
   virtual void onRecompilation();
@@ -44,7 +46,7 @@ protected:
   virtual void showEvent(QShowEvent *event);
 
 private:
-    static std::map<BaseInterface*, FabricDFGWidget*>  s_instances;
+    static std::map<BaseInterface*, FabricView*>  s_instances;
     BaseInterface                                     *m_baseInterface;
 
 public:

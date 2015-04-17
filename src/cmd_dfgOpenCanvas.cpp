@@ -62,9 +62,9 @@ void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
     // get/display DFG widget.
     try
     {
-        QWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
-        if (w && !w->isVisible())
-            w->show();
+        FabricView *w = FabricDFGWidget::getWidgetforBaseInterface(b);
+        //if (w && !w->isVisible())
+        //    w->show();
     }
     catch (FabricCore::Exception e)
     {

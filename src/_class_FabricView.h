@@ -4,6 +4,8 @@
 #include "_class_ModoTools.h"
 #include "_class_FabricDFGWidget.h"
 
+class FabricDFGWidget;
+
 class FabricView : public CLxImpl_CustomView
 {
 public:

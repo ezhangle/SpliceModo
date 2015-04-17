@@ -119,8 +119,8 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         }
 
         // if we have an open DFG widget then refresh it.
-        QDockWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
-        if (w)  ((FabricDFGWidget *)w->widget())->refreshGraph();
+        FabricView *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
+        if (w)  w->widget()->refreshGraph();
     }
     catch (FabricCore::Exception e)
     {

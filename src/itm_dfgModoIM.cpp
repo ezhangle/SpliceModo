@@ -31,8 +31,8 @@ namespace dfgModoIM
             ~Instance()
             {
                 // delete widget and base interface.
-                QWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
-                if (w) w->close();
+                FabricView *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+                if (w) delete w;
                 delete m_baseInterface;
             };
 

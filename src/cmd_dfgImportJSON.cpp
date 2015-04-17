@@ -64,7 +64,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     {
         static QString last_fPath;
         QString filter = "DFG Preset (*.dfg.json)";
-        QString fPath = QFileDialog::getOpenFileName(FabricDFGWidget::GetPointerAtMainWindow(), "Open DFG Preset", last_fPath, filter, &filter);
+        QString fPath = QFileDialog::getOpenFileName(FabricDFGWidget::getPointerAtMainWindow(), "Open DFG Preset", last_fPath, filter, &filter);
         if (fPath.length() == 0)
             return;
         if (fPath.toLower().endsWith(".dfg.json.dfg.json"))
@@ -89,12 +89,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     // do it.
     try
     {
-        // delete widget.
-        QWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
-        bool widgetWasVisible = (w != NULL && w->isVisible());
-        if (w) w->close();
-
-        // set DFG from JSON.
+        // set from JSON.
         b->setFromJSON(json.c_str());
 
         // delete all user channels.
@@ -123,13 +118,9 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
                 return;    }
         }
 
-        // create and show widget.
-        if (widgetWasVisible)
-        {
-            w = FabricDFGWidget::getWidgetforBaseInterface(b);
-            if (w && !w->isVisible())
-                w->show();
-        }
+        // if we have an open DFG widget then refresh it.
+        QDockWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
+        if (w)  ((FabricDFGWidget *)w->widget())->refreshGraph();
     }
     catch (FabricCore::Exception e)
     {

@@ -64,7 +64,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
     {
         static QString last_fPath;
         QString filter = "DFG Preset (*.dfg.json)";
-        QString fPath = QFileDialog::getSaveFileName(FabricDFGWidget::GetPointerAtMainWindow(), "Save DFG Preset", last_fPath, filter, &filter);
+        QString fPath = QFileDialog::getSaveFileName(FabricDFGWidget::getPointerAtMainWindow(), "Save DFG Preset", last_fPath, filter, &filter);
         if (fPath.length() == 0)
             return;
         if (fPath.toLower().endsWith(".dfg.json.dfg.json"))

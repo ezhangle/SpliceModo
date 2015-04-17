@@ -147,6 +147,7 @@ void BaseInterface::setFromJSON(const std::string & json)
   try
   {
     m_binding = s_host->createBindingFromJSON(json.c_str());
+    m_binding.setNotificationCallback(bindingNotificationCallback, this);
     DFGWrapper::View::setGraph(DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
   catch (FabricCore::Exception e)
@@ -163,47 +164,6 @@ void BaseInterface::setLogFunc(void (*in_logFunc)(void *, const char *, unsigned
 void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *, unsigned int))
 {
   s_logErrorFunc = in_logErrorFunc;
-}
-
-void BaseInterface::onPortRemoved(FabricServices::DFGWrapper::PortPtr port)
-{
-    if (port.isNull())
-    {
-        std::string s = "BaseInterface::onPortRemoved(): port == NULL";
-        logErrorFunc(NULL, s.c_str(), s.length());
-        return;
-    }
-
-    if (!port->isValid())
-    {
-        std::string s = "BaseInterface::onPortRemoved(): port->isValid() == false";
-        logErrorFunc(NULL, s.c_str(), s.length());
-        return;
-    }
-
-    try
-    {
-        std::string err;
-        CLxUser_Item item;
-
-        if      (m_ILxUnknownID_dfgModoIM)  item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
-        else if (m_ILxUnknownID_dfgModoPI)  item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
-        else                        {   err = "BaseInterface::onPortRemoved(): m_ILxUnknownID_dfgModo??? == NULL";
-                                        logErrorFunc(0, err.c_str(), err.length());
-                                        return;    }
-
-        if (!item.test())   {   err = "BaseInterface::onPortRemoved(): item((ILxUnknownID)m_ILxUnknownID_dfgModo???) failed";
-                                logErrorFunc(0, err.c_str(), err.length());
-                                return;    }
-
-        if (!ModoTools::DeleteUserChannel(&item, port->getName(), err))
-            logErrorFunc(0, err.c_str(), err.length());
-    }
-    catch (FabricCore::Exception e)
-    {
-        std::string s = std::string("BaseInterface::onPortRemoved(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
-        logErrorFunc(NULL, s.c_str(), s.length());
-    }
 }
 
 void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char *oldName)
@@ -288,29 +248,37 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
         std::string nDesc = vDesc->getStringData();
         std::string nName = (vName ? vName->getStringData() : "");
 
+        // get the Modo item's ILxUnknownID.
+        void             *unknownID = NULL;
+        if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoIM;
+        if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPI;
+
         // handle notification.
         std::string err = "";
         {
-            // the type of the argument called vName has changed.
             if      (nDesc == "argTypeChanged")
             {
-                // get the Modo item's ILxUnknownID.
-                void             *unknownID = NULL;
-                if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoIM;
-                if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPI;
-                if (!unknownID)
-                    return;
-
                 // re-create Modo user channel.
-                ModoTools::DeleteUserChannel(unknownID, nName, err, true);
-                if (graph.isNull())
-                    return;
-                b.CreateModoUserChannelForPort(graph->getPort(nName.c_str()));
+                if (unknownID)
+                {
+                    ModoTools::DeleteUserChannel(unknownID, nName, err, true);
+                    if (!graph.isNull())
+                        b.CreateModoUserChannelForPort(graph->getPort(nName.c_str()));
+                }
             }
 
-            // ignore the notification.
+            else if (nDesc == "argRemoved")
+            {
+                // delete the Modo user channel.
+                if (unknownID)
+                {
+                    ModoTools::DeleteUserChannel(unknownID, nName, err, true);
+                }
+            }
+
             else
             {
+                //logFunc(NULL, nDesc.c_str(), nDesc.length());
             }
         }
     }

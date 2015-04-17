@@ -51,7 +51,7 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         virtual void onPinInserted(FabricServices::DFGWrapper::PinPtr pin) {}
         virtual void onPinRemoved(FabricServices::DFGWrapper::PinPtr pin) {}
         virtual void onPortInserted(FabricServices::DFGWrapper::PortPtr port) {}
-        virtual void onPortRemoved(FabricServices::DFGWrapper::PortPtr port);
+        virtual void onPortRemoved(FabricServices::DFGWrapper::PortPtr port) {}
         virtual void onEndPointsConnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst) {}
         virtual void onEndPointsDisconnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst) {}
         virtual void onNodeMetadataChanged(FabricServices::DFGWrapper::NodePtr node, const char * key, const char * metadata) {}

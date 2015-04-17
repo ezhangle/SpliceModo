@@ -10,14 +10,15 @@ std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
 {
-    if (baseInterface)
+    m_baseInterface = baseInterface;
+    if (m_baseInterface)
     {
-        init( baseInterface->getClient(),
-              baseInterface->getManager(),
-              baseInterface->getHost(),
-             *baseInterface->getBinding(),
-              baseInterface->getGraph(),
-              baseInterface->getStack(),
+        init( m_baseInterface->getClient(),
+              m_baseInterface->getManager(),
+              m_baseInterface->getHost(),
+             *m_baseInterface->getBinding(),
+              m_baseInterface->getGraph(),
+              m_baseInterface->getStack(),
               false);
     }
 }
@@ -44,16 +45,16 @@ QDockWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInter
             return NULL;
 
         // get main window's pointer.
-        QMainWindow *mainWindow = GetPointerAtMainWindow();
+        QMainWindow *mainWindow = getPointerAtMainWindow();
 
         // create Fabric DFG widget
         QDockWidget * dockWidget = new QDockWidget("Fabric Canvas", mainWindow);
-        FabricDFGWidget *newWidget = new FabricDFGWidget((QWidget *)dockWidget, baseInterface);
-        dockWidget->setWidget(newWidget);
+        FabricDFGWidget *newDFGWidget = new FabricDFGWidget((QWidget *)dockWidget, baseInterface);
+        dockWidget->setWidget(newDFGWidget);
         dockWidget->setAttribute(Qt::WA_DeleteOnClose, true);
             
         // insert in map.
-        s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newWidget));
+        s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newDFGWidget));
        
         // done.
         return dockWidget;
@@ -71,7 +72,14 @@ void FabricDFGWidget::onPortRenamed(QString path, QString newName)
   // ... rename the dynamic attribute also in modo
 }
 
-QMainWindow *FabricDFGWidget::GetPointerAtMainWindow(void)
+void FabricDFGWidget::showEvent(QShowEvent *event)
+{
+    DFGCombinedWidget::showEvent(event);
+
+    refreshGraph();
+}
+
+QMainWindow *FabricDFGWidget::getPointerAtMainWindow(void)
 {
     Q_FOREACH(QWidget* w, QApplication::topLevelWidgets())
     {
@@ -81,3 +89,10 @@ QMainWindow *FabricDFGWidget::GetPointerAtMainWindow(void)
     return NULL;
 }
 
+void FabricDFGWidget::refreshGraph(void)
+{
+    getDfgWidget()->setGraph( m_baseInterface->getHost(),
+                             *m_baseInterface->getBinding(),
+                              m_baseInterface->getGraph());
+    m_baseInterface->getBinding()->setNotificationCallback(bindingNotificationCallback, this);
+}

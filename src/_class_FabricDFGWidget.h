@@ -7,6 +7,7 @@
 #include <QtGui/QFileDialog>
 #include <QtGui/QSplitter>
 #include <QtGui/QDockWidget>
+#include <QtGui/QShowEvent>
 
 #include <DFGWrapper/DFGWrapper.h>
 #include <ASTWrapper/KLASTManager.h>
@@ -39,12 +40,19 @@ public slots:
   virtual void onRecompilation();
   virtual void onPortRenamed(QString path, QString newName);
 
+protected:
+  virtual void showEvent(QShowEvent *event);
+
 private:
-    static std::map<BaseInterface*, FabricDFGWidget*> s_instances;
+    static std::map<BaseInterface*, FabricDFGWidget*>  s_instances;
+    BaseInterface                                     *m_baseInterface;
 
 public:
     // returns the pointer at the main Qt window.
-    static QMainWindow *GetPointerAtMainWindow(void);
+    static QMainWindow *getPointerAtMainWindow(void);
+
+    // refreshes the host, binding and graph of the DFG widget.
+    void refreshGraph(void);
 };
 
 #endif 

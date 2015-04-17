@@ -126,15 +126,29 @@ namespace dfgModoIM
         else        return NULL;
     }
 
-    void InvalidateItem(ILxUnknownID item_obj)
+    void InvalidateItem(void *ILxUnknownID_item_obj)
     {
-        /*
-         *  pseudo-invalidate the item by modifying the value of the channel "evalCount".
-         */
+        /*  invalidates an item so that it gets re-evaluated.  */
+
+        if (ILxUnknownID_item_obj)
+        {
+          ILxUnknownID    item_obj = (ILxUnknownID)ILxUnknownID_item_obj;
           CLxUser_Item    item(item_obj);
+
           if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
           {
-            CLxUser_ChannelRead chanRead;
+
+            // note: this works, but it is a bit "hard core", better would be to invalidate a channel or something instead.
+            CLxUser_Scene scene;
+            {
+                if (item.GetContext(scene))
+                    scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+            }
+
+
+            // note: this doesn't work, because chanWrite.from(item) returns false (and I have no idea why).
+
+            /*CLxUser_ChannelRead chanRead;
             if (chanRead.from(item))
             {
               CLxUser_ChannelWrite chanWrite;
@@ -144,8 +158,9 @@ namespace dfgModoIM
                 evalCount++;
                 chanWrite.Set(item, CHN_NAME_IO_evalCount, evalCount);
               }
-            }
+            }*/
           }
+        }
     }
 
     class Package : public CLxImpl_Package,

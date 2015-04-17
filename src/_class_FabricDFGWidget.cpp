@@ -94,11 +94,7 @@ void FabricDFGWidget::onDefaultValueChanged()
 {
   if (!m_baseInterface)
     return;
-
-  static int count = 0;
-  char s[256];
-  sprintf(s, "%ld - default val changed - m_ILxUnknownID_dfgModoIM = %ld", count++, (int)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-  feLog(s);
+  
   dfgModoIM::InvalidateItem(m_baseInterface->m_ILxUnknownID_dfgModoIM);
   //dfgModoPI::InvalidateItem(m_baseInterface->m_ILxUnknownID_dfgModoPI);
 }

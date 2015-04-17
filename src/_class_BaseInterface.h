@@ -66,10 +66,10 @@ class BaseInterface : public FabricServices::DFGWrapper::View
         virtual void onPortResolvedTypeChanged(FabricServices::DFGWrapper::PortPtr port, const char * resolvedType) {}
         virtual void onPinResolvedTypeChanged(FabricServices::DFGWrapper::PinPtr pin, const char * resolvedType) {}
 
-    private:
-
         // binding notifications.
         static void bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength);
+
+    private:
 
         // logging.
         static void logFunc(void *userData, const char *message, unsigned int length);

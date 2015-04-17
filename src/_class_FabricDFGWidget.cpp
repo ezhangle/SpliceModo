@@ -94,5 +94,5 @@ void FabricDFGWidget::refreshGraph(void)
     getDfgWidget()->setGraph( m_baseInterface->getHost(),
                              *m_baseInterface->getBinding(),
                               m_baseInterface->getGraph());
-    m_baseInterface->getBinding()->setNotificationCallback(bindingNotificationCallback, this);
+    m_baseInterface->getBinding()->setNotificationCallback(BaseInterface::bindingNotificationCallback, this);
 }

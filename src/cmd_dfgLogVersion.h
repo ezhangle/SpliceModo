@@ -1,31 +1,38 @@
 //
-#ifndef SERVER_NAME_dfgLogVersion
+#ifndef SRC_CMD_DFGLOGVERSION_H_
+#define SRC_CMD_DFGLOGVERSION_H_
+
 #define SERVER_NAME_dfgLogVersion "dfgLogVersion"
 
 namespace dfgLogVersion
 {
-    class Command : public CLxBasicCommand
+  class Command : public CLxBasicCommand
+  {
+   public:
+
+    // constructor.
+    Command(void);
+
+    // tag description interface.
+    static LXtTagInfoDesc descInfo[];
+
+    // initialization.
+    static void initialize(void)
     {
-        public:
-
-        // tag description interface.
-        static LXtTagInfoDesc descInfo[];
-
-        // initialization.
-        static void initialize(void)
-        {
-            CLxGenericPolymorph *srv =   new CLxPolymorph           <Command>;
-            srv->AddInterface           (new CLxIfc_Command         <Command>);
-            srv->AddInterface           (new CLxIfc_StaticDesc      <Command>);
-            lx:: AddServer              (SERVER_NAME_dfgLogVersion, srv);
-        };
-
-        // command service.
-        int     basic_CmdFlags  (void)                      LXx_OVERRIDE    {   return 0;       };
-        bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    {   return true;    };
-        void    cmd_Execute     (unsigned flags)            LXx_OVERRIDE;
+        CLxGenericPolymorph *srv = new CLxPolymorph           <Command>;
+        srv->AddInterface         (new CLxIfc_Command         <Command>);
+        srv->AddInterface         (new CLxIfc_Attributes      <Command>);
+        srv->AddInterface         (new CLxIfc_AttributesUI    <Command>);
+        srv->AddInterface         (new CLxIfc_StaticDesc      <Command>);
+        lx:: AddServer            (SERVER_NAME_dfgLogVersion, srv);
     };
-};
 
-#endif
+    // command service.
+    int     basic_CmdFlags  (void)                      LXx_OVERRIDE    {   return 0;       }
+    bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    {   return true;    }
+    void    cmd_Execute     (unsigned flags)            LXx_OVERRIDE;
+  };
+};  // namespace dfgLogVersion
+
+#endif  // SRC_CMD_DFGLOGVERSION_H_
 

@@ -1,5 +1,5 @@
-#ifndef _FABRICVIEW_H_
-#define _FABRICVIEW_H_
+#ifndef SRC__CLASS_FABRICVIEW_H_
+#define SRC__CLASS_FABRICVIEW_H_
 
 #include "_class_ModoTools.h"
 #include "_class_FabricDFGWidget.h"
@@ -9,7 +9,7 @@ void feLog(const std::string &s);
 
 class FabricView : public CLxImpl_CustomView
 {
-public:
+ public:
 
   LxResult customview_Init(ILxUnknownID pane);
 
@@ -25,7 +25,7 @@ public:
   ~FabricView()
   {
     // remove pointer from static std::vector.
-    for (int i=0;i<s_FabricViews.size();i++)
+    for (int i = 0; i < s_FabricViews.size(); i++)
       if (s_FabricViews[i] == this)
       {
         s_FabricViews.erase(s_FabricViews.begin() + i);
@@ -43,10 +43,11 @@ public:
   // static vector of pointers.
   static std::vector <FabricView *> s_FabricViews;
 
-private:
+ private:
 
   QWidget * m_parentWidget;
   FabricDFGWidget * m_dfgWidget;
 };
 
-#endif _FABRICVIEW_H_
+#endif  // SRC__CLASS_FABRICVIEW_H_
+

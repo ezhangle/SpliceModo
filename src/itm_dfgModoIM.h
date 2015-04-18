@@ -1,3 +1,6 @@
+#ifndef SRC_ITM_DFGMODOIM_H_
+#define SRC_ITM_DFGMODOIM_H_
+
 namespace dfgModoIM
 {
     void initialize();
@@ -6,3 +9,5 @@ namespace dfgModoIM
     BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
     void InvalidateItem(void *ILxUnknownID_item_obj);
 };
+
+#endif  // SRC_ITM_DFGMODOIM_H_

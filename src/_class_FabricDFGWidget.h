@@ -1,6 +1,6 @@
 
-#ifndef _FABRICDFGWIDGET_H_
-#define _FABRICDFGWIDGET_H_
+#ifndef SRC__CLASS_FABRICDFGWIDGET_H_
+#define SRC__CLASS_FABRICDFGWIDGET_H_
 
 // includes.
 #include <QtGui/QWidget>
@@ -20,37 +20,32 @@
 #include <FabricUI/DFG/DFGValueEditor.h>
 
 #include <FabricSplice.h>
-
 #include "_class_BaseInterface.h"
-
 #include "_class_FabricView.h"
 
-using namespace FabricServices;
-using namespace FabricUI;
-
-class FabricDFGWidget : public DFG::DFGCombinedWidget {
-
+class FabricDFGWidget : public DFG::DFGCombinedWidget
+{
   Q_OBJECT
-  
-public:
+
+ public:
   FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface);
   ~FabricDFGWidget();
 
   static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
 
-public slots:
+ public slots:
   virtual void onRecompilation();
   virtual void onPortRenamed(QString path, QString newName);
   void onDefaultValueChanged();
 
-protected:
+ protected:
   virtual void showEvent(QShowEvent *event);
 
-private:
+ private:
     static std::map<BaseInterface*, FabricDFGWidget*>  s_instances;
     BaseInterface                                     *m_baseInterface;
 
-public:
+ public:
     // returns the pointer at the main Qt window.
     static QMainWindow *getPointerAtMainWindow(void);
 
@@ -58,4 +53,5 @@ public:
     void refreshGraph(void);
 };
 
-#endif 
+#endif  // SRC__CLASS_FABRICDFGWIDGET_H_
+

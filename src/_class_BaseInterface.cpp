@@ -354,8 +354,8 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
   }
   catch (FabricCore::Exception e)
   {
-    std::string s = std::string("BaseInterface::HasPort(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-    logErrorFunc(NULL, s.c_str(), s.length());
+    //std::string s = std::string("BaseInterface::HasPort(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    //logErrorFunc(NULL, s.c_str(), s.length());
     return false;
   }
 }

@@ -36,6 +36,7 @@ BaseInterface::BaseInterface()
 
       // create KL AST manager
       s_manager = new ASTWrapper::KLASTManager(&s_client);
+      s_manager->loadAllExtensionsFromExtsPath();
     }
     catch (FabricCore::Exception e)
     {

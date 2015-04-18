@@ -138,27 +138,12 @@ namespace dfgModoIM
           if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
           {
 
-            // note: this works, but it is a bit "hard core", better would be to invalidate a channel or something instead.
+            // note: this works, but it is a bit "hard core", better would be to invalidate a channel (i.e. mark it as dirty).
             CLxUser_Scene scene;
             {
                 if (item.GetContext(scene))
                     scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
             }
-
-
-            // note: this doesn't work, because chanWrite.from(item) returns false (and I have no idea why).
-
-            /*CLxUser_ChannelRead chanRead;
-            if (chanRead.from(item))
-            {
-              CLxUser_ChannelWrite chanWrite;
-              if (chanWrite.from(item))
-              {
-                int evalCount = chanRead.IValue(item, CHN_NAME_IO_evalCount);
-                evalCount++;
-                chanWrite.Set(item, CHN_NAME_IO_evalCount, evalCount);
-              }
-            }*/
           }
         }
     }
@@ -213,10 +198,6 @@ namespace dfgModoIM
             add_chan.NewChannel(CHN_NAME_IO_FabricJSON, LXsTYPE_STRING);
             add_chan.SetStorage(LXsTYPE_STRING);
             add_chan.SetInternal();
-
-            add_chan.NewChannel(CHN_NAME_IO_evalCount, LXsTYPE_INTEGER);
-            add_chan.SetDefault(0, 0);
-            //add_chan.SetInternal();
 
             result = LXe_OK;
         }
@@ -399,13 +380,6 @@ namespace dfgModoIM
             else                                                type = LXfECHAN_READ | LXfECHAN_WRITE;
 
             c.eval_index = eval.AddChan(item, c.chan_index, type);
-
-            // debug.
-            if (false)
-            {
-                std::string s = "[DBG] eval.AddChan(\"" + c.chan_name + "\")";
-                feLog(s);
-            }
         }
     }
 
@@ -713,7 +687,6 @@ namespace dfgModoIM
                     {
                         std::vector <double> val;
                         int N = 0;
-
                         if (dataType == LXi_TYPE_FLOAT)
                         {
                             if      (cd->isVec2x)     {   N = 2;  retGet = BaseInterface::GetPortValueVec2(port, val);   }
@@ -821,29 +794,29 @@ namespace dfgModoIM
             int idx = i;
 
             // check if we have a 2D or 3D vector.
-            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".X") == io_usrChan[idx].chan_name.length() - 2)
+            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".X") != std::string::npos)
             {
                 idx++;
-                if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Y") == io_usrChan[idx].chan_name.length() - 2)
+                if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Y") != std::string::npos)
                 {
                     idx++;
-                    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Z") == io_usrChan[idx].chan_name.length() - 2) c.isVec3x = true;
-                    else                                                                                                            c.isVec2x = true;
+                    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Z") != std::string::npos) c.isVec3x = true;
+                    else                                                                                       c.isVec2x = true;
                 }
             }
 
             // check if we have a color.
-            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".R") == io_usrChan[idx].chan_name.length() - 2)
+            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".R") != std::string::npos)
             {
                 idx++;
-                if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".G") == io_usrChan[idx].chan_name.length() - 2)
+                if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".G") != std::string::npos)
                 {
                     idx++;
-                    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".B") == io_usrChan[idx].chan_name.length() - 2)
+                    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".B") != std::string::npos)
                     {
                         idx++;
-                        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".A") == io_usrChan[idx].chan_name.length() - 2) c.isRGBAr = true;
-                        else                                                                                                            c.isRGBr  = true;
+                        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".A") != std::string::npos) c.isRGBAr = true;
+                        else                                                                                       c.isRGBr  = true;
                     }
                 }
             }

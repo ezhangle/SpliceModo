@@ -34,7 +34,6 @@
 // fixed channel names.
 #define CHN_NAME_IO_FabricActive    "FabricActive"  // io: enable/disable execution of DFG for this item.
 #define CHN_NAME_IO_FabricJSON      "FabricJSON"    // io: string for BaseInterface's JSON stuff.
-#define CHN_NAME_IO_evalCount       "evalCount"     // io: for internal usage (e.g. to invalidate an item).
 
 // log system.
 #define LOG_SYSTEM_NAME "Fabric"

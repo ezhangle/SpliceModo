@@ -18,6 +18,8 @@ namespace dfgModoPI
      * computing common values from channel values.
      */
     #define Cs_INSTANCEABLEOBJ	"instanceableObj"
+
+
     #define Cs_AXIS			"axis"
     #define Cs_RADIUS		"radius"
     #define Cs_RESOLUTION		"resolution"
@@ -26,9 +28,9 @@ namespace dfgModoPI
     class Channels
     {
     public:
-        int		 cv_axis;
-        double		 cv_radius;
-        int		 cv_resolution;
+        int		       cv_axis;
+        double		   cv_radius;
+        int		       cv_resolution;
         std::string	 cv_material;
 
         static CLxAttributeDesc		 desc;
@@ -38,6 +40,10 @@ namespace dfgModoPI
                 Channels		*chan = 0;
 
                 desc.add (Cs_INSTANCEABLEOBJ, LXsTYPE_OBJREF);
+
+                desc.add_channel (CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN, 1, (int *)1, LXfECHAN_READ);
+                desc.add_channel (CHN_NAME_IO_FabricJSON,   LXsTYPE_STRING,  std::string(""), (std::string *)1, LXfECHAN_READ);
+
 
                 desc.add_channel (Cs_AXIS, LXsTYPE_AXIS, 1, &chan->cv_axis, LXfECHAN_READ);
 
@@ -223,6 +229,10 @@ namespace dfgModoPI
                 //                         their values from the matching Modo user channels.
                 {
                     // WIP.
+                    char s[256];
+                    static int a = 0;
+                    sprintf(s, "tsrf_Sample() %ld", a++);
+                    feLog(s);
                 }
 
                 // Fabric Engine (step 2): execute the DFG.
@@ -662,6 +672,47 @@ namespace dfgModoPI
                 return LXe_OK;
         }
 
+        LxResult pins_AfterLoad(void)                                          LXx_OVERRIDE
+        {
+            // init err string,
+            std::string err = "pins_AfterLoad() failed: ";
+
+            // get BaseInterface.
+            BaseInterface *b = m_baseInterface;
+
+            // create item.
+            CLxUser_Item item(m_item);
+            if (!item.test())
+            {   err += "item(m_item) failed";
+                feLogError(0, err.c_str(), err.length());
+                return LXe_OK;  }
+
+            // log.
+            std::string itemName;
+            item.GetUniqueName(itemName);
+            std::string info;
+            info = "item \"" + itemName + "\": set Fabric base interface from item's JSON string.";
+            feLog(0, info.c_str(), info.length());
+
+            // get content of channel CHN_NAME_IO_FabricJSON.
+            CLxUser_ChannelRead chanRead;
+            if (!chanRead.from(item))
+            {   err += "couldn't create channel reader.";
+                feLogError(0, err.c_str(), err.length());
+                return LXe_OK;  }
+            std::string json;
+            if (!chanRead.GetString(item, CHN_NAME_IO_FabricJSON, json))
+            {   err += "failed to read channel \"" CHN_NAME_IO_FabricJSON "\"";
+                feLogError(0, err.c_str(), err.length());
+                return LXe_OK;  }
+
+            // do it.
+            b->setFromJSON(json);
+
+            // done.
+            return LXe_OK;
+        }
+
         LxResult isurf_GetSurface(ILxUnknownID chanRead, unsigned morph, void **ppvObj)    LXx_OVERRIDE
         {
                 Surface		*surf;
@@ -674,6 +725,16 @@ namespace dfgModoPI
         LxResult isurf_Prepare(ILxUnknownID eval, unsigned *index) LXx_OVERRIDE
         {
                 index[0] = Channels::desc.eval_attach (eval, m_item);
+
+
+                // WIP.
+                char s[256];
+                static int a = 0;
+                sprintf(s, "isurf_Prepare() %ld", a++);
+                feLog(s);
+
+
+
                 return LXe_OK;
         }
 

@@ -40,14 +40,14 @@ void dfgStoreInChannel::Command::cmd_Execute(unsigned flags)
     // get the item.
     if (!ModoTools::GetItem(argItemName, item))
     { err += "the item \"" + argItemName + "\" doesn't exists or cannot be used with this command";
-      feLogError(0, err);
+      feLogError(err);
       return; }
   }
 
   // is item invalid?
   if (!item.test())
   { err += "invalid item";
-    feLogError(0, err);
+    feLogError(err);
     return; }
 
   // get item's BaseInterface.
@@ -56,22 +56,27 @@ void dfgStoreInChannel::Command::cmd_Execute(unsigned flags)
   if (!b) b = dfgModoPI::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
-    feLogError(0, err);
+    feLogError(err);
     return; }
 
-  // get the DFG's JSON string and store it in the item's channel.
+  // get channel writer.
+  CLxUser_ChannelWrite chanWrite;
+  if (!chanWrite.from(item))
+  { err += "failed to create channel writer.";
+    feLogError(err);
+    return; }
+
+  // get value object of JSON.
+  CLxUser_Value value_json;
+  if (!chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) || !value_json.test())
+  { err += "failed to get value object of channel \"" CHN_NAME_IO_FabricJSON "\"";
+    feLogError(err);
+    return; }
+
+  // store JSON string in channel.
   try
   {
-    CLxUser_ChannelWrite chanWrite;
-    if (!chanWrite.from(item))
-    { err += "couldn't create channel writer.";
-      feLogError(0, err.c_str(), err.length());
-      return; }
-    std::string json = b->getJSON();
-    if (!chanWrite.Set(item, CHN_NAME_IO_FabricJSON, json.c_str()))
-    { err += "failed to set channel \"" CHN_NAME_IO_FabricJSON "\"";
-      feLogError(0, err.c_str(), err.length());
-      return; }
+    value_json.Set(b->getJSON().c_str());
   }
   catch (FabricCore::Exception e)
   {

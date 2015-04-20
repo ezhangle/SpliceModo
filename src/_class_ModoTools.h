@@ -8,11 +8,13 @@
 
 // includes (Modo).
 #include "lxidef.h"
+
 #include <lx_action.hpp>
 #include "lx_chanmod.hpp"
 #include <lx_channelui.hpp>
 #include <lx_draw.hpp>
 #include "lx_item.hpp"
+#include "lx_io.hpp"
 #include <lx_locator.hpp>
 #include "lx_package.hpp"
 #include "lx_plugin.hpp"
@@ -21,14 +23,19 @@
 #include "lx_value.hpp"
 #include <lx_vertex.hpp>
 #include <lx_vmodel.hpp>
+#include <lx_wrap.hpp>
+
 #include <lxu_attrdesc.hpp>
 #include "lxu_command.hpp"
 #include "lxu_log.hpp"
 #include <lxu_math.hpp>
 #include "lxu_modifier.hpp"
+#include "lxu_select.hpp"
+
 #include "lxlog.h"
 #include <lxvmath.h>
 #include "lx_wrap.hpp"
+
 #include "lxw_command.hpp"
 #include "lxw_customview.hpp"
 

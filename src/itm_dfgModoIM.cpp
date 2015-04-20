@@ -4,6 +4,176 @@ static CLxItemType gItemType_dfgModoIM(SERVER_NAME_dfgModoIM);
 
 namespace dfgModoIM
 {
+  // The Value class implements the custom value type. The base interface for this
+  // object is the Value Interface. This provides the basic functions for
+  // manipulating the value. We also implement a StreamIO interface, allowing us
+  // to read and write the custom value to the scene file.
+
+  struct _JSONValue
+  {
+    std::string   s;
+    BaseInterface *baseInterface;
+    _JSONValue()
+    {
+      s.clear();
+      baseInterface = NULL;
+    }
+  };
+
+  class JSONValue : public CLxImpl_Value,
+                    public CLxImpl_StreamIO
+  {
+   public:
+    static void initialize ()
+    {
+      CLxGenericPolymorph *srv = NULL;
+
+      srv = new CLxPolymorph                 <JSONValue>;
+      srv->AddInterface(new CLxIfc_Value     <JSONValue>);
+      srv->AddInterface(new CLxIfc_StreamIO  <JSONValue>);
+      srv->AddInterface(new CLxIfc_StaticDesc<JSONValue>);
+
+      lx::AddServer(SERVER_NAME_dfgModoIM ".jsonvalue", srv);
+    }
+  
+    static LXtTagInfoDesc descInfo[];
+    _JSONValue *m_data;
+
+    JSONValue()   { m_data = new _JSONValue; }
+    ~JSONValue()  { if (m_data) delete m_data;    }
+  
+    unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
+    LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
+    LxResult     val_SetInt(int val)                      LXx_OVERRIDE;
+    LxResult     val_GetString(char *buf, unsigned len)   LXx_OVERRIDE;
+    LxResult     val_SetString(const char *val)           LXx_OVERRIDE;
+    void        *val_Intrinsic()                          LXx_OVERRIDE;
+  
+    LxResult   io_Write(ILxUnknownID stream)  LXx_OVERRIDE;
+    LxResult   io_Read (ILxUnknownID stream)  LXx_OVERRIDE;
+  };
+
+  LxResult JSONValue::val_Copy(ILxUnknownID other)
+  {
+    /*
+      Copy another instance of our custom value to this one. We just cast
+      the object to our internal structure and then copy the data.
+    */
+
+    if (!m_data)    return LXe_FAILED;
+    if (!other)     return LXe_FAILED;
+
+    _JSONValue *otherData = (_JSONValue *)((void *)other);
+    if (!otherData) return LXe_FAILED;
+  
+    m_data->s             = otherData->s;
+    m_data->baseInterface = NULL;
+
+    return LXe_OK;
+  }
+
+  LxResult JSONValue::val_SetInt(int val)
+  {
+    /*
+      Our custom value type has functions for setting the value using an
+      integer, so we may as well implement this function.
+    */
+
+    if (!m_data)    return LXe_FAILED;
+
+    char s[64];
+    snprintf(s, sizeof(s), "%ld", val);
+    m_data->s = s;
+  
+    return LXe_OK;
+  }
+
+  LxResult JSONValue::val_GetString(char *buf, unsigned len)
+  {
+    /*
+      This function - as the name suggests - is used to get the custom value
+      as a string. We just read the string from the custom value object. As
+      the caller provides a buffer and length, we should test the length of
+      the buffer against our string length, and if it's too short, return
+      short buffer. The caller will then provide a bigger buffer for us to
+      copy the string into.
+    */
+  
+    if (!m_data)    return LXe_FAILED;
+    if (!buf)       return LXe_FAILED;
+
+    if (m_data->s.size() >= len)
+      return LXe_SHORTBUFFER;
+    
+    strncpy(buf, m_data->s.c_str(), len);
+    
+    return LXe_OK;
+  }
+
+  LxResult JSONValue::val_SetString (const char *val)
+  {
+    /*
+      Similar to the get string function, this function sets the string.
+      Again, this is completely arbitrary, but we may as well provide the
+      functionality as an example.
+    */
+
+    if (!m_data)    return LXe_FAILED;
+    if (!val)       return LXe_FAILED;
+  
+    m_data->s = val;
+    
+    return LXe_OK;
+  }
+
+  void *JSONValue::val_Intrinsic()
+  {
+    /*
+     The Intrinsic function is the important one. This returns a pointer
+     to the custom value's class, allowing callers to interface with it directly.
+    */
+    return (void *)m_data;
+  }
+
+  LxResult JSONValue::io_Write(ILxUnknownID stream)
+  {
+    /*
+     The Write function is called whenever the custom value type is being
+     written to a stream, for example, writing to a scene file. 
+    */
+    CLxUser_BlockWrite write(stream);
+    feLog("JSONValue::io_Write()");
+
+    if (!m_data)        return LXe_FAILED;
+    if (!write.test())  return LXe_FAILED;
+
+    return write.WriteString(m_data->s.c_str());
+  }
+
+  LxResult JSONValue::io_Read(ILxUnknownID stream)
+  {
+    /*
+     The Read function is called whenever the custom value type is being
+     read from a stream, for example, loading from a scene file. 
+    */
+    CLxUser_BlockRead read(stream);
+    feLog("JSONValue::io_Read()");
+
+    if (!m_data)       return LXe_FAILED;
+    if (!read.test())  return LXe_FAILED;
+
+    if (read.Read(m_data->s))
+      return LXe_OK;
+    else
+      return LXe_FAILED;
+  }
+
+  LXtTagInfoDesc JSONValue::descInfo[] =
+  {
+    { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
+    { 0 }
+  };
+
   // Implement the Package and Instance. The instance doesn't have to do anything,
   // but the package adds the standard set of channels and marks certain of those
   // channels as schematic inputs/outputs. We also implement a SceneItemListener,
@@ -35,17 +205,43 @@ namespace dfgModoIM
       delete m_baseInterface;
     };
 
-    LxResult pins_Initialize(ILxUnknownID item, ILxUnknownID super)  LXx_OVERRIDE;
-    LxResult pins_AfterLoad(void)                                    LXx_OVERRIDE;
+    LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)  LXx_OVERRIDE;
+    LxResult pins_AfterLoad(void)                                        LXx_OVERRIDE;
 
    public:
-    ILxUnknownID   m_item;            // set in pins_Initialize() and used in pins_AfterLoad().
+    ILxUnknownID   m_item_obj;        // set in pins_Initialize() and used in pins_AfterLoad(), Element::Eval(), ...
     BaseInterface *m_baseInterface;   // set in the constructor.
   };
 
-  LxResult Instance::pins_Initialize(ILxUnknownID item, ILxUnknownID super)
+  LxResult Instance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)
   {
-    m_item = item;
+    // store item ID in our member.
+    m_item_obj = item_obj;
+
+    // store pointer at BaseInterface in JSON channel.
+    bool ok = false;
+    CLxUser_Item item(m_item_obj);
+    if (item.test())
+    {
+      CLxUser_ChannelWrite chanWrite;
+      if (chanWrite.from(item))
+      {
+        CLxUser_Value value_json;
+        if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
+        {
+          _JSONValue *jv = (_JSONValue *)value_json.Intrinsic();
+          if (jv)
+          {
+            ok = true;
+            jv->baseInterface = m_baseInterface;
+          }
+        }
+      }
+    }
+    if (!ok)
+      feLogError("failed to store pointer at BaseInterface in JSON channel");
+
+    // done.
     return LXe_OK;
   }
 
@@ -58,33 +254,50 @@ namespace dfgModoIM
     BaseInterface *b = m_baseInterface;
 
     // create item.
-    CLxUser_Item item(m_item);
+    CLxUser_Item item(m_item_obj);
     if (!item.test())
     { err += "item(m_item) failed";
-      feLogError(0, err.c_str(), err.length());
+      feLogError(err);
       return LXe_OK;  }
 
     // log.
     std::string itemName;
     item.GetUniqueName(itemName);
     std::string info;
-    info = "item \"" + itemName + "\": set Fabric base interface from item's JSON string.";
+    info = "item \"" + itemName + "\": set Fabric base interface from JSON string.";
     feLog(0, info.c_str(), info.length());
 
-    // get content of channel CHN_NAME_IO_FabricJSON.
+    // create channel reader.
     CLxUser_ChannelRead chanRead;
     if (!chanRead.from(item))
-    { err += "couldn't create channel reader.";
-      feLogError(0, err.c_str(), err.length());
+    { err += "failed to create channel reader.";
+      feLogError(err);
       return LXe_OK;  }
-    std::string json;
-    if (!chanRead.GetString(item, CHN_NAME_IO_FabricJSON, json))
-    { err += "failed to read channel \"" CHN_NAME_IO_FabricJSON "\"";
-      feLogError(0, err.c_str(), err.length());
+
+    // get value object.
+    CLxUser_Value value;
+    if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
+    { // note: we don't log an error here.
+      return LXe_OK;  }
+
+    // get content of channel CHN_NAME_IO_FabricJSON.
+    _JSONValue *jv = (_JSONValue *)value.Intrinsic();
+    if (!jv)
+    { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
+      feLogError(err);
       return LXe_OK;  }
 
     // do it.
-    b->setFromJSON(json);
+    try
+    {
+      if (jv->s.length() > 0)
+        b->setFromJSON(jv->s);
+    }
+    catch (FabricCore::Exception e)
+    {
+      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+      feLogError(err);
+    }
 
     // done.
     return LXe_OK;
@@ -147,8 +360,8 @@ namespace dfgModoIM
   }
 
   class Package : public CLxImpl_Package,
-                public CLxImpl_ChannelUI,
-                public CLxImpl_SceneItemListener
+                  public CLxImpl_ChannelUI,
+                  public CLxImpl_SceneItemListener
   {
    public:
     static void initialize()
@@ -192,8 +405,8 @@ namespace dfgModoIM
       add_chan.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
       add_chan.SetDefault(1, 1);
 
-      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, LXsTYPE_STRING);
-      add_chan.SetStorage(LXsTYPE_STRING);
+      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_dfgModoIM ".jsonvalue");
+      add_chan.SetStorage("+" SERVER_NAME_dfgModoIM ".jsonvalue");
       add_chan.SetInternal();
 
       result = LXe_OK;
@@ -246,7 +459,7 @@ namespace dfgModoIM
               || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
              )
           {
-            result = hints.ChannelFlags (0);    // by default we don't display the fixed channels in the schematic view.
+            result = hints.ChannelFlags(0);   // by default we don't display the fixed channels in the schematic view.
           }
           else
           {
@@ -421,7 +634,7 @@ namespace dfgModoIM
       return;
 
     //
-    BaseInterface *b = GetBaseInterface(m_Instance->m_item);
+    BaseInterface *b = GetBaseInterface(m_Instance->m_item_obj);
     if (!b)
     { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item) returned NULL");
       return; }
@@ -873,9 +1086,10 @@ namespace dfgModoIM
   // used in the plugin's initialize() function (see plugin.cpp).
   void initialize()
   {
-    Instance::initialize();
-    Package ::initialize();
-    Modifier::initialize();
+    JSONValue::initialize();
+    Instance ::initialize();
+    Package  ::initialize();
+    Modifier ::initialize();
   }
 };  // namespace dfgModoIM
 

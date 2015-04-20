@@ -1484,7 +1484,7 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Por
 
     else
     {
-      err = "unable to create user channel, data type \"" + resolvedType + "\" not yet implemented";
+      err = "unable to create user channel, data type \"" + resolvedType + "\" not implemented";
       logErrorFunc(0, err.c_str(), err.length());
       return false;
     }

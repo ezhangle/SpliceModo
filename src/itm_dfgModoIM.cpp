@@ -44,9 +44,7 @@ namespace dfgModoIM
   
     unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
     LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
-    LxResult     val_SetInt(int val)                      LXx_OVERRIDE;
     LxResult     val_GetString(char *buf, unsigned len)   LXx_OVERRIDE;
-    LxResult     val_SetString(const char *val)           LXx_OVERRIDE;
     void        *val_Intrinsic()                          LXx_OVERRIDE;
   
     LxResult   io_Write(ILxUnknownID stream)  LXx_OVERRIDE;
@@ -72,57 +70,39 @@ namespace dfgModoIM
     return LXe_OK;
   }
 
-  LxResult JSONValue::val_SetInt(int val)
-  {
-    /*
-      Our custom value type has functions for setting the value using an
-      integer, so we may as well implement this function.
-    */
-
-    if (!m_data)    return LXe_FAILED;
-
-    char s[64];
-    snprintf(s, sizeof(s), "%ld", val);
-    m_data->s = s;
-  
-    return LXe_OK;
-  }
-
   LxResult JSONValue::val_GetString(char *buf, unsigned len)
   {
     /*
-      This function - as the name suggests - is used to get the custom value
-      as a string. We just read the string from the custom value object. As
-      the caller provides a buffer and length, we should test the length of
-      the buffer against our string length, and if it's too short, return
-      short buffer. The caller will then provide a bigger buffer for us to
-      copy the string into.
+
+      note: this function also seactually not the content of m_data->s
     */
   
     if (!m_data)    return LXe_FAILED;
     if (!buf)       return LXe_FAILED;
 
+
+    // set m_data.s from JSON string.
+    if (!m_data->baseInterface)
+    { feLogError("): pointer at BaseInterface is NULL!");
+      return LXe_FAILED;  }
+    try
+    {
+      m_data->s = m_data->baseInterface->getJSON();
+    }
+    catch (FabricCore::Exception e)
+    {
+      std::string err = "JSONValue::val_GetString(): ";
+      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+      feLogError(err);
+      return LXe_FAILED;
+    }
+
+    // return the string, i.e. write into buf.
     if (m_data->s.size() >= len)
       return LXe_SHORTBUFFER;
-    
     strncpy(buf, m_data->s.c_str(), len);
-    
-    return LXe_OK;
-  }
 
-  LxResult JSONValue::val_SetString (const char *val)
-  {
-    /*
-      Similar to the get string function, this function sets the string.
-      Again, this is completely arbitrary, but we may as well provide the
-      functionality as an example.
-    */
-
-    if (!m_data)    return LXe_FAILED;
-    if (!val)       return LXe_FAILED;
-  
-    m_data->s = val;
-    
+    // done.
     return LXe_OK;
   }
 
@@ -147,7 +127,22 @@ namespace dfgModoIM
     if (!m_data)        return LXe_FAILED;
     if (!write.test())  return LXe_FAILED;
 
-    return write.WriteString(m_data->s.c_str());
+    // write the JSON string.
+    if (!m_data->baseInterface)
+    { feLogError("JSONValue::io_Write(): pointer at BaseInterface is NULL!");
+      return LXe_FAILED;  }
+    try
+    {
+      std::string json = m_data->baseInterface->getJSON();
+      return write.WriteString(json.c_str());
+    }
+    catch (FabricCore::Exception e)
+    {
+      std::string err = "JSONValue::io_Write(): ";
+      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+      feLogError(err);
+      return LXe_FAILED;
+    }
   }
 
   LxResult JSONValue::io_Read(ILxUnknownID stream)
@@ -205,8 +200,9 @@ namespace dfgModoIM
       delete m_baseInterface;
     };
 
-    LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)  LXx_OVERRIDE;
-    LxResult pins_AfterLoad(void)                                        LXx_OVERRIDE;
+    LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)   LXx_OVERRIDE;
+    LxResult pins_Newborn(ILxUnknownID original, unsigned flags)          LXx_OVERRIDE;
+    LxResult pins_AfterLoad(void)                                         LXx_OVERRIDE;
 
    public:
     ILxUnknownID   m_item_obj;        // set in pins_Initialize() and used in pins_AfterLoad(), Element::Eval(), ...
@@ -217,6 +213,17 @@ namespace dfgModoIM
   {
     // store item ID in our member.
     m_item_obj = item_obj;
+
+    // done.
+    return LXe_OK;
+  }
+
+  LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
+  {
+    /*
+      This function is called when an item is added.
+      important: this is NOT called when a scene is loaded, instead pins_AfterLoad() is called.
+    */
 
     // store pointer at BaseInterface in JSON channel.
     bool ok = false;
@@ -247,6 +254,10 @@ namespace dfgModoIM
 
   LxResult Instance::pins_AfterLoad(void)
   {
+    /*
+      This function is called when a scene was loaded.
+    */
+
     // init err string,
     std::string err = "pins_AfterLoad() failed: ";
 
@@ -286,6 +297,9 @@ namespace dfgModoIM
     { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
       feLogError(err);
       return LXe_OK;  }
+
+    // set pointer at BaseInterface (just to be sure).
+    jv->baseInterface = m_baseInterface;
 
     // do it.
     try

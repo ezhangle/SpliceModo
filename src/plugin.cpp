@@ -1,5 +1,15 @@
-// includes.
 #include "plugin.h"
+
+#include "_class_BaseInterface.h"
+#include "_class_FabricDFGWidget.h"
+#include "_class_FabricView.h"
+#include "_class_ModoTools.h"
+#include "cmd_dfgExportJSON.h"
+#include "cmd_dfgImportJSON.h"
+#include "cmd_dfgLogVersion.h"
+#include "cmd_dfgOpenCanvas.h"
+#include "itm_dfgModoIM.h"
+#include "itm_dfgModoPI.h"
 
 // log system.
 class CItemLog : public CLxLogMessage

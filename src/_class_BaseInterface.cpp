@@ -1,5 +1,9 @@
 #include "plugin.h"
 
+#include "_class_BaseInterface.h"
+#include "_class_FabricDFGWidget.h"
+#include "_class_ModoTools.h"
+
 FabricCore::Client BaseInterface::s_client;
 DFGWrapper::Host * BaseInterface::s_host = NULL;
 FabricServices::ASTWrapper::KLASTManager * BaseInterface::s_manager = NULL;
@@ -254,10 +258,22 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoIM;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPI;
 
+    // log.
+    if (true)
+    {
+      std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
+      logFunc(NULL, s.c_str(), s.length());
+    }
+
     // handle notification.
     std::string err = "";
     {
-      if      (nDesc == "argTypeChanged")
+      if      (nDesc == "")
+      {
+        // do nothing.
+      }
+
+      else if (nDesc == "argTypeChanged")
       {
         // re-create Modo user channel.
         if (unknownID)
@@ -266,6 +282,12 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
           if (!graph.isNull())
             b.CreateModoUserChannelForPort(graph->getPort(nName.c_str()));
         }
+      }
+
+      else if (nDesc == "argRenamed")
+      {
+        // rename the Modo user channel.
+        feLog("// rename the Modo user channel.");
       }
 
       else if (nDesc == "argRemoved")
@@ -277,7 +299,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
 
       else
       {
-        //logFunc(NULL, nDesc.c_str(), nDesc.length());
+        // do nothing.
       }
     }
   }

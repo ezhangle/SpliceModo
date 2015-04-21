@@ -1,5 +1,10 @@
 #include "plugin.h"
 
+#include "_class_BaseInterface.h"
+#include "_class_FabricDFGWidget.h"
+#include "_class_ModoTools.h"
+#include "itm_dfgModoPI.h"
+
 static CLxItemType gItemType_dfgModoPI(SERVER_NAME_dfgModoPI);
 
 namespace dfgModoPI

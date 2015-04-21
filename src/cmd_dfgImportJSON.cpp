@@ -1,5 +1,15 @@
 #include "plugin.h"
 
+#include "_class_BaseInterface.h"
+#include "_class_FabricDFGWidget.h"
+#include "_class_ModoTools.h"
+#include "cmd_dfgImportJSON.h"
+#include "itm_dfgModoIM.h"
+#include "itm_dfgModoPI.h"
+
+#include <fstream>
+#include <streambuf>
+
 // static tag description interface.
 LXtTagInfoDesc dfgImportJSON::Command::descInfo[] =
 {

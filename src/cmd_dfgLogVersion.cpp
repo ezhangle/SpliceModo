@@ -1,5 +1,9 @@
 #include "plugin.h"
 
+#include "_class_BaseInterface.h"
+#include "_class_ModoTools.h"
+#include "cmd_dfgLogVersion.h"
+
 // static tag description interface.
 LXtTagInfoDesc dfgLogVersion::Command::descInfo[] =
 {

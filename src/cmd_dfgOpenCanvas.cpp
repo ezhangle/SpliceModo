@@ -1,5 +1,12 @@
 #include "plugin.h"
 
+#include "_class_BaseInterface.h"
+#include "_class_FabricDFGWidget.h"
+#include "_class_ModoTools.h"
+#include "cmd_dfgOpenCanvas.h"
+#include "itm_dfgModoIM.h"
+#include "itm_dfgModoPI.h"
+
 // static tag description interface.
 LXtTagInfoDesc dfgOpenCanvas::Command::descInfo[] =
 {

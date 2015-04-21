@@ -1,5 +1,7 @@
 #include "plugin.h"
 
+#include "_class_ModoTools.h"
+
 bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
 {
   // init.
@@ -454,7 +456,7 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
       int i = 0;
       if (attr.GetInt(eval_index, &i) != LXe_OK)
         return -3;
-      snprintf(s, sizeof(s), "%ld", i);
+      sprintf(s, "%ld", i);
       out = s;
       return 0;
     }
@@ -463,7 +465,7 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
       double f = 0;
       if (attr.GetFlt(eval_index, &f))
         return -3;
-      snprintf(s, sizeof(s), "%f", f);
+      sprintf(s, "%f", f);
       out = s;
       return 0;
     }

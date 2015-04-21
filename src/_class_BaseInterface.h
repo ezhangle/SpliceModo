@@ -57,7 +57,7 @@ class BaseInterface : public FabricServices::DFGWrapper::View
   virtual void onEndPointsDisconnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst) {}
   virtual void onNodeMetadataChanged(FabricServices::DFGWrapper::NodePtr node, const char * key, const char * metadata) {}
   virtual void onNodeTitleChanged(FabricServices::DFGWrapper::NodePtr node, const char * title) {}
-  virtual void onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char * oldName);
+virtual void onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char * oldName);
   virtual void onPinRenamed(FabricServices::DFGWrapper::PinPtr pin, const char * oldName) {}
   virtual void onExecMetadataChanged(FabricServices::DFGWrapper::ExecutablePtr exec, const char * key, const char * metadata) {}
   virtual void onExtDepAdded(const char * extension, const char * version) {}

@@ -6,6 +6,11 @@
 
 #include "plugin.h"
 
+#include "_class_FabricDFGWidget.h"
+#include "_class_ModoTools.h"
+#include "itm_dfgModoIM.h"
+#include "itm_dfgModoPI.h"
+
 std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)

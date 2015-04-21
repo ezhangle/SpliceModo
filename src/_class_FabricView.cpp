@@ -1,5 +1,8 @@
-#include <stdio.h>
 #include "plugin.h"
+
+#include "_class_FabricDFGWidget.h"
+#include "_class_FabricView.h"
+#include "_class_ModoTools.h"
 
 std::vector <FabricView *> FabricView::s_FabricViews;
 

@@ -50,10 +50,9 @@ void initialize()
     dfgImportJSON     :: Command::  initialize();
     dfgLogVersion     :: Command::  initialize();
     dfgOpenCanvas     :: Command::  initialize();
-    dfgStoreInChannel :: Command::  initialize();
-    dfgModoIM::                     initialize();
-    dfgModoPI::                     initialize();
-    FabricView::                    initialize();
+    dfgModoIM         ::            initialize();
+    dfgModoPI         ::            initialize();
+    FabricView        ::            initialize();
   }
 }
 

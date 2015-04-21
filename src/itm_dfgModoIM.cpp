@@ -45,6 +45,7 @@ namespace dfgModoIM
     unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
     LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
     LxResult     val_GetString(char *buf, unsigned len)   LXx_OVERRIDE;
+    LxResult     val_SetString(const char *val)           LXx_OVERRIDE;
     void        *val_Intrinsic()                          LXx_OVERRIDE;
   
     LxResult   io_Write(ILxUnknownID stream)  LXx_OVERRIDE;
@@ -73,36 +74,36 @@ namespace dfgModoIM
   LxResult JSONValue::val_GetString(char *buf, unsigned len)
   {
     /*
-
-      note: this function also seactually not the content of m_data->s
+      This function - as the name suggests - is used to get the custom value
+      as a string. We just read the string from the custom value object. As
+      the caller provides a buffer and length, we should test the length of
+      the buffer against our string length, and if it's too short, return
+      short buffer. The caller will then provide a bigger buffer for us to
+      copy the string into.
     */
   
     if (!m_data)    return LXe_FAILED;
     if (!buf)       return LXe_FAILED;
 
-
-    // set m_data.s from JSON string.
-    if (!m_data->baseInterface)
-    { feLogError("): pointer at BaseInterface is NULL!");
-      return LXe_FAILED;  }
-    try
-    {
-      m_data->s = m_data->baseInterface->getJSON();
-    }
-    catch (FabricCore::Exception e)
-    {
-      std::string err = "JSONValue::val_GetString(): ";
-      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-      feLogError(err);
-      return LXe_FAILED;
-    }
-
-    // return the string, i.e. write into buf.
     if (m_data->s.size() >= len)
       return LXe_SHORTBUFFER;
+
     strncpy(buf, m_data->s.c_str(), len);
 
-    // done.
+    return LXe_OK;
+  }
+
+  LxResult JSONValue::val_SetString(const char *val)
+  {
+    /*
+      Similar to the get string function, this function sets the string.
+    */
+
+    if (!m_data)    return LXe_FAILED;
+    if (!val)       return LXe_FAILED;
+
+    m_data->s = val;
+    
     return LXe_OK;
   }
 
@@ -120,6 +121,9 @@ namespace dfgModoIM
     /*
      The Write function is called whenever the custom value type is being
      written to a stream, for example, writing to a scene file. 
+
+     NOTE: we do not write the string m_data->s, instead we write
+           the JSON string BaseInterface::getJSON().
     */
     CLxUser_BlockWrite write(stream);
     feLog("JSONValue::io_Write()");
@@ -150,7 +154,12 @@ namespace dfgModoIM
     /*
      The Read function is called whenever the custom value type is being
      read from a stream, for example, loading from a scene file. 
+
+     NOTE: the string is read into m_data->s and will then be used in
+           the function Instance::pins_AfterLoad() to set the graph
+           via BaseInterface::setFromJSON().
     */
+
     CLxUser_BlockRead read(stream);
     feLog("JSONValue::io_Read()");
 
@@ -222,7 +231,12 @@ namespace dfgModoIM
   {
     /*
       This function is called when an item is added.
-      important: this is NOT called when a scene is loaded, instead pins_AfterLoad() is called.
+      We store the pointer at the BaseInterface here so that the
+      functions JSONValue::io_Write() can write the JSON string
+      when the scene is saved.
+
+      note: this function is *not* called when a scene is loaded,
+            instead pins_AfterLoad() is called.
     */
 
     // store pointer at BaseInterface in JSON channel.
@@ -256,6 +270,13 @@ namespace dfgModoIM
   {
     /*
       This function is called when a scene was loaded.
+
+      We store the pointer at the BaseInterface here so that the
+      functions JSONValue::io_Write() can write the JSON string
+      when the scene is saved.
+
+      Furthermore we set the graph from the content (i.e. the string)
+      of the channel CHN_NAME_IO_FabricJSON.
     */
 
     // init err string,
@@ -298,7 +319,7 @@ namespace dfgModoIM
       feLogError(err);
       return LXe_OK;  }
 
-    // set pointer at BaseInterface (just to be sure).
+    // set pointer at BaseInterface.
     jv->baseInterface = m_baseInterface;
 
     // do it.

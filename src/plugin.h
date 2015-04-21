@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.015
+#define FABRICMODO_PLUGIN_VERSION   0.017
 
 // disable some annoying VS warnings.
 #pragma warning(disable : 4530)   // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
@@ -19,7 +19,6 @@
 #include "cmd_dfgImportJSON.h"
 #include "cmd_dfgLogVersion.h"
 #include "cmd_dfgOpenCanvas.h"
-#include "cmd_dfgStoreInChannel.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 

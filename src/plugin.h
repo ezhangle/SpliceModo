@@ -19,6 +19,7 @@
 
 // constants: fixed channel names.
 #define CHN_NAME_IO_FabricActive  "FabricActive"  // io: enable/disable execution of DFG for this item.
+#define CHN_NAME_IO_FabricEval    "FabricEval"    // io: internal counter used to re-evaluate the item.
 #define CHN_NAME_IO_FabricJSON    "FabricJSON"    // io: custom value for persistence (read/write BaseInterface's JSON).
 
 // forward declaration: log system.

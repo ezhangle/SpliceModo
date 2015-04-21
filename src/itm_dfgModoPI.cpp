@@ -696,7 +696,7 @@ namespace dfgModoPI
             std::string itemName;
             item.GetUniqueName(itemName);
             std::string info;
-            info = "item \"" + itemName + "\": set Fabric base interface from item's JSON string.";
+            info = "item \"" + itemName + "\": setting Fabric base interface from item's JSON string.";
             feLog(0, info.c_str(), info.length());
 
             // get content of channel CHN_NAME_IO_FabricJSON.

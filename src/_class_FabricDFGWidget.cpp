@@ -21,7 +21,7 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
     init(m_baseInterface->getClient(),
          m_baseInterface->getManager(),
          m_baseInterface->getHost(),
-         *m_baseInterface->getBinding(),
+        *m_baseInterface->getBinding(),
          m_baseInterface->getGraph(),
          m_baseInterface->getStack(),
          false);
@@ -32,6 +32,14 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
 
 FabricDFGWidget::~FabricDFGWidget()
 {
+  // remove this from all FabricViews::m_dfgWidget.
+  for (int i=0;i<FabricView::s_FabricViews.size();i++)
+  {
+    if (FabricView::s_FabricViews[i]->widget() == this)
+      FabricView::s_FabricViews[i]->setWidgetNULL();
+  }
+
+  // remove this from s_instances.
   for (std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.begin(); it != s_instances.end(); it++)
   {
     if (it->second == this)
@@ -70,6 +78,7 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseI
 
     // create Fabric DFG widget
     FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
+    //newDFGWidget->setAttribute(Qt::WA_DeleteOnClose, true);
     fv->setWidget(newDFGWidget);
     fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -121,8 +130,8 @@ QMainWindow *FabricDFGWidget::getPointerAtMainWindow(void)
 
 void FabricDFGWidget::refreshGraph(void)
 {
-  if (!m_baseInterface)
-    return;
+  if (!m_baseInterface)   return;
+  if (!getDfgWidget())    return;
   getDfgWidget()->setGraph(m_baseInterface->getHost(), *m_baseInterface->getBinding(), m_baseInterface->getGraph());
   //m_baseInterface->getBinding()->setNotificationCallback(BaseInterface::bindingNotificationCallback, this);
 }

@@ -53,6 +53,12 @@ void FabricView::setWidget(FabricDFGWidget *dfgWidget)
   layout->addWidget(m_dfgWidget);
 }
 
+void FabricView::setWidgetNULL()
+{
+  m_dfgWidget = NULL;
+}
+
+
 void FabricView::initialize()
 {
   CLxGenericPolymorph* cmd = NULL;

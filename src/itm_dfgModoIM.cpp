@@ -301,7 +301,7 @@ namespace dfgModoIM
     std::string itemName;
     item.GetUniqueName(itemName);
     std::string info;
-    info = "item \"" + itemName + "\": set Fabric base interface from JSON string.";
+    info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
     feLog(0, info.c_str(), info.length());
 
     // create channel reader.
@@ -389,27 +389,13 @@ namespace dfgModoIM
 
       if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
       {
-        //CLxUser_ChannelWrite chanWrite;
-        //if (chanWrite.from(item))
-        //{
-        //  CLxUser_Value value_json;
-        //  if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
-        //  {
-        //    _JSONValue *jv = (_JSONValue *)value_json.Intrinsic();
-        //    if (jv)
-        //    {
-        //      feLog("found _JSONValue");
-        //    }
-        //  }
-        //}
+        static int evalCounter = 0;
 
-        //// note: this works, but it is a bit "hard core", better would be to invalidate a channel (i.e. mark it as dirty).
-        CLxUser_Scene scene;
-        {
-          if (item.GetContext(scene))
-            scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
-        }
-
+        char cmd[1024];
+        std::string err;
+        std::string uniqueName;
+        snprintf(cmd, sizeof(cmd), "item.channel %s %ld item:\"%s\"", CHN_NAME_IO_FabricEval, evalCounter++, item.IdentPtr());
+        ModoTools::ExecuteCommand(std::string(cmd), err);
       }
     }
   }
@@ -459,6 +445,10 @@ namespace dfgModoIM
     {
       add_chan.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
       add_chan.SetDefault(1, 1);
+
+      add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
+      add_chan.SetDefault(0, 0);
+      add_chan.SetInternal();
 
       add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_dfgModoIM ".jsonvalue");
       add_chan.SetStorage("+" SERVER_NAME_dfgModoIM ".jsonvalue");
@@ -511,6 +501,7 @@ namespace dfgModoIM
       if (strcmp(channelName, "draw"))
       {
           if (   !strcmp(channelName, CHN_NAME_IO_FabricActive)
+              || !strcmp(channelName, CHN_NAME_IO_FabricEval)
               || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
              )
           {
@@ -633,6 +624,7 @@ namespace dfgModoIM
 
     // add the fixed input channels to eval.
     m_eval_index_FabricActive = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+    m_eval_index_FabricActive = eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
     m_eval_index_FabricJSON   = eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
 
     // collect all the user channels and add them to eval.

@@ -38,6 +38,7 @@ class FabricView : public CLxImpl_CustomView
   // setter / getter for the contained FabricDFGWidget
   FabricDFGWidget * widget();
   void setWidget(FabricDFGWidget * dfgWidget);
+  void setWidgetNULL();
 
   // static vector of pointers.
   static std::vector <FabricView *> s_FabricViews;

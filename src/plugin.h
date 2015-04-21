@@ -26,25 +26,16 @@
 #include <fstream>
 #include <streambuf>
 
-// Modo item/server names.
+// constants: Modo item/server names.
 #define SERVER_NAME_dfgModoIM     "dfgModoIM"     // dfgModo "item modifier".
 #define SERVER_NAME_dfgModoPI     "dfgModoPI"     // dfgModo "procedural item".
 
-// fixed channel names.
+// constants: fixed channel names.
 #define CHN_NAME_IO_FabricActive  "FabricActive"  // io: enable/disable execution of DFG for this item.
 #define CHN_NAME_IO_FabricJSON    "FabricJSON"    // io: custom value for persistence (read/write BaseInterface's JSON).
 
-// log system.
+// forward declaration: log system.
 #define LOG_SYSTEM_NAME "Fabric"
-class CItemLog : public CLxLogMessage
-{
- public:
-    CItemLog() : CLxLogMessage(LOG_SYSTEM_NAME) { }
-    const char *GetFormat()     { return "n.a."; }
-    const char *GetVersion()    { return "n.a."; }
-    const char *GetCopyright()  { return "n.a."; }
-};
-extern CItemLog gLog;
 void feLog(void *userData, const char *s, unsigned int length);
 void feLog(void *userData, const std::string &s);
 void feLog(const std::string &s);

@@ -384,12 +384,27 @@ namespace dfgModoIM
 
       if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
       {
-        // note: this works, but it is a bit "hard core", better would be to invalidate a channel (i.e. mark it as dirty).
-        CLxUser_Scene scene;
+        CLxUser_ChannelWrite chanWrite;
+        if (chanWrite.from(item))
         {
-          if (item.GetContext(scene))
-            scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+          CLxUser_Value value_json;
+          if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
+          {
+            _JSONValue *jv = (_JSONValue *)value_json.Intrinsic();
+            if (jv)
+            {
+              feLog("found _JSONValue");
+            }
+          }
         }
+
+        //// note: this works, but it is a bit "hard core", better would be to invalidate a channel (i.e. mark it as dirty).
+        //CLxUser_Scene scene;
+        //{
+        //  if (item.GetContext(scene))
+        //    scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+        //}
+
       }
     }
   }

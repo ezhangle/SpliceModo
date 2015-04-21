@@ -1,8 +1,7 @@
 #ifndef SRC__CLASS_FABRICVIEW_H_
 #define SRC__CLASS_FABRICVIEW_H_
 
-#include "_class_ModoTools.h"
-#include "_class_FabricDFGWidget.h"
+#include "lxw_customview.hpp"
 
 class FabricDFGWidget;
 void feLog(const std::string &s);

@@ -2,6 +2,14 @@
 #include "plugin.h"
 
 // log system.
+class CItemLog : public CLxLogMessage
+{
+ public:
+    CItemLog() : CLxLogMessage(LOG_SYSTEM_NAME) { }
+    const char *GetFormat()     { return "n.a."; }
+    const char *GetVersion()    { return "n.a."; }
+    const char *GetCopyright()  { return "n.a."; }
+};
 CItemLog gLog;
 void feLog(void *userData, const char *s, unsigned int length)
 {
@@ -46,13 +54,13 @@ void initialize()
 
   // Modo.
   {
-    dfgExportJSON     :: Command::  initialize();
-    dfgImportJSON     :: Command::  initialize();
-    dfgLogVersion     :: Command::  initialize();
-    dfgOpenCanvas     :: Command::  initialize();
-    dfgModoIM         ::            initialize();
-    dfgModoPI         ::            initialize();
-    FabricView        ::            initialize();
+    dfgExportJSON :: Command:: initialize();
+    dfgImportJSON :: Command:: initialize();
+    dfgLogVersion :: Command:: initialize();
+    dfgOpenCanvas :: Command:: initialize();
+    dfgModoIM     ::           initialize();
+    dfgModoPI     ::           initialize();
+    FabricView    ::           initialize();
   }
 }
 

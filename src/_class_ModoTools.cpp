@@ -297,7 +297,7 @@ bool ModoTools::DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_e
   return ExecuteCommand("channel.delete", out_err);
 }
 
-bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err)
+bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
 {
   // init.
   out_err = "";
@@ -307,6 +307,13 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
   if (channelName.length() <= 0 || channelNameNew.length() <= 0)
   { out_err = "empty channel name";
     return false; }
+
+  // interpretate first parameter as ILxUnknownID?
+  if (interpretate_ptr_as_ILxUnknownID)
+  {
+    CLxUser_Item item((ILxUnknownID)ptr_CLxUser_Item);
+    return RenameUserChannel(&item, channelName, channelNameNew, out_err);
+  }
 
   // get actual channel name.
   std::string actualName;
@@ -645,5 +652,19 @@ int ModoTools::GetChannelValueAsMatrix44(CLxUser_Attributes &attr, int eval_inde
   return -1;
 }
 
+void ModoTools::InvalidateItem(ILxUnknownID item_obj)
+{
+  if (item_obj)
+  {
+    CLxUser_Item item(item_obj);
+    if (item.test())
+    {
+      std::string cmd;
+      std::string err;
+      cmd = "dfgIncEval \"" + std::string(item.IdentPtr()) + "\"";
+      ModoTools::ExecuteCommand(std::string(cmd), err);
+    }
+  }
+}
 
 

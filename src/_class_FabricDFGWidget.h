@@ -46,11 +46,8 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
     BaseInterface                                     *m_baseInterface;
 
  public:
-    // returns the pointer at the main Qt window.
-    static QMainWindow *getPointerAtMainWindow(void);
-
-    // refreshes the host, binding and graph of the DFG widget.
-    void refreshGraph(void);
+    static QMainWindow *getPointerAtMainWindow(void);   // returns the pointer at the main Qt window.
+    void refreshGraph(void);                            // refreshes the host, binding and graph of the DFG widget.
 };
 
 #endif  // SRC__CLASS_FABRICDFGWIDGET_H_

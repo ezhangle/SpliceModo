@@ -50,14 +50,14 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
     // get the item.
     if (!ModoTools::GetItem(argItemName, item))
     { err += "the item \"" + argItemName + "\" doesn't exists or cannot be used with this command";
-      feLogError(0, err);
+      feLogError(err);
       return; }
   }
 
   // is item invalid?
   if (!item.test())
   { err += "invalid item";
-    feLogError(0, err);
+    feLogError(err);
     return; }
 
   // get item's BaseInterface.
@@ -66,7 +66,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   if (!b) b = dfgModoPI::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
-    feLogError(0, err);
+    feLogError(err);
     return;  }
 
   // get filepath.
@@ -87,7 +87,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   std::ofstream t(filePath, std::ios::binary);
   if (!t.good())
   { err += "unable to open \"" + filePath + "\"";
-    feLogError(0, err);
+    feLogError(err);
     return; }
   try
   {
@@ -97,7 +97,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   catch (std::exception &e)
   {
     err += "write error for \"" + filePath + "\": " + e.what();
-    feLogError(0, err);
+    feLogError(err);
     return;
   }
 }

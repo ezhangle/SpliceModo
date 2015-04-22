@@ -7,7 +7,6 @@ namespace dfgModoIM
     class Instance;
     Instance *GetInstance(ILxUnknownID item_obj);
     BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
-    void InvalidateItem(void *ILxUnknownID_item_obj);
 };
 
 #endif  // SRC_ITM_DFGMODOIM_H_

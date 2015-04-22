@@ -3,19 +3,22 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgOpenCanvas.h"
+#include "cmd_dfgIncEval.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 
+#include <fstream>
+#include <streambuf>
+
 // static tag description interface.
-LXtTagInfoDesc dfgOpenCanvas::Command::descInfo[] =
+LXtTagInfoDesc dfgIncEval::Command::descInfo[] =
 {
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
 
 // constructor.
-dfgOpenCanvas::Command::Command(void)
+dfgIncEval::Command::Command(void)
 {
   // arguments.
   int idx = 0;
@@ -28,10 +31,10 @@ dfgOpenCanvas::Command::Command(void)
 }
 
 // execute code.
-void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
+void dfgIncEval::Command::cmd_Execute(unsigned flags)
 {
   // init err string,
-  std::string err = "command " SERVER_NAME_dfgOpenCanvas " failed: ";
+  std::string err = "command " SERVER_NAME_dfgIncEval " failed: ";
 
   // declare and set item from argument.
   CLxUser_Item item;
@@ -58,23 +61,34 @@ void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
     return; }
 
   // get item's BaseInterface.
+  // note: we don't really need it, but that way we know we have a valid item.
   BaseInterface *b = NULL;
   if (!b) b = dfgModoIM::GetBaseInterface(item);
   if (!b) b = dfgModoPI::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);
-    return; }
+    return;  }
 
-  // get/display DFG widget.
-  try
+  // get current FabricEval value.
+  int eval = 0;
   {
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
+    CLxUser_ChannelRead chanRead;
+    if (!chanRead.from(item))
+    { err += "failed to create channel reader.";
+      feLogError(err);
+      return;  }
+    eval = chanRead.IValue(item, CHN_NAME_IO_FabricEval);
   }
-  catch (FabricCore::Exception e)
-  {
-    feLogError(e.getDesc_cstr());
-  }
+
+  // increase FabricEval value by 1.
+  CLxUser_ChannelWrite chanWriter;
+  if (!chanWriter.from(item))
+  { err += "failed to create channel writer.";
+    feLogError(err);
+    return;  }
+  if (!chanWriter.Set(item, CHN_NAME_IO_FabricEval, eval + 1))
+  { err += "failed to increase eval counter.";
+    feLogError(err);
+    return;  }
 }
-
-

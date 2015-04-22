@@ -6,6 +6,7 @@
 #include "_class_ModoTools.h"
 #include "cmd_dfgExportJSON.h"
 #include "cmd_dfgImportJSON.h"
+#include "cmd_dfgIncEval.h"
 #include "cmd_dfgLogVersion.h"
 #include "cmd_dfgOpenCanvas.h"
 #include "itm_dfgModoIM.h"
@@ -66,6 +67,7 @@ void initialize()
   {
     dfgExportJSON :: Command:: initialize();
     dfgImportJSON :: Command:: initialize();
+    dfgIncEval    :: Command:: initialize();
     dfgLogVersion :: Command:: initialize();
     dfgOpenCanvas :: Command:: initialize();
     dfgModoIM     ::           initialize();

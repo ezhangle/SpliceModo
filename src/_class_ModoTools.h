@@ -112,12 +112,14 @@ class ModoTools
   static bool DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_err);
 
   // renames an existing user channel.
-  // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.
-  //          channelName             current name of channel.
-  //          channelNameNew          new name of channel.
-  //          out_err                 contains an error description if the function returns false.
+  // params:  ptr_CLxUser_Item                        pointer at CLxUser_Item.
+  //          channelName                             current name of channel.
+  //          channelNameNew                          new name of channel.
+  //          out_err                                 contains an error description if the function returns false.
+  //          interpretate_ptr_as_ILxUnknownID        if true then the parameter ptr_CLxUser_Item is not interpretated
+  //                                                  as being a pointer at CLxUser_Item but as being a ILxUnknownID.
   // returns: true on success, false otherwise.
-  static bool RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err);
+  static bool RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID = false);
 
   // gets the value of a channel as a boolean, integer, string, etc.
   // params:  attr        attribute with channels.
@@ -136,6 +138,11 @@ class ModoTools
   static int GetChannelValueAsRGBA      (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
   static int GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
   static int GetChannelValueAsMatrix44  (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
+
+  // invalidates an item so that it gets re-evaluated:
+  // this is done by calling the command "dfgIncEval" which will increase
+  // the value of the internal integer channel called "FabricEval" by 1.
+  static void InvalidateItem(ILxUnknownID item_obj);
 };
 
 #endif  // SRC__CLASS_MODOTOOLS_H_

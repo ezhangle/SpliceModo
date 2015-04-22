@@ -169,69 +169,6 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
   s_logErrorFunc = in_logErrorFunc;
 }
 
-void BaseInterface::onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char *oldName)
-{
-  if (port.isNull())
-  {
-    std::string s = "BaseInterface::onPortRenamed(): port == NULL";
-    logErrorFunc(NULL, s.c_str(), s.length());
-    return;
-  }
-
-  if (!port->isValid())
-  {
-    std::string s = "BaseInterface::onPortRenamed(): port->isValid() == false";
-    logErrorFunc(NULL, s.c_str(), s.length());
-    return;
-  }
-
-  if (!oldName)
-  {
-    std::string s = "BaseInterface::onPortRenamed(): oldName == NULL";
-    logErrorFunc(NULL, s.c_str(), s.length());
-    return;
-  }
-
-  try
-  {
-    std::string err;
-    CLxUser_Item item;
-
-    if      (m_ILxUnknownID_dfgModoIM)  item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
-    else if (m_ILxUnknownID_dfgModoPI)  item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
-    else                              { err = "BaseInterface::onPortRenamed(): m_ILxUnknownID_dfgModo??? == NULL";
-                                        logErrorFunc(0, err.c_str(), err.length());
-                                        return; }
-
-    if (!item.test()) { err = "BaseInterface::onPortRenamed(): item((ILxUnknownID)m_ILxUnknownID_dfgModo???) failed";
-                        logErrorFunc(0, err.c_str(), err.length());
-                        return; }
-
-    if (!ModoTools::RenameUserChannel(&item, std::string(oldName), port->getName(), err))
-      logErrorFunc(0, err.c_str(), err.length());
-
-    // workaround: there currently is no way to tell Modo (via SceneItemListener) that a port was renamed,
-    // so we simply create a dummy port and delete it right away.
-    std::string dummyName = oldName;
-    dummyName += "tmpWorkaround127";
-    if (!ModoTools::CreateUserChannel(&item, dummyName, "float", "", err))
-    {
-      logErrorFunc(0, err.c_str(), err.length());
-      return;
-    }
-    if (!ModoTools::DeleteUserChannel(&item, dummyName, err))
-    {
-      logErrorFunc(0, err.c_str(), err.length());
-      return;
-    }
-  }
-  catch (FabricCore::Exception e)
-  {
-    std::string s = std::string("BaseInterface::onPortRenamed(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
-    logErrorFunc(NULL, s.c_str(), s.length());
-  }
-}
-
 void BaseInterface::bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength)
 {
   // check pointers.
@@ -248,10 +185,8 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
 
     // get the notification's description and possibly the value of name.
     const FabricCore::Variant *vDesc = notification.getDictValue("desc");
-    const FabricCore::Variant *vName = notification.getDictValue("name");
     if (!vDesc)   return;
     std::string nDesc = vDesc->getStringData();
-    std::string nName = (vName ? vName->getStringData() : "");
 
     // get the Modo item's ILxUnknownID.
     void             *unknownID = NULL;
@@ -275,26 +210,54 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
 
       else if (nDesc == "argTypeChanged")
       {
-        // re-create Modo user channel.
+        // the data type of a port changed => we must re-create the Modo user channel.
         if (unknownID)
         {
-          ModoTools::DeleteUserChannel(unknownID, nName, err, true);
+          // get name.
+          const FabricCore::Variant *v = notification.getDictValue("name");
+          std::string name = (v ? v->getStringData() : "");
+
+          // delete current channel.
+          ModoTools::DeleteUserChannel(unknownID, name, err, true);
+
+          // create new channel
           if (!graph.isNull())
-            b.CreateModoUserChannelForPort(graph->getPort(nName.c_str()));
+            b.CreateModoUserChannelForPort(graph->getPort(name.c_str()));
         }
       }
 
       else if (nDesc == "argRenamed")
       {
-        // rename the Modo user channel.
-        feLog("// rename the Modo user channel.");
+        // a port was renamed => we must rename the Modo user channel.
+        if (unknownID)
+        {
+          // get old and new name.
+          const FabricCore::Variant *vo = notification.getDictValue("oldName");
+          const FabricCore::Variant *vn = notification.getDictValue("newName");
+          std::string oldName = (vo ? vo->getStringData() : "");
+          std::string newName = (vn ? vn->getStringData() : "");
+
+          // rename channel.
+          std::string err;
+          if (!ModoTools::RenameUserChannel(unknownID, oldName, newName, err, true))
+            logErrorFunc(0, err.c_str(), err.length());
+        }
       }
 
       else if (nDesc == "argRemoved")
       {
-        // delete the Modo user channel.
+        // a port was removed => we must delete the Modo user channel.
         if (unknownID)
-          ModoTools::DeleteUserChannel(unknownID, nName, err, true);
+        {
+          // get name.
+          const FabricCore::Variant *v = notification.getDictValue("name");
+          std::string name = (v ? v->getStringData() : "");
+
+          // remove channel.
+          std::string err;
+          if (!ModoTools::DeleteUserChannel(unknownID, name, err, true))
+            logErrorFunc(0, err.c_str(), err.length());
+        }
       }
 
       else

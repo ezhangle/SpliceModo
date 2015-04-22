@@ -50,14 +50,14 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     // get the item.
     if (!ModoTools::GetItem(argItemName, item))
     { err += "the item \"" + argItemName + "\" doesn't exists or cannot be used with this command";
-      feLogError(0, err);
+      feLogError(err);
       return; }
   }
 
   // is item invalid?
   if (!item.test())
   { err += "invalid item";
-    feLogError(0, err);
+    feLogError(err);
     return; }
 
   // get item's BaseInterface.
@@ -66,7 +66,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
   if (!b) b = dfgModoPI::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
-    feLogError(0, err);
+    feLogError(err);
     return; }
 
   // get filepath.
@@ -87,7 +87,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
   std::ifstream t(filePath, std::ios::binary);
   if (!t.good())
   { err += "unable to open \"" + filePath + "\"";
-    feLogError(0, err);
+    feLogError(err);
     return; }
   t.seekg(0, std::ios::end);
   std::string json;
@@ -106,7 +106,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     std::string oErr;
     if (!ModoTools::DeleteAllUserChannels(&item, oErr))
     { err += oErr;
-      feLogError(0, err);
+      feLogError(err);
       return;    }
 
     // re-create all user channels.
@@ -124,7 +124,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
         continue;
 
       if (!b->CreateModoUserChannelForPort(port))
-      { feLogError(0, err + "creating user channel for port \"" + port->getName() + "\" failed. Continuing anyway.");
+      { feLogError(err + "creating user channel for port \"" + port->getName() + "\" failed. Continuing anyway.");
         return; }
     }
 

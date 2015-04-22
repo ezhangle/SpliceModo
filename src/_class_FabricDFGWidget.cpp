@@ -106,10 +106,11 @@ void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 
 void FabricDFGWidget::onDefaultValueChanged()
 {
-  if (!m_baseInterface)
-    return;
-  dfgModoIM::InvalidateItem(m_baseInterface->m_ILxUnknownID_dfgModoIM);
-  //dfgModoPI::InvalidateItem(m_baseInterface->m_ILxUnknownID_dfgModoPI);
+  if (m_baseInterface)
+  {
+    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+  }
 }
 
 void FabricDFGWidget::showEvent(QShowEvent *event)
@@ -133,5 +134,4 @@ void FabricDFGWidget::refreshGraph(void)
   if (!m_baseInterface)   return;
   if (!getDfgWidget())    return;
   getDfgWidget()->setGraph(m_baseInterface->getHost(), *m_baseInterface->getBinding(), m_baseInterface->getGraph());
-  //m_baseInterface->getBinding()->setNotificationCallback(BaseInterface::bindingNotificationCallback, this);
 }

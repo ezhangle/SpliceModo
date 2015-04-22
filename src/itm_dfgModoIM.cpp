@@ -284,7 +284,7 @@ namespace dfgModoIM
       of the channel CHN_NAME_IO_FabricJSON.
     */
 
-    // init err string,
+    // init err string.
     std::string err = "pins_AfterLoad() failed: ";
 
     // get BaseInterface.
@@ -378,28 +378,6 @@ namespace dfgModoIM
     else        return NULL;
   }
 
-  void InvalidateItem(void *ILxUnknownID_item_obj)
-  {
-    // invalidates an item so that it gets re-evaluated.
-
-    if (ILxUnknownID_item_obj)
-    {
-      ILxUnknownID item_obj = (ILxUnknownID)ILxUnknownID_item_obj;
-      CLxUser_Item item(item_obj);
-
-      if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
-      {
-        static int evalCounter = 0;
-
-        char cmd[1024];
-        std::string err;
-        std::string uniqueName;
-        snprintf(cmd, sizeof(cmd), "item.channel %s %ld item:\"%s\"", CHN_NAME_IO_FabricEval, evalCounter++, item.IdentPtr());
-        ModoTools::ExecuteCommand(std::string(cmd), err);
-      }
-    }
-  }
-
   class Package : public CLxImpl_Package,
                   public CLxImpl_ChannelUI,
                   public CLxImpl_SceneItemListener
@@ -448,7 +426,7 @@ namespace dfgModoIM
 
       add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
       add_chan.SetDefault(0, 0);
-      add_chan.SetInternal();
+      //add_chan.SetInternal();
 
       add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_dfgModoIM ".jsonvalue");
       add_chan.SetStorage("+" SERVER_NAME_dfgModoIM ".jsonvalue");

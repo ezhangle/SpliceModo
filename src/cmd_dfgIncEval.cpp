@@ -27,6 +27,11 @@ dfgIncEval::Command::Command(void)
     dyna_Add("item", LXsTYPE_STRING);
     basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
     idx++;
+
+    // item's name.
+    dyna_Add("onlyIfZero", LXsTYPE_BOOLEAN);
+    basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
+    idx++;
   }
 }
 
@@ -79,6 +84,14 @@ void dfgIncEval::Command::cmd_Execute(unsigned flags)
       feLogError(err);
       return;  }
     eval = chanRead.IValue(item, CHN_NAME_IO_FabricEval);
+  }
+
+  // check "onlyIfZero" flag.
+  if (dyna_IsSet(1))
+  {
+    bool onlyIfZero = dyna_Bool(1, false);
+    if (onlyIfZero && eval != 0)
+      return;
   }
 
   // increase FabricEval value by 1.

@@ -2,6 +2,7 @@
 
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
+#include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
 #include "itm_dfgModoPI.h"
 
@@ -33,6 +34,8 @@ namespace dfgModoPI
     class Channels
     {
     public:
+        int fabricActive;
+        int fabricEval;
         int		       cv_axis;
         double		   cv_radius;
         int		       cv_resolution;
@@ -46,7 +49,8 @@ namespace dfgModoPI
 
                 desc.add (Cs_INSTANCEABLEOBJ, LXsTYPE_OBJREF);
 
-                desc.add_channel (CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN, 1, (int *)1, LXfECHAN_READ);
+                desc.add_channel (CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN, 1, &chan->fabricActive, LXfECHAN_READ);
+                desc.add_channel (CHN_NAME_IO_FabricEval,   LXsTYPE_INTEGER, 0, &chan->fabricEval, LXfECHAN_READ);
                 desc.add_channel (CHN_NAME_IO_FabricJSON,   LXsTYPE_STRING,  std::string(""), (std::string *)1, LXfECHAN_READ);
 
 
@@ -749,6 +753,10 @@ namespace dfgModoPI
 
                 surf = surf_spawn.Alloc (ppvObj);
                 Channels::desc.eval_read (attr, index, (Channels *) surf);
+
+
+
+
                 return LXe_OK;
         }
 

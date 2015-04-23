@@ -253,7 +253,7 @@ namespace dfgModoIM
 
       add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
       add_chan.SetDefault(0, 0);
-      //add_chan.SetInternal();
+      add_chan.SetInternal();
 
       add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_dfgModoIM ".jsonvalue");
       add_chan.SetStorage("+" SERVER_NAME_dfgModoIM ".jsonvalue");
@@ -927,7 +927,7 @@ namespace dfgModoIM
     return SERVER_NAME_dfgModoIM;
   }
 
-  CLxItemModifierElement *Modifier::Alloc (CLxUser_Evaluation &eval, ILxUnknownID item)
+  CLxItemModifierElement *Modifier::Alloc(CLxUser_Evaluation &eval, ILxUnknownID item)
   {
     /*
       Allocate and return the modifier element.
@@ -938,10 +938,9 @@ namespace dfgModoIM
   // used in the plugin's initialize() function (see plugin.cpp).
   void initialize()
   {
-    JSONValue::initialize();
-    Instance ::initialize();
-    Package  ::initialize();
-    Modifier ::initialize();
+    Instance :: initialize();
+    Package  :: initialize();
+    Modifier :: initialize();
   }
 };  // namespace dfgModoIM
 

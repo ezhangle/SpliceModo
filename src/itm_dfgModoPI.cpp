@@ -51,8 +51,6 @@ namespace dfgModoPI
 
                 desc.add_channel (CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN, 1, &chan->fabricActive, LXfECHAN_READ);
                 desc.add_channel (CHN_NAME_IO_FabricEval,   LXsTYPE_INTEGER, 0, &chan->fabricEval, LXfECHAN_READ);
-                desc.add_channel (CHN_NAME_IO_FabricJSON,   LXsTYPE_STRING,  std::string(""), (std::string *)1, LXfECHAN_READ);
-
 
                 desc.add_channel (Cs_AXIS, LXsTYPE_AXIS, 1, &chan->cv_axis, LXfECHAN_READ);
 
@@ -237,11 +235,6 @@ namespace dfgModoPI
                 // Fabric Engine (step 1): loop through all the DFG's input ports and set
                 //                         their values from the matching Modo user channels.
                 {
-                    // WIP.
-                    char s[256];
-                    static int a = 0;
-                    sprintf(s, "tsrf_Sample() %ld", a++);
-                    feLog(s);
                 }
 
                 // Fabric Engine (step 2): execute the DFG.
@@ -431,51 +424,6 @@ namespace dfgModoPI
                     }
                 }
 
-
-#ifdef NONONONONONONONONO
-                /*
-                 * Build the vertex list. 
-                 */
-                for (k = 0; k <= nn; k++)
-                {
-                        ele = LXx_PI * k / nn;
-                        norm[i_z] = cos (ele);
-                        r = sin (ele);
-
-                        for (i = 0; i < n; i++)
-                        {
-                                ang = LXx_TWOPI * i / n;
-                                norm[i_x] = r * cos (ang);
-                                norm[i_y] = r * sin (ang);
-
-                                LXx_VSCL3 (vec + f_pos[0], norm, cv_radius);
-                                LXx_VCPY  (vec + f_pos[1], vec + f_pos[0]);
-                                LXx_VCPY  (vec + f_pos[2], norm);
-                                LXx_VSCL3 (vec + f_pos[3], norm, delta_R);
-
-                                lx_err::check (soup.Vertex (vec, &index));
-                        }
-                }
-
-                /*
-                 * Build the triangle list. These knit the rings together.
-                 */
-                for (k = 0; k < nn; k++)
-                {
-                        p = k * n;
-                        for (i = 0; i < n; i++)
-                        {
-                                int A = p     +  i;
-                                int B = p + n +  i;
-                                int C = p     + (i + 1) % n;
-                                int D = p + n + (i + 1) % n;
-
-                                lx_err::check (soup.Polygon (A, B, C));
-                                lx_err::check (soup.Polygon (C, B, D));
-                        }
-                }
-#endif
-
                 return LXe_OK;
         }
 
@@ -635,7 +583,7 @@ namespace dfgModoPI
                         public CLxImpl_ViewItem3D
     {
     public:
-        ILxUnknownID   m_item;          // set in pins_Initialize() and used in pins_AfterLoad().
+        ILxUnknownID   m_item_obj;      // set in pins_Initialize() and used in pins_AfterLoad().
         BaseInterface *m_baseInterface; // set in the constructor.
 
     public:
@@ -670,7 +618,7 @@ namespace dfgModoPI
 
         LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)    LXx_OVERRIDE
         {
-                m_item = item_obj;
+                m_item_obj = item_obj;
 
                 BaseInterface *b = GetBaseInterface(item_obj);
                 if (!b)
@@ -681,45 +629,115 @@ namespace dfgModoPI
                 return LXe_OK;
         }
 
+        LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
+        {
+          /*
+            This function is called when an item is added.
+            We store the pointer at the BaseInterface here so that the
+            functions JSONValue::io_Write() can write the JSON string
+            when the scene is saved.
+
+            note: this function is *not* called when a scene is loaded,
+                  instead pins_AfterLoad() is called.
+          */
+
+          // store pointer at BaseInterface in JSON channel.
+          bool ok = false;
+          CLxUser_Item item(m_item_obj);
+          if (item.test())
+          {
+            CLxUser_ChannelWrite chanWrite;
+            if (chanWrite.from(item))
+            {
+              CLxUser_Value value_json;
+              if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
+              {
+                JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
+                if (jv)
+                {
+                  ok = true;
+                  jv->baseInterface = m_baseInterface;
+                }
+              }
+            }
+          }
+          if (!ok)
+            feLogError("failed to store pointer at BaseInterface in JSON channel");
+
+          // done.
+          return LXe_OK;
+        }
+
         LxResult pins_AfterLoad(void)                                          LXx_OVERRIDE
         {
-            // init err string,
-            std::string err = "pins_AfterLoad() failed: ";
+          /*
+            This function is called when a scene was loaded.
 
-            // get BaseInterface.
-            BaseInterface *b = m_baseInterface;
+            We store the pointer at the BaseInterface here so that the
+            functions JSONValue::io_Write() can write the JSON string
+            when the scene is saved.
 
-            // create item.
-            CLxUser_Item item(m_item);
-            if (!item.test())
-            {   err += "item(m_item) failed";
-                feLogError(0, err.c_str(), err.length());
-                return LXe_OK;  }
+            Furthermore we set the graph from the content (i.e. the string)
+            of the channel CHN_NAME_IO_FabricJSON.
+          */
 
-            // log.
-            std::string itemName;
-            item.GetUniqueName(itemName);
-            std::string info;
-            info = "item \"" + itemName + "\": setting Fabric base interface from item's JSON string.";
-            feLog(0, info.c_str(), info.length());
+          // init err string.
+          std::string err = "pins_AfterLoad() failed: ";
 
-            // get content of channel CHN_NAME_IO_FabricJSON.
-            CLxUser_ChannelRead chanRead;
-            if (!chanRead.from(item))
-            {   err += "couldn't create channel reader.";
-                feLogError(0, err.c_str(), err.length());
-                return LXe_OK;  }
-            std::string json;
-            if (!chanRead.GetString(item, CHN_NAME_IO_FabricJSON, json))
-            {   err += "failed to read channel \"" CHN_NAME_IO_FabricJSON "\"";
-                feLogError(0, err.c_str(), err.length());
-                return LXe_OK;  }
+          // get BaseInterface.
+          BaseInterface *b = m_baseInterface;
 
-            // do it.
-            b->setFromJSON(json);
+          // create item.
+          CLxUser_Item item(m_item_obj);
+          if (!item.test())
+          { err += "item(m_item) failed";
+            feLogError(err);
+            return LXe_OK;  }
 
-            // done.
-            return LXe_OK;
+          // log.
+          std::string itemName;
+          item.GetUniqueName(itemName);
+          std::string info;
+          info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
+          feLog(0, info.c_str(), info.length());
+
+          // create channel reader.
+          CLxUser_ChannelRead chanRead;
+          if (!chanRead.from(item))
+          { err += "failed to create channel reader.";
+            feLogError(err);
+            return LXe_OK;  }
+
+          // get value object.
+          CLxUser_Value value;
+          if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
+          { // note: we don't log an error here.
+            return LXe_OK;  }
+
+          // get content of channel CHN_NAME_IO_FabricJSON.
+          JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+          if (!jv)
+          { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
+            feLogError(err);
+            return LXe_OK;  }
+
+          // set pointer at BaseInterface.
+          jv->baseInterface = m_baseInterface;
+
+          // do it.
+          try
+          {
+            if (jv->s.length() > 0)
+              b->setFromJSON(jv->s);
+          }
+          catch (FabricCore::Exception e)
+          {
+            err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+            feLogError(err);
+          }
+
+          // done.
+          return LXe_OK;
         }
 
         LxResult isurf_GetSurface(ILxUnknownID chanRead, unsigned morph, void **ppvObj)    LXx_OVERRIDE
@@ -727,13 +745,13 @@ namespace dfgModoPI
                 Surface		*surf;
 
                 surf = surf_spawn.Alloc (ppvObj);
-                Channels::desc.chan_read (chanRead, m_item, (Channels *) surf);
+                Channels::desc.chan_read (chanRead, m_item_obj, (Channels *) surf);
                 return LXe_OK;
         }
 
         LxResult isurf_Prepare(ILxUnknownID eval, unsigned *index) LXx_OVERRIDE
         {
-                index[0] = Channels::desc.eval_attach (eval, m_item);
+                index[0] = Channels::desc.eval_attach (eval, m_item_obj);
 
 
                 // WIP.
@@ -769,7 +787,7 @@ namespace dfgModoPI
                 CLxUser_StrokeDraw	 stroke (strokeDraw);
                 Channels		 chan;
 
-                Channels::desc.chan_read (chanRead, m_item, &chan);
+                Channels::desc.chan_read (chanRead, m_item_obj, &chan);
                 stroke.Begin (LXiSTROKE_CIRCLES, itemColor, 1.0);
 
                 stroke.Vert (0.0, 0.0, 0.0);
@@ -817,7 +835,7 @@ namespace dfgModoPI
 
                 if (handleIndex == 0)
                 {
-                    CLxUser_Item item(m_item);
+                    CLxUser_Item item(m_item_obj);
                     *chanIndex = item.ChannelIndex (Cs_RADIUS);
                     result = LXe_OK;
                 }
@@ -918,18 +936,30 @@ namespace dfgModoPI
 
         LxResult pkg_TestInterface (const LXtGUID *guid)    LXx_OVERRIDE
         {
-                return inst_spawn.TestInterfaceRC (guid);
+          return inst_spawn.TestInterfaceRC (guid);
         }
 
-        LxResult pkg_SetupChannels (ILxUnknownID addChan)   LXx_OVERRIDE
+        LxResult pkg_SetupChannels (ILxUnknownID addChan_obj)   LXx_OVERRIDE
         {
-                return Channels::desc.setup_channels (addChan);
+          LxResult ret = Channels::desc.setup_channels(addChan_obj);
+
+          CLxUser_AddChannel add_chan(addChan_obj);
+          if (add_chan.test())
+          {
+            add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_dfgModoIM ".jsonvalue");
+            add_chan.SetStorage("+" SERVER_NAME_dfgModoIM ".jsonvalue");
+            add_chan.SetInternal();
+          }
+          else
+            ret = LXe_FAILED;
+
+          return ret;
         }
 
         LxResult pkg_Attach (void **ppvObj) LXx_OVERRIDE
         {
-                inst_spawn.Alloc (ppvObj);
-                return LXe_OK;
+          inst_spawn.Alloc (ppvObj);
+          return LXe_OK;
         }
     };
 
@@ -952,20 +982,9 @@ namespace dfgModoPI
     class Modifier : public CLxObjectRefModifierCore
     {
     public:
-        static void initialize()
-        {
-            CLxExport_ItemModifierServer<CLxObjectRefModifier<Modifier> > (SERVER_NAME_dfgModoPI ".mod");
-        }
-
-        const char *ItemType ()			LXx_OVERRIDE
-        {
-            return SERVER_NAME_dfgModoPI;
-        }
-
-        const char *Channel  ()			LXx_OVERRIDE
-        {
-            return Cs_INSTANCEABLEOBJ;
-        }
+        static void initialize()                { CLxExport_ItemModifierServer< CLxObjectRefModifier<Modifier> > (SERVER_NAME_dfgModoPI ".mod");  }
+        const char *ItemType()    LXx_OVERRIDE  { return SERVER_NAME_dfgModoPI; }
+        const char *Channel()			LXx_OVERRIDE  { return Cs_INSTANCEABLEOBJ;    }
 
         void Attach(CLxUser_Evaluation &eval, ILxUnknownID item)        LXx_OVERRIDE
         {
@@ -984,15 +1003,24 @@ namespace dfgModoPI
     };
 
 
-    // used in the plugin's initialize() function (see plugin.cpp).
-    void initialize()
-    {
-        Channels::initialize ();
-        Element ::initialize ();
-        InstObj ::initialize ();
-        Surface ::initialize ();
-        Instance::initialize ();
-        Package ::initialize ();
-        Modifier::initialize ();
-    }
-};
+
+
+
+
+
+
+
+  // used in the plugin's initialize() function (see plugin.cpp).
+  void initialize()
+  {
+    Channels :: initialize();
+    Element  :: initialize();
+    InstObj  :: initialize();
+    Surface  :: initialize();
+    Instance :: initialize();
+    Package  :: initialize();
+    Modifier :: initialize();
+  }
+};  // namespace dfgModoPI
+
+

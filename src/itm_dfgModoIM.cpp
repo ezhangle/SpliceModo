@@ -230,6 +230,7 @@ namespace dfgModoIM
     LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE;
 
     void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
+    void        sil_ItemChannelName (ILxUnknownID item_obj, unsigned int index)         LXx_OVERRIDE;
 
     static LXtTagInfoDesc descInfo[];
 
@@ -336,6 +337,23 @@ namespace dfgModoIM
       We don't need to worry about channels being removed, as the evaluation
       system will automatically invalidate the modifier when channels it
       writes are removed.
+    */
+
+    CLxUser_Item    item(item_obj);
+    CLxUser_Scene   scene;
+
+    if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
+    {
+      if (item.GetContext(scene))
+        scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+    }
+  }
+
+  void Package::sil_ItemChannelName(ILxUnknownID item_obj, unsigned int index)
+  {
+    /*
+      When a user channel's name changes, this function will be
+      called. We use it to invalidate our modifier so that it's reallocated.
     */
 
     CLxUser_Item    item(item_obj);

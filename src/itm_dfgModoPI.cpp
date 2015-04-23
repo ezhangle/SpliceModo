@@ -201,10 +201,7 @@ namespace dfgModoPI
                 LXtTableauBox		 box;
                 LXtVector		 norm;
                 float			 vec[3 * 4];
-                double			 ele, ang, r;
-                unsigned		 index;
                 LxResult		 rc;
-                int			 i, n, nn, k, p, i_x, i_y, i_z;
 
                 /*
                  * Return early if the bounding box isn't visible.
@@ -926,7 +923,7 @@ namespace dfgModoPI
                 srv = new CLxPolymorph<Package>;
                 srv->AddInterface (new CLxIfc_Package   <Package>);
                 srv->AddInterface (new CLxIfc_StaticDesc<Package>);
-                lx::AddServer (SERVER_NAME_dfgModoPI, srv);
+                lx::AddServer(SERVER_NAME_dfgModoPI, srv);
         }
 
         static LXtTagInfoDesc		 descInfo[];
@@ -958,12 +955,12 @@ namespace dfgModoPI
 
         LxResult pkg_Attach (void **ppvObj) LXx_OVERRIDE
         {
-          inst_spawn.Alloc (ppvObj);
+          inst_spawn.Alloc(ppvObj);
           return LXe_OK;
         }
     };
 
-    LXtTagInfoDesc	 Package::descInfo[] = {
+    LXtTagInfoDesc Package::descInfo[] = {
             { LXsPKG_SUPERTYPE,             "locator"           },
             { LXsSRV_LOGSUBSYSTEM,          LOG_SYSTEM_NAME     },
             { LXsPKG_IS_MASK,               "."                 },
@@ -996,9 +993,9 @@ namespace dfgModoPI
             CLxSpawner<InstObj>	 sp (SERVER_NAME_dfgModoPI ".instobj");
             InstObj		*cobj;
 
-            cobj = sp.Alloc (obj);
+            cobj = sp.Alloc(obj);
             cobj->sinst = sp.spawn;
-            Channels::desc.eval_read (attr, index, (Channels *) cobj);
+            Channels::desc.eval_read(attr, index, (Channels *) cobj);
         }
     };
 

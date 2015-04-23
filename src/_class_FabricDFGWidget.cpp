@@ -102,6 +102,8 @@ void FabricDFGWidget::onRecompilation()
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 {
   // ... rename the dynamic attribute also in modo
+
+  // note: this is not done here, but in BaseInterface::bindingNotificationCallback().
 }
 
 void FabricDFGWidget::onDefaultValueChanged()

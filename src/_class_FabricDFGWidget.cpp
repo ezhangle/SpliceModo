@@ -96,7 +96,11 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseI
 
 void FabricDFGWidget::onRecompilation()
 {
-  //... dirty node
+  if (m_baseInterface)
+  {
+    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+  }
 }
 
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)

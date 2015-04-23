@@ -18,13 +18,17 @@ FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) 
   m_baseInterface = baseInterface;
   if (m_baseInterface)
   {
+    FabricUI::DFG::DFGConfig config;
+    config.klEditorConfig.codeBackgroundColor = QColor(255, 0, 0);
+
     init(m_baseInterface->getClient(),
          m_baseInterface->getManager(),
          m_baseInterface->getHost(),
         *m_baseInterface->getBinding(),
          m_baseInterface->getGraph(),
          m_baseInterface->getStack(),
-         false);
+         false,
+         config);
   }
 
   QObject::connect(this, SIGNAL(valueChanged()), this, SLOT(onDefaultValueChanged()));
@@ -78,7 +82,6 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseI
 
     // create Fabric DFG widget
     FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
-    //newDFGWidget->setAttribute(Qt::WA_DeleteOnClose, true);
     fv->setWidget(newDFGWidget);
     fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
 

@@ -205,12 +205,24 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
 
     CReadItemInstance()
     {
+      feLog("new BaseInterface");
       // init members and create base interface.
       m_userData.geo = new BaseInterface();
     };
 
     ~CReadItemInstance()
     {
+      emUserData &ud = m_userData;
+
+      if (ud.geo)
+      {
+        feLog("delete BaseInterface");
+        // delete widget and base interface.
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(ud.geo, false);
+        if (w) delete w;
+        delete ud.geo;
+        ud.geo = NULL;
+      }
     };
 
     // the Read() functions that read the channels and set the user data and the geometry.
@@ -761,8 +773,9 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
     // store item ID in our member.
     m_item_obj = item_obj;
 
-    // set ref at user data.
-    emUserData &ud = m_userData;
+    //
+    if (m_userData.geo)  m_userData.geo->m_ILxUnknownID_dfgModoPI = item_obj;
+    else                 feLogError("m_userData.geo == NULL");
 
     // done.
     return LXe_OK;
@@ -907,6 +920,7 @@ void CReadItemInstance::pins_Doomed(void)
 
     if (ud.geo)
     {
+      feLog("delete BaseInterface");
       // delete widget and base interface.
       FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(ud.geo, false);
       if (w) delete w;

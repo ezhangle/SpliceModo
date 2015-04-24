@@ -55,6 +55,10 @@ namespace dfgModoIM
     // store item ID in our member.
     m_item_obj = item_obj;
 
+    //
+    if (m_baseInterface)  m_baseInterface->m_ILxUnknownID_dfgModoIM = item_obj;
+    else                  feLogError("m_baseInterface == NULL");
+
     // done.
     return LXe_OK;
   }
@@ -431,7 +435,6 @@ namespace dfgModoIM
     if (!b)
     { feLogError("GetBaseInterface() returned NULL");
       return; }
-    b->m_ILxUnknownID_dfgModoIM = item_obj;
 
     /*
       In the constructor, we want to add the input and output channels

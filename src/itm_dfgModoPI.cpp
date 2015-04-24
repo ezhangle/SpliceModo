@@ -129,7 +129,7 @@ namespace dfgModoPI
                 if (delta_R > 0.0)
                         bobj.inflate (delta_R);
 
-                bobj.get_box6 (bbox);
+                bobj.getBox6(bbox);
                 return LXe_OK;
         }
 

@@ -29,6 +29,7 @@
 #include "lxu_command.hpp"
 #include "lxu_log.hpp"
 #include <lxu_math.hpp>
+#include <lxu_message.hpp>
 #include "lxu_modifier.hpp"
 #include "lxu_select.hpp"
 

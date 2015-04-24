@@ -70,7 +70,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     return; }
 
   // get filepath.
-  std::string filePath;
+  std::string filePath;// = "C:\\Temp\\test.dfg.json";
   {
     static QString last_fPath;
     QString filter = "DFG Preset (*.dfg.json)";

@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.019
+#define FABRICMODO_PLUGIN_VERSION   0.021
 
 // disable some annoying VS warnings.
 #pragma warning(disable : 4530)   // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
@@ -14,6 +14,7 @@
 #include <string>
 
 // constants: Modo item/server names.
+#define SERVER_NAME_JSONValue     "dfgJSONValue"  // the JSON custom type (used by the channels "FabricJSON").
 #define SERVER_NAME_dfgModoIM     "dfgModoIM"     // dfgModo "item modifier".
 #define SERVER_NAME_dfgModoPI     "dfgModoPI"     // dfgModo "procedural item".
 

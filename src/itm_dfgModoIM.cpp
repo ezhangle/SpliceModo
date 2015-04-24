@@ -256,8 +256,8 @@ namespace dfgModoIM
       add_chan.SetDefault(0, 0);
       add_chan.SetInternal();
 
-      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_dfgModoIM ".jsonvalue");
-      add_chan.SetStorage("+" SERVER_NAME_dfgModoIM ".jsonvalue");
+      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
+      add_chan.SetStorage("+" SERVER_NAME_JSONValue);
       add_chan.SetInternal();
 
       result = LXe_OK;

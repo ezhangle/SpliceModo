@@ -44,7 +44,7 @@ class JSONValue : public CLxImpl_Value,
     srv->AddInterface(new CLxIfc_StreamIO  <JSONValue>);
     srv->AddInterface(new CLxIfc_StaticDesc<JSONValue>);
 
-    lx::AddServer(SERVER_NAME_dfgModoIM ".jsonvalue", srv);
+    lx::AddServer(SERVER_NAME_JSONValue, srv);
   }
   
   struct _JSONValue

@@ -425,6 +425,7 @@ namespace dfgModoIM
 
    private:
     int                      m_eval_index_FabricActive;
+    int                      m_eval_index_FabricEval;
     int                      m_eval_index_FabricJSON;
     std::vector <ChannelDef> m_usrChan;
     void        usrChanCollect    (CLxUser_Item &item, std::vector <ChannelDef> &io_usrChan);
@@ -468,7 +469,7 @@ namespace dfgModoIM
 
     // add the fixed input channels to eval.
     m_eval_index_FabricActive = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-    m_eval_index_FabricActive = eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+    m_eval_index_FabricEval   = eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
     m_eval_index_FabricJSON   = eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
 
     // collect all the user channels and add them to eval.
@@ -545,8 +546,7 @@ namespace dfgModoIM
       return; }
 
     // read the fixed input channels and return early if the FabricActive flag is disabled.
-    int FabricActive = false;
-    attr.GetInt(m_eval_index_FabricActive, &FabricActive);
+    int FabricActive = attr.Bool(m_eval_index_FabricActive, false);
     if (!FabricActive)
       return;
 

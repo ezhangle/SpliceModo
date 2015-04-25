@@ -194,7 +194,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPI;
 
     // log.
-    if (true)
+    if (false)
     {
       std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
       logFunc(NULL, s.c_str(), s.length());

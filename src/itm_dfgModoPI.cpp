@@ -13,15 +13,6 @@ namespace dfgModoPI
 // constants and forward declarations.
 // -----------------------------------
 
-// channel indices.
-enum
-{
-    CHANNEL_INDEX_emRd_active            = 0,
-    CHANNEL_INDEX_emRd_flIdxValue,
-};
-
-#define DISABLE_ITEM_IN_UI    { CLxUser_Message res(msg); result = LXe_CMD_DISABLED; res.SetCode(LXe_CMD_DISABLED); res.SetMsg(READ_ITEM_MSG_TABLE, READ_ITEM_MSG_DISABLED); }
-
 // the default vertex map names.
 #define VMAPNAME_UV   "Texture"
 #define VMAPNAME_RGB  "Color"
@@ -524,8 +515,224 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
     CLxUser_TriangleSoup soup(trisoup);
 
     // return early if the bounding box is not visible.
-    if (!soup.TestBox(ud.bbox))
-        return LXe_OK;
+    //if (!soup.TestBox(ud.bbox))
+    //    return LXe_OK;
+
+    // TEST / WIP
+    {
+                LXtVector		 norm;
+                float			 vec[3 * 4];
+                LxResult		 rc;
+                int  *f_pos = ud.mdo.f_pos;
+
+                BaseInterface *b = ud.baseInterface;
+
+                // refs at DFG wrapper members.
+                FabricCore::Client                            *client  = b->getClient();
+                if (!client)
+                {   feLogError("Element::Eval(): getClient() returned NULL");
+                    return LXe_OK;     }
+                FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
+                if (!binding)
+                {   feLogError("Element::Eval(): getBinding() returned NULL");
+                    return LXe_OK;     }
+                FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
+                if (graph.isNull())
+                {   feLogError("Element::Eval(): getExecutable() returned NULL");
+                    return LXe_OK;     }
+
+                // Fabric Engine (step 1): loop through all the DFG's input ports and set
+                //                         their values from the matching Modo user channels.
+                {
+                }
+
+                // Fabric Engine (step 2): execute the DFG.
+                {
+                    try
+                    {
+                        binding->execute();
+                    }
+                    catch (FabricCore::Exception e)
+                    {
+                        feLogError(e.getDesc_cstr());
+                    }
+                }
+
+                // Fabric Engine (step 3): loop through all the DFG's output ports and set
+                //                         the values of the matching Modo user channels.
+                //
+                // note: the first Fabric "PolygonMesh" port will be used
+                //       to set the actual geometry of the Modo item.
+                {
+
+
+                    // WIP: find the first Fabric output port of type "PolygonMesh" and set the item's geo from it.
+
+                    try
+                    {
+                        char        serr[256];
+                        std::string err = "";
+                        FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
+                        for (int fi=0;fi<portlist.size();fi++)
+                        {
+                            // get port.
+                            FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+                            if (port.isNull())  continue;
+
+                            // wrong type of port?
+                            std::string resolvedType = port->getResolvedType();
+                            if (   port->getPortType() != FabricCore::DFGPortType_Out
+                                || resolvedType        != "PolygonMesh"  )
+                                continue;
+
+                            // get the port's mesh data.
+                            FabricCore::RTVal rtMesh = port->getArgValue();
+                            unsigned int            numVertices;
+                            unsigned int            numPolygons;
+                            unsigned int            numSamples;
+                            std::vector <float>     vertPositions;
+                            std::vector <uint32_t>  polyNumVertices;
+                            std::vector <uint32_t>  polyVertices;
+                            std::vector <float>     polyNodeNormals;
+                            int retGet = BaseInterface::GetPortValuePolygonMesh(  port,
+                                                                                  numVertices,
+                                                                                  numPolygons,
+                                                                                  numSamples,
+                                                                                 &vertPositions,
+                                                                                 &polyNumVertices,
+                                                                                 &polyVertices,
+                                                                                 &polyNodeNormals
+                                                                                );
+                            // error?
+                            if (retGet)
+                            {
+                                sprintf(serr, "%ld", retGet);
+                                err = "failed to get value from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
+                                break;
+                            }
+
+                            // create vertex normals from the polygon node normals.
+                            std::vector <float> vertNormals;
+                            if (numPolygons)
+                            {
+                                // resize and zero-out.
+                                vertNormals.resize       (3 * numVertices, 0.0f);
+                                if (vertNormals.size() != 3 * numVertices)
+                                {   err = "memory error: failed to resize the array for the vertex normals";
+                                    break;  }
+
+                                // fill.
+                                uint32_t *pvi = polyVertices.data();
+                                float    *pnn = polyNodeNormals.data();
+                                for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
+                                {
+                                    float *vn = vertNormals.data() + (*pvi) * 3;
+                                    vn[0] += pnn[0];
+                                    vn[1] += pnn[1];
+                                    vn[2] += pnn[2];
+                                }
+
+                                // normalize vertex normals.
+                                float *vn = vertNormals.data();
+                                for (unsigned int i=0;i<numVertices;i++,vn+=3)
+                                {
+                                    float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
+                                    if (f > 1.0e-012f)
+                                    {
+                                        f = 1.0f / sqrt(f);
+                                        vn[0] *= f;
+                                        vn[1] *= f;
+                                        vn[2] *= f;
+                                    }
+                                    else
+                                    {
+                                        vn[0] = 0;
+                                        vn[1] = 1.0f;
+                                        vn[2] = 0;
+                                    }
+                                }
+
+                            }
+
+
+                            // set Modo geo.
+                            {
+                                // init.
+                                rc = soup.Segment (1, LXiTBLX_SEG_TRIANGLE);
+                                if (rc == LXe_FALSE)    return LXe_OK;
+                                else if (LXx_FAIL (rc)) return rc;
+
+                                // build the vertex list.
+                                {
+                                    unsigned    index;
+                                    float       vec[3 * (4 + 3)] = {0, 0, 0,
+                                                                    0, 0, 0,
+                                                                    0, 0, 0,
+                                                                    0, 0, 0,
+                                                                    0, 0, 0,
+                                                                    0, 0, 0,
+                                                                    0, 0, 0};
+                                    float *vp = vertPositions.data();
+                                    float *vn = vertNormals  .data();
+                                    for (unsigned int i=0;i<numVertices;i++,vp+=3,vn+=3)
+                                    {
+                                        // position.
+                                        vec[f_pos[0] + 0] = vp[0];
+                                        vec[f_pos[0] + 1] = vp[1];
+                                        vec[f_pos[0] + 2] = vp[2];
+
+                                        // normal.
+                                        vec[f_pos[2] + 0] = vn[0];
+                                        vec[f_pos[2] + 1] = vn[1];
+                                        vec[f_pos[2] + 2] = vn[2];
+
+                                        // velocity.
+                                        vec[f_pos[3] + 0] = 0;
+                                        vec[f_pos[3] + 1] = 0;
+                                        vec[f_pos[3] + 2] = 0;
+
+                                        // add vertex.
+                                        soup.Vertex(vec, &index);
+                                    }
+                                }
+
+                                // build triangle list.
+                                {
+                                    // init pointers at polygon data.
+                                    uint32_t *pn = polyNumVertices.data();
+                                    uint32_t *pi = polyVertices.data();
+
+                                    // go.
+                                    for (unsigned int i=0;i<numPolygons;i++)
+                                    {
+                                        // we only use triangles and quads.
+                                        if		(*pn == 3)	soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
+                                        else if (*pn == 4)	soup.Quad	((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
+
+                                        // next.
+                                        pi += *pn;
+                                        pn++;
+                                    }
+                                }
+                            }
+
+                            // done.
+                            break;
+                        }
+
+                        // error?
+                        if (err != "")
+                        {
+                            feLogError(err);
+                            return LXe_OK;
+                        }
+                    }
+                    catch (FabricCore::Exception e)
+                    {
+                        feLogError(e.getDesc_cstr());
+                    }
+                }
+    }
 
     // done.
     return LXe_OK;

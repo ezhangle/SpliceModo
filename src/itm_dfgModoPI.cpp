@@ -35,6 +35,11 @@ struct bakedChannels
 {    // the last values of the channels CHANNEL_emRd_<variable-name>.
     bool  FabricActive;
     int   FabricEval;
+    void zero(void)
+    {
+      FabricActive  = false;
+      FabricEval    = 0;
+    }
 };
 
 // local modo stuff.
@@ -45,6 +50,136 @@ struct localModoStuff
     unsigned                    max_f_pos;
     unsigned                    max_f_type;
     bool                        needsUVs;
+    void zero(void)
+    {
+      needsUVs      = false;
+    }
+};
+
+// cached polymesh.
+struct _polymesh
+{
+    unsigned int            numVertices;
+    unsigned int            numPolygons;
+    unsigned int            numSamples;
+    std::vector <float>     vertPositions;
+    std::vector <float>     vertNormals;
+    std::vector <uint32_t>  polyNumVertices;
+    std::vector <uint32_t>  polyVertices;
+    std::vector <float>     polyNodeNormals;
+
+    //
+    LXtTableauBox           bbox; // geo's bounding box.
+
+    //
+    void clear(void)
+    {
+      numVertices     = 0;
+      numPolygons     = 0;
+      numSamples      = 0;
+      vertPositions   .clear();
+      vertNormals     .clear();
+      polyNumVertices .clear();
+      polyVertices    .clear();
+      polyNodeNormals .clear();
+      bbox[0] = 0;
+      bbox[1] = 0;
+      bbox[2] = 0;
+      bbox[3] = 0;
+      bbox[4] = 0;
+      bbox[5] = 0;
+    }
+
+    // set from DFG port.
+    // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
+    int setFromDFGPort(FabricServices::DFGWrapper::PortPtr &port)
+    {
+      // clear current.
+      clear();
+
+      // get RTVal.
+      FabricCore::RTVal rtMesh = port->getArgValue();
+
+      // get the mesh data (except for the vertex normals).
+      int retGet = BaseInterface::GetPortValuePolygonMesh(  port,
+                                                            numVertices,
+                                                            numPolygons,
+                                                            numSamples,
+                                                            &vertPositions,
+                                                            &polyNumVertices,
+                                                            &polyVertices,
+                                                            &polyNodeNormals
+                                                          );
+      // error?
+      if (retGet)
+      { clear();
+        return retGet;  }
+
+      // create vertex normals from the polygon node normals.
+      if (numPolygons)
+      {
+          // resize and zero-out.
+          vertNormals.resize       (3 * numVertices, 0.0f);
+          if (vertNormals.size() != 3 * numVertices)
+          { clear();
+            return -3;  }
+
+          // fill.
+          uint32_t *pvi = polyVertices.data();
+          float    *pnn = polyNodeNormals.data();
+          for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
+          {
+              float *vn = vertNormals.data() + (*pvi) * 3;
+              vn[0] += pnn[0];
+              vn[1] += pnn[1];
+              vn[2] += pnn[2];
+          }
+
+          // normalize vertex normals.
+          float *vn = vertNormals.data();
+          for (unsigned int i=0;i<numVertices;i++,vn+=3)
+          {
+              float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
+              if (f > 1.0e-012f)
+              {
+                  f = 1.0f / sqrt(f);
+                  vn[0] *= f;
+                  vn[1] *= f;
+                  vn[2] *= f;
+              }
+              else
+              {
+                  vn[0] = 0;
+                  vn[1] = 1.0f;
+                  vn[2] = 0;
+              }
+          }
+      }
+
+      // calc bbox.
+      {
+        bbox[0] = 0;
+        bbox[1] = 0;
+        bbox[2] = 0;
+        bbox[3] = 0;
+        bbox[4] = 0;
+        bbox[5] = 0;
+        float *pv = vertPositions.data();
+        for (unsigned int i=0;i<numVertices;i++,pv+=3)
+        {
+          bbox[0] = __min(bbox[0], pv[0]);
+          bbox[1] = __min(bbox[1], pv[1]);
+          bbox[2] = __min(bbox[2], pv[2]);
+
+          bbox[3] = __min(bbox[3], pv[0]);
+          bbox[4] = __min(bbox[4], pv[1]);
+          bbox[5] = __min(bbox[5], pv[2]);
+        }
+      }
+
+      // done.
+      return retGet;
+    }
 };
 
 // user data structure.
@@ -53,9 +188,34 @@ struct emUserData
     bakedChannels                  chn;                // the baked channel values.
     //
     BaseInterface                 *baseInterface;      // pointer at BaseInterface.
-    LXtTableauBox                  bbox;               // bounding box of geometry.
+    //
+    _polymesh                      pmesh;              // baked polygon mesh.
     //
     localModoStuff                 mdo;                // local modo stuff.
+    //
+    void zero(void)
+    {
+      chn.zero();
+      mdo.zero();
+      pmesh.clear();
+      baseInterface     = NULL;
+      mdo.needsUVs      = false;
+    }
+    void clear(void)
+    {
+      feLog("dfgModoPI::emUserData::clear() called");
+      if (baseInterface)
+      {
+        feLog("dfgModoPI::emUserData() delete BaseInterface");
+        // delete widget and base interface.
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+        if (w) delete w;
+        delete baseInterface;
+        baseInterface = NULL;
+      }
+      pmesh.clear();
+      zero();
+    }
 };
 
 // _________________________________
@@ -205,17 +365,6 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
       // note: for some reason this destructor doesn't get called.
       //       as a workaround the cleaning up, i.e. deleting the base interface, is done
       //       in the function pins_Cleanup().
-
-      feLog("dfgModoPI::CReadItemInstance::~CReadItemInstance() called");
-      if (m_userData.baseInterface)
-      {
-        feLog("dfgModoPI::CReadItemInstance::~CReadItemInstance() delete BaseInterface");
-        // delete widget and base interface.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
-        if (w) delete w;
-        delete m_userData.baseInterface;
-        m_userData.baseInterface = NULL;
-      }
     };
 
     // the Read() functions that read the channels and set the user data and the geometry.
@@ -381,15 +530,13 @@ void CReadPart::Init(emUserData *pUserData)
 
 LxResult CReadPart::Bound(LXtTableauBox bbox)
 {
-    // init ref at user data.
-    if (!m_pUserData)    return LXe_FAILED;
-    emUserData &ud    = *m_pUserData;
+  if (!m_pUserData)
+    return LXe_FAILED;
+  emUserData &ud = *m_pUserData;
 
-    // bounding box.
-  bbox = ud.bbox;
+  bbox = ud.pmesh.bbox;
 
-    // done.
-    return LXe_OK;
+  return LXe_OK;
 }
 
 unsigned CReadPart::FeatureCount(LXtID4 type)
@@ -515,8 +662,8 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
     CLxUser_TriangleSoup soup(trisoup);
 
     // return early if the bounding box is not visible.
-    //if (!soup.TestBox(ud.bbox))
-    //    return LXe_OK;
+    if (!soup.TestBox(ud.pmesh.bbox))
+        return LXe_OK;
 
     // TEST / WIP
     {
@@ -585,75 +732,14 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
                                 || resolvedType        != "PolygonMesh"  )
                                 continue;
 
-                            // get the port's mesh data.
-                            FabricCore::RTVal rtMesh = port->getArgValue();
-                            unsigned int            numVertices;
-                            unsigned int            numPolygons;
-                            unsigned int            numSamples;
-                            std::vector <float>     vertPositions;
-                            std::vector <uint32_t>  polyNumVertices;
-                            std::vector <uint32_t>  polyVertices;
-                            std::vector <float>     polyNodeNormals;
-                            int retGet = BaseInterface::GetPortValuePolygonMesh(  port,
-                                                                                  numVertices,
-                                                                                  numPolygons,
-                                                                                  numSamples,
-                                                                                 &vertPositions,
-                                                                                 &polyNumVertices,
-                                                                                 &polyVertices,
-                                                                                 &polyNodeNormals
-                                                                                );
-                            // error?
+                            // set ud.pmesh from port.
+                            int retGet = ud.pmesh.setFromDFGPort(port);
                             if (retGet)
                             {
                                 sprintf(serr, "%ld", retGet);
                                 err = "failed to get value from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
                                 break;
                             }
-
-                            // create vertex normals from the polygon node normals.
-                            std::vector <float> vertNormals;
-                            if (numPolygons)
-                            {
-                                // resize and zero-out.
-                                vertNormals.resize       (3 * numVertices, 0.0f);
-                                if (vertNormals.size() != 3 * numVertices)
-                                {   err = "memory error: failed to resize the array for the vertex normals";
-                                    break;  }
-
-                                // fill.
-                                uint32_t *pvi = polyVertices.data();
-                                float    *pnn = polyNodeNormals.data();
-                                for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
-                                {
-                                    float *vn = vertNormals.data() + (*pvi) * 3;
-                                    vn[0] += pnn[0];
-                                    vn[1] += pnn[1];
-                                    vn[2] += pnn[2];
-                                }
-
-                                // normalize vertex normals.
-                                float *vn = vertNormals.data();
-                                for (unsigned int i=0;i<numVertices;i++,vn+=3)
-                                {
-                                    float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
-                                    if (f > 1.0e-012f)
-                                    {
-                                        f = 1.0f / sqrt(f);
-                                        vn[0] *= f;
-                                        vn[1] *= f;
-                                        vn[2] *= f;
-                                    }
-                                    else
-                                    {
-                                        vn[0] = 0;
-                                        vn[1] = 1.0f;
-                                        vn[2] = 0;
-                                    }
-                                }
-
-                            }
-
 
                             // set Modo geo.
                             {
@@ -672,9 +758,9 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
                                                                     0, 0, 0,
                                                                     0, 0, 0,
                                                                     0, 0, 0};
-                                    float *vp = vertPositions.data();
-                                    float *vn = vertNormals  .data();
-                                    for (unsigned int i=0;i<numVertices;i++,vp+=3,vn+=3)
+                                    float *vp = ud.pmesh.vertPositions.data();
+                                    float *vn = ud.pmesh.vertNormals  .data();
+                                    for (unsigned int i=0;i<ud.pmesh.numVertices;i++,vp+=3,vn+=3)
                                     {
                                         // position.
                                         vec[f_pos[0] + 0] = vp[0];
@@ -699,11 +785,11 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
                                 // build triangle list.
                                 {
                                     // init pointers at polygon data.
-                                    uint32_t *pn = polyNumVertices.data();
-                                    uint32_t *pi = polyVertices.data();
+                                    uint32_t *pn = ud.pmesh.polyNumVertices.data();
+                                    uint32_t *pi = ud.pmesh.polyVertices.data();
 
                                     // go.
-                                    for (unsigned int i=0;i<numPolygons;i++)
+                                    for (unsigned int i=0;i<ud.pmesh.numPolygons;i++)
                                     {
                                         // we only use triangles and quads.
                                         if		(*pn == 3)	soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
@@ -723,12 +809,14 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
                         // error?
                         if (err != "")
                         {
+                            ud.pmesh.clear();
                             feLogError(err);
                             return LXe_OK;
                         }
                     }
                     catch (FabricCore::Exception e)
                     {
+                        ud.pmesh.clear();
                         feLogError(e.getDesc_cstr());
                     }
                 }
@@ -1116,18 +1204,10 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
   void CReadItemInstance::pins_Cleanup(void)
   {
     // note: for some reason the destructor doesn't get called,
-    //       so the workaround is to delete the base interface here.
+    //       so the workaround is to delete the base interface
+    //       and the rest of the user data here.
 
-    feLog("dfgModoPI::CReadItemInstance::pins_Cleanup() called");
-    if (m_userData.baseInterface)
-    {
-      feLog("dfgModoPI::CReadItemInstance::pins_Cleanup() delete BaseInterface");
-      // delete widget and base interface.
-      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
-      if (w) delete w;
-      delete m_userData.baseInterface;
-      m_userData.baseInterface = NULL;
-    }
+    m_userData.clear();
   }
 
 LxResult CReadItemInstance::pins_SynthName(char *buf, unsigned len)

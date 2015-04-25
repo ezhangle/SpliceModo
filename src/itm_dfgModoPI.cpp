@@ -61,7 +61,7 @@ struct emUserData
 {
     bakedChannels                  chn;                // the baked channel values.
     //
-    BaseInterface                 *geo;                // pointer at geometry class.
+    BaseInterface                 *baseInterface;      // pointer at BaseInterface.
     LXtTableauBox                  bbox;               // bounding box of geometry.
     //
     localModoStuff                 mdo;                // local modo stuff.
@@ -197,7 +197,6 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
 
     // pointer at item package class.
     CReadItemPackage   *m_src_pkg;
-    CLxUser_Item        m_item;
     ILxUnknownID        m_item_obj;
 
     // user data.
@@ -205,23 +204,26 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
 
     CReadItemInstance()
     {
-      feLog("new BaseInterface");
+      feLog("dfgModoPI::CReadItemInstance::CReadItemInstance() new BaseInterface");
       // init members and create base interface.
-      m_userData.geo = new BaseInterface();
+      m_userData.baseInterface = new BaseInterface();
     };
 
     ~CReadItemInstance()
     {
-      emUserData &ud = m_userData;
+      // note: for some reason this destructor doesn't get called.
+      //       as a workaround the cleaning up, i.e. deleting the base interface, is done
+      //       in the function pins_Cleanup().
 
-      if (ud.geo)
+      feLog("dfgModoPI::CReadItemInstance::~CReadItemInstance() called");
+      if (m_userData.baseInterface)
       {
-        feLog("delete BaseInterface");
+        feLog("dfgModoPI::CReadItemInstance::~CReadItemInstance() delete BaseInterface");
         // delete widget and base interface.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(ud.geo, false);
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
         if (w) delete w;
-        delete ud.geo;
-        ud.geo = NULL;
+        delete m_userData.baseInterface;
+        m_userData.baseInterface = NULL;
       }
     };
 
@@ -234,11 +236,11 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
     LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)   LXx_OVERRIDE;
     LxResult pins_Newborn(ILxUnknownID original, unsigned flags)          LXx_OVERRIDE;
     LxResult pins_AfterLoad(void)                                         LXx_OVERRIDE;
+    void     pins_Doomed(void)                                            LXx_OVERRIDE;
+    void     pins_Cleanup(void)                                           LXx_OVERRIDE;
 
-    void        pins_Cleanup        (void)                        LXx_OVERRIDE;
     LxResult    pins_SynthName        (char *buf, unsigned len)    LXx_OVERRIDE;
     unsigned    pins_DupType        (void)                        LXx_OVERRIDE;
-    void        pins_Doomed            (void)                        LXx_OVERRIDE;
 
     // implementation of tableau source.
     LxResult    tsrc_Elements        (ILxUnknownID tableau)        LXx_OVERRIDE;
@@ -307,7 +309,7 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
   BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
   {
     CReadItemInstance *inst = GetInstance(item_obj);
-    if (inst)   return inst->m_userData.geo;
+    if (inst)   return inst->m_userData.baseInterface;
     else        return NULL;
   }
 
@@ -515,7 +517,7 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
     emUserData &ud    = *m_pUserData;
 
     // nothing to do?
-    if (!ud.chn.FabricActive || !ud.geo || !ud.geo->isValid())
+    if (!ud.chn.FabricActive || !ud.baseInterface || !ud.baseInterface->isValid())
         return LXe_OK;
 
     // init triangle soup.
@@ -524,9 +526,6 @@ LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID t
     // return early if the bounding box is not visible.
     if (!soup.TestBox(ud.bbox))
         return LXe_OK;
-
-    // ref at geometry.
-    BaseInterface &geo = *ud.geo;
 
     // done.
     return LXe_OK;
@@ -714,8 +713,16 @@ LxResult CReadItemSurface::surf_TagByIndex(LXtID4 type, unsigned int index, cons
 
 bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
 {
-    // init return value and ref at user data.
+    // init.
     emUserData &ud    = m_userData;
+
+    //
+    CLxUser_Item item(m_item_obj);
+    if (!item.test())
+    {
+      feLogError("CReadItemInstance::Read(): item(m_item_obj) failed");
+      return false;
+    }
 
     // declare and init the baked channels.
     bakedChannels baked;
@@ -725,8 +732,8 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
 
     // read channels, if available.
     int chanIndex;
-    chanIndex = m_item.ChannelIndex(CHN_NAME_IO_FabricActive);        if (chanIndex >= 0) baked.FabricActive = (chanRead.IValue(m_item, chanIndex) != 0);  else    return false;
-    chanIndex = m_item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval   =  chanRead.IValue(m_item, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricActive);        if (chanIndex >= 0) baked.FabricActive = (chanRead.IValue(m_item_obj, chanIndex) != 0);  else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval   =  chanRead.IValue(m_item_obj, chanIndex);        else    return false;
 
     // call the other Read() function.
     return Read(baked);
@@ -767,15 +774,12 @@ _done:
 
 LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)
 {
-    // set member m_item.
-    m_item.set(item_obj);
-
     // store item ID in our member.
     m_item_obj = item_obj;
 
     //
-    if (m_userData.geo)  m_userData.geo->m_ILxUnknownID_dfgModoPI = item_obj;
-    else                 feLogError("m_userData.geo == NULL");
+    if (m_userData.baseInterface)   m_userData.baseInterface->m_ILxUnknownID_dfgModoPI = item_obj;
+    else                            feLogError("m_userData.baseInterface == NULL");
 
     // done.
     return LXe_OK;
@@ -808,7 +812,7 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
           if (jv)
           {
             ok = true;
-            jv->baseInterface = m_userData.geo;
+            jv->baseInterface = m_userData.baseInterface;
           }
         }
       }
@@ -837,12 +841,12 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
     std::string err = "pins_AfterLoad() failed: ";
 
     // get BaseInterface.
-    BaseInterface *b = m_userData.geo;
+    BaseInterface *b = m_userData.baseInterface;
 
     // create item.
     CLxUser_Item item(m_item_obj);
     if (!item.test())
-    { err += "item(m_item) failed";
+    { err += "item(m_item_obj) failed";
       feLogError(err);
       return LXe_OK;  }
 
@@ -874,7 +878,7 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
       return LXe_OK;  }
 
     // set pointer at BaseInterface.
-    jv->baseInterface = m_userData.geo;
+    jv->baseInterface = m_userData.baseInterface;
 
     // do it.
     try
@@ -892,14 +896,32 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
     return LXe_OK;
   }
 
-void CReadItemInstance::pins_Cleanup(void)
-{
-    // init ref at user data.
-    emUserData &ud    = m_userData;
+  void CReadItemInstance::pins_Doomed(void)
+  {
+    if (m_userData.baseInterface)
+    {
+      // delete only widget.
+      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+      if (w) delete w;
+    }
+  }
 
-    // clear item.
-    m_item.clear();
-}
+  void CReadItemInstance::pins_Cleanup(void)
+  {
+    // note: for some reason the destructor doesn't get called,
+    //       so the workaround is to delete the base interface here.
+
+    feLog("dfgModoPI::CReadItemInstance::pins_Cleanup() called");
+    if (m_userData.baseInterface)
+    {
+      feLog("dfgModoPI::CReadItemInstance::pins_Cleanup() delete BaseInterface");
+      // delete widget and base interface.
+      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+      if (w) delete w;
+      delete m_userData.baseInterface;
+      m_userData.baseInterface = NULL;
+    }
+  }
 
 LxResult CReadItemInstance::pins_SynthName(char *buf, unsigned len)
 {
@@ -913,26 +935,15 @@ unsigned CReadItemInstance::pins_DupType(void)
     return 0;
 }
 
-void CReadItemInstance::pins_Doomed(void)
-{
-    // init ref at user data.
-    emUserData &ud    = m_userData;
-
-    if (ud.geo)
-    {
-      feLog("delete BaseInterface");
-      // delete widget and base interface.
-      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(ud.geo, false);
-      if (w) delete w;
-      delete ud.geo;
-      ud.geo = NULL;
-    }
-}
-
 LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
 {
     // init ref at user data.
     emUserData &ud    = m_userData;
+
+    //
+    CLxUser_Item item(m_item_obj);
+    if (!item.test())
+      return LXe_OK;
 
     // get tableau.
     CLxUser_Tableau    tbx(tableau);
@@ -946,7 +957,7 @@ LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
     bool ret = Read(chan0);
 
     // nothing to do?
-    if (!ret || !ud.chn.FabricActive || !ud.geo || !ud.geo->isValid())
+    if (!ret || !ud.chn.FabricActive || !ud.baseInterface || !ud.baseInterface->isValid())
         return LXe_OK;
 
     // go.
@@ -963,7 +974,7 @@ LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
         bin->Init(&m_userData);
 
         CLxUser_TableauShader shader;
-        tbx.GetShader(shader, m_item, binObj);
+        tbx.GetShader(shader, item, binObj);
 
         CReadItemElement *primItemElement = LXCWxOBJ(element, CReadItemElement);
 
@@ -977,7 +988,7 @@ LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
         // We also need to store the locator transform, so it can be looked
         // up later on when TableauInstance::GetTransform is called.
         CLxLoc_Locator locator;
-        if (locator.set(m_item))
+        if (locator.set(item))
         {
             LXtMatrix    xfrm0, xfrm1;
             LXtVector    offset0, offset1;
@@ -1060,7 +1071,7 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
     strokeDraw.set(viewStrokeDraw);
 
     // error?
-  if (!ret || !ud.geo || !ud.geo->isValid())
+  if (!ret || !ud.baseInterface || !ud.baseInterface->isValid())
     {
         // draw text.
         if (!ret)
@@ -1077,7 +1088,7 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
     }
 
     // ref at geometry.
-    BaseInterface &geo = *ud.geo;
+    BaseInterface &geo = *ud.baseInterface;
 
     // draw.
         {
@@ -1144,8 +1155,8 @@ LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval, unsigned *index)
     // add custom channels as attributes.
     {
         unsigned chanIndex;
-        *index    = evaluation.AddChan(m_item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-        chanIndex = evaluation.AddChan(m_item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+        *index    = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
     }
 
     return LXe_OK;

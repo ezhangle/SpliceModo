@@ -29,21 +29,29 @@ namespace dfgModoIM
 
     Instance()
     {
+      feLog("dfgModoIM::Instance::Instance() new BaseInterface");
       // init members and create base interface.
       m_baseInterface = new BaseInterface();
     };
 
     ~Instance()
     {
-      // delete widget and base interface.
-      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
-      if (w) delete w;
-      delete m_baseInterface;
+      feLog("dfgModoIM::Instance::~Instance() called");
+      if (m_baseInterface)
+      {
+        feLog("dfgModoIM::Instance::~Instance() delete BaseInterface");
+        // delete widget and base interface.
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+        if (w) delete w;
+        delete m_baseInterface;
+        m_baseInterface = NULL;
+      }
     };
 
     LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)   LXx_OVERRIDE;
     LxResult pins_Newborn(ILxUnknownID original, unsigned flags)          LXx_OVERRIDE;
     LxResult pins_AfterLoad(void)                                         LXx_OVERRIDE;
+    void     pins_Doomed(void)                                            LXx_OVERRIDE;
 
    public:
     ILxUnknownID   m_item_obj;        // set in pins_Initialize() and used in pins_AfterLoad(), Element::Eval(), ...
@@ -124,7 +132,7 @@ namespace dfgModoIM
     // create item.
     CLxUser_Item item(m_item_obj);
     if (!item.test())
-    { err += "item(m_item) failed";
+    { err += "item(m_item_obj) failed";
       feLogError(err);
       return LXe_OK;  }
 
@@ -172,6 +180,16 @@ namespace dfgModoIM
 
     // done.
     return LXe_OK;
+  }
+
+  void Instance::pins_Doomed(void)
+  {
+    if (m_baseInterface)
+    {
+      // delete only widget.
+      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+      if (w) delete w;
+    }
   }
 
   Instance *GetInstance(ILxUnknownID item_obj)
@@ -509,7 +527,7 @@ namespace dfgModoIM
     //
     BaseInterface *b = GetBaseInterface(m_Instance->m_item_obj);
     if (!b)
-    { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item) returned NULL");
+    { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item_obj) returned NULL");
       return; }
 
     // refs at DFG wrapper members.

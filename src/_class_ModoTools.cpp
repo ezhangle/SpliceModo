@@ -26,6 +26,117 @@ bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
   return true;
 }
 
+void ModoTools::usrChanCollect(CLxUser_Item &item, std::vector <ModoTools::UsrChnDef> &io_usrChan)
+{
+  /*
+    this function collects all of the user channels on the
+    specified item and stores them into io_usrChan.
+  */
+
+  // init.
+  io_usrChan.clear();
+  if (!item.test())
+    return;
+
+  // get amount of channels.
+  unsigned count = 0;
+  item.ChannelCount(&count);
+
+  // go through all channels and add all valid user channels to io_usrChan.
+  for (unsigned i = 0; i < count; i++)
+  {
+    // if the channel has a package (i.e. if it is not a user channel) then skip it.
+    const char *package = NULL;
+    if (LXx_OK(item.ChannelPackage(i, &package)) || package)
+      continue;
+
+    // if the channel has no type then skip it.
+    const char *channel_type = NULL;
+    if (!LXx_OK(item.ChannelEvalType(i, &channel_type) && channel_type))
+      continue;
+
+    // if the channel type is "none" (i.e. if it is a divider) then skip it.
+    if (!strcmp(channel_type, LXsTYPE_NONE))
+      continue;
+
+    // add the channel to io_usrChan.
+    const char *name = NULL;
+    item.ChannelName(i, &name);
+    UsrChnDef c;
+    c.eval_index = -1;
+    c.chan_index =  i;
+    c.chan_name  = name;
+    io_usrChan.push_back(c);
+  }
+
+  // go through io_usrChan and set the isVec2, isVec3, etc. flags.
+  for (int i = 0; i < io_usrChan.size(); i++)
+  {
+    UsrChnDef           &c    = io_usrChan[i];
+    const std::string   &name = c.chan_name;
+
+    //
+    int idx = i;
+
+    // check if we have a 2D or 3D vector.
+    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".X") != std::string::npos)
+    {
+      idx++;
+      if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Y") != std::string::npos)
+      {
+        idx++;
+        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Z") != std::string::npos) c.isVec3x = true;
+        else                                                                                       c.isVec2x = true;
+      }
+    }
+
+    // check if we have a color.
+    if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".R") != std::string::npos)
+    {
+      idx++;
+      if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".G") != std::string::npos)
+      {
+        idx++;
+        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".B") != std::string::npos)
+        {
+          idx++;
+          if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".A") != std::string::npos) c.isRGBAr = true;
+          else                                                                                       c.isRGBr  = true;
+        }
+      }
+    }
+
+    // set singleton flag.
+    c.isSingleton = (   !c.isVec2x
+                      && !c.isVec3x
+                      && !c.isRGBr
+                      && !c.isRGBAr);
+  }
+}
+
+ModoTools::UsrChnDef *ModoTools::usrChanGetFromName(std::string channelName, std::vector <ModoTools::UsrChnDef> &usrChan)
+{
+  // "normal" channel?
+  for (int i = 0; i < usrChan.size(); i++)
+  {
+    UsrChnDef *c = &usrChan[i];
+    if (channelName == c->chan_name)
+      return c;
+  }
+
+  // vector/color/etc. channel?
+  for (int i = 0; i < usrChan.size(); i++)
+  {
+    UsrChnDef *c = &usrChan[i];
+    if (channelName + ".X" == c->chan_name)   return c;
+    if (channelName + ".R" == c->chan_name)   return c;
+    if (channelName + ".U" == c->chan_name)   return c;
+  }
+
+  // not found.
+  return NULL;
+}
+
 bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
 {
   // check params.

@@ -43,12 +43,36 @@
 class ModoTools
 {
  public:
+  // item user channel structure.
+  struct UsrChnDef
+  {
+    int  chan_index;            // item channel index.
+    int  eval_index;            // evaluation index.
+    std::string chan_name;      // name of the channnel.
+    bool isSingleton;           // true: all other "is*" flags are equal false.
+    bool isVec2x;               // true: this is the first channel of a 2D vector.
+    bool isVec3x;               // true: this is the first channel of a 3D vector.
+    bool isRGBr;                // true: this is the first channel of a RGB color.
+    bool isRGBAr;               // true: this is the first channel of a RGBA color.
+    UsrChnDef () : chan_index(-1), eval_index(-1), chan_name(""),
+                   isSingleton(true),
+                   isVec2x(false), isVec3x(false), isRGBr(false), isRGBAr(false) {}
+  };
+
+ public:
 
   // executes a command string.
   // params:  command                 command to execute, e.g. "channel.create bla item:myItem username:blabla".
   //          out_err                 contains an error description if the function returns false.
   // returns: true on success, false otherwise.
   static bool ExecuteCommand(const std::string &command, std::string &out_err);
+
+  // fills the array io_usrChan with all usable user channels of the input item.
+  // note: all members of UsrChnDef are set except for eval_index which is set to -1.
+  static void usrChanCollect(CLxUser_Item &item, std::vector <UsrChnDef> &io_usrChan);
+
+  // looks for a channel with the specified name and returns its pointer (or NULL if not found).
+  static UsrChnDef *usrChanGetFromName(std::string channelName, std::vector <UsrChnDef> &usrChan);
 
   // checks if an item has a specific channel (user or other).
   // params:  ptr_CLxUser_Item                        pointer at CLxUser_Item (or ILxUnknownID, see parameter interpretate_ptr_as_ILxUnknownID).

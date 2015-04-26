@@ -6,6 +6,8 @@
 #include "_class_ModoTools.h"
 #include "itm_dfgModoPI.h"
 
+static CLxItemType gItemType_dfgModoPI(SERVER_NAME_dfgModoPI);
+
 namespace dfgModoPI
 {
 
@@ -104,9 +106,15 @@ struct _polymesh
     }
 
     //
-    bool isValid(void)
+    bool isValid(void) const
     {
       return (numVertices >= 0 && numPolygons >= 0 && numSamples >= 0);
+    }
+
+    //
+    bool isEmpty(void) const
+    {
+      return (numVertices == 0);
     }
 
     // set from DFG port.
@@ -206,6 +214,60 @@ struct _polymesh
 
       // done.
       return retGet;
+    }
+
+    // merge this mesh with the input mesh.
+    bool merge(const _polymesh &inMesh)
+    {
+      // trivial cases.
+      if (!inMesh.isValid())
+        return false;
+      if (inMesh.isEmpty())
+      {
+        if (!isValid())
+          setEmptyMesh();
+        return true;
+      }
+      if (!isValid() || isEmpty())
+      {
+        *this = inMesh;
+        return true;
+      }
+
+      // merge.
+      *this = inMesh;
+
+      // re-calc bbox.
+      {
+        bbox[0] = 0;
+        bbox[1] = 0;
+        bbox[2] = 0;
+        bbox[3] = 0;
+        bbox[4] = 0;
+        bbox[5] = 0;
+        if (isValid())
+        {
+          float *pv = vertPositions.data();
+          bbox[0] = pv[0];
+          bbox[1] = pv[1];
+          bbox[2] = pv[2];
+          bbox[3] = pv[0];
+          bbox[4] = pv[1];
+          bbox[5] = pv[2];
+          for (unsigned int i=0;i<numVertices;i++,pv+=3)
+          {
+            bbox[0] = __min(bbox[0], pv[0]);
+            bbox[1] = __min(bbox[1], pv[1]);
+            bbox[2] = __min(bbox[2], pv[2]);
+            bbox[3] = __max(bbox[3], pv[0]);
+            bbox[4] = __max(bbox[4], pv[1]);
+            bbox[5] = __max(bbox[5], pv[2]);
+          }
+        }
+      }
+
+      // done.
+      return true;
     }
 };
 
@@ -438,7 +500,7 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
     LxResult    isurf_GetSurface    (ILxUnknownID _chanRead,
                                      unsigned morph,
                                      void **ppvObj)                LXx_OVERRIDE;
-    LxResult    isurf_Prepare        (ILxUnknownID eval,
+    LxResult    isurf_Prepare        (ILxUnknownID eval_ID,
                                      unsigned *index)            LXx_OVERRIDE;
     LxResult    isurf_Evaluate        (ILxUnknownID attr,
                                      unsigned index,
@@ -481,7 +543,8 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
   }
 
 class CReadItemPackage :    public CLxImpl_Package,
-                            public CLxImpl_ChannelUI
+                            public CLxImpl_ChannelUI,
+                            public CLxImpl_SceneItemListener
 {
     public:
 
@@ -494,27 +557,19 @@ class CReadItemPackage :    public CLxImpl_Package,
 
     CReadItemPackage();
 
-    // implementation of package.
     LxResult    pkg_SetupChannels        (ILxUnknownID addChan)            LXx_OVERRIDE;
     LxResult    pkg_TestInterface        (const LXtGUID *guid)            LXx_OVERRIDE;
     LxResult    pkg_Attach                (void **ppvObj)                    LXx_OVERRIDE;
 
-    // implementation of channel UI.
+    LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE;
 
-    // implementation of "my type" thingy.
+    void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
+    void        sil_ItemChannelName (ILxUnknownID item_obj, unsigned int index)         LXx_OVERRIDE;
+
     LXtItemType    MyType();
     private:
     LXtItemType    my_type;
 };
-
-
-//
-
-
-
-
-
-
 
 
 
@@ -1022,25 +1077,26 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         // refs at DFG wrapper members.
         FabricCore::Client                            *client  = b->getClient();
         if (!client)
-        {   feLogError("Element::Eval(): getClient() returned NULL");
+        {   feLogError("CReadItemInstance::Read(): getClient() returned NULL");
             return LXe_OK;     }
         FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
         if (!binding)
-        {   feLogError("Element::Eval(): getBinding() returned NULL");
+        {   feLogError("CReadItemInstance::Read(): getBinding() returned NULL");
             return LXe_OK;     }
         FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
         if (graph.isNull())
-        {   feLogError("Element::Eval(): getExecutable() returned NULL");
+        {   feLogError("CReadItemInstance::Read(): getExecutable() returned NULL");
             return LXe_OK;     }
 
         // Fabric Engine (step 1): loop through all the DFG's input ports and set
         //                         their values from the matching Modo user channels.
         {
+
         }
 
         // Fabric Engine (step 2): execute the DFG.
         {
-            try
+          try
             {
                 binding->execute();
             }
@@ -1050,13 +1106,8 @@ bool CReadItemInstance::Read(bakedChannels &baked)
             }
         }
 
-        // Fabric Engine (step 3): loop through all the DFG's output ports and set
-        //                         the values of the matching Modo user channels.
-        //
-        // note: the first Fabric "PolygonMesh" port will be used
-        //       to set the actual geometry of the Modo item.
+        // Fabric Engine (step 3): ...
         {
-            // WIP: find the first Fabric output port of type "PolygonMesh" and set the item's geo from it.
             try
             {
                 char        serr[256];
@@ -1074,8 +1125,15 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                         || resolvedType        != "PolygonMesh"  )
                       continue;
 
-                    // set ud.pmesh from port.
-                    int retGet = ud.polymesh.setFromDFGPort(port);
+                    if (!ud.polymesh.isEmpty())
+                    {
+                      feLog("currently only 1 output port supported. Skipping this port.");
+                      continue;
+                    }
+
+                    // get polygon mesh from port.
+                    _polymesh tmpMesh;
+                    int retGet = tmpMesh.setFromDFGPort(port);
                     if (retGet)
                     {
                       sprintf(serr, "%ld", retGet);
@@ -1083,8 +1141,13 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                       break;
                     }
 
-                    // done.
-                    break;
+                    // merge mesh with ud.polymesh.
+                    if (!ud.polymesh.merge(tmpMesh))
+                    {
+                      sprintf(serr, "%ld", retGet);
+                      err = "failed to merge current mesh with mesh from DFG port \"" + std::string(port->getName()) + "\"";
+                      break;
+                    }
                 }
 
                 // error?
@@ -1521,19 +1584,23 @@ LxResult CReadItemInstance::isurf_GetSurface(ILxUnknownID _chanRead, unsigned mo
     return LXe_OK;
 }
 
-LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval, unsigned *index)
+LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval_ID, unsigned *index)
 {
-    CLxUser_Evaluation evaluation(eval);
+    CLxUser_Evaluation eval(eval_ID);
+    if (!eval.test())
+      { feLogError("eval.test() == false");
+      return LXe_OK; }
 
     // add custom channels as attributes.
     {
         unsigned chanIndex;
-        *index    = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
-        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,    LXfECHAN_READ);
-        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricDisplay, LXfECHAN_READ);
-        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricOpacity, LXfECHAN_READ);
+        *index    = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,    LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricDisplay, LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricOpacity, LXfECHAN_READ);
     }
 
+    //
     return LXe_OK;
 }
 
@@ -1629,6 +1696,84 @@ LxResult CReadItemPackage::pkg_Attach(void **ppvObj)
     return LXe_OK;
 }
 
+LxResult CReadItemPackage::cui_UIHints(const char *channelName, ILxUnknownID hints_obj)
+{
+  // WIP: we must be able to somehow access Instance, so that we can get
+  // the BaseInterface and the DFG input/output ports and set the channel
+  // hints accordingly.
+
+  /*
+    Here we set some hints for the built in channels. These allow channels
+    to be displayed as either inputs or outputs in the schematic. 
+  */
+
+  CLxUser_UIHints hints(hints_obj);
+  LxResult        result = LXe_FAILED;
+
+  if (hints.test())
+  {
+    if (strcmp(channelName, "draw"))
+    {
+        if (   !strcmp(channelName, CHN_NAME_IO_FabricActive)
+            || !strcmp(channelName, CHN_NAME_IO_FabricEval)
+            || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
+            )
+        {
+          result = hints.ChannelFlags(0);   // by default we don't display the fixed channels in the schematic view.
+        }
+        else
+        {
+          // WIP: must be able to somehow access Instance.
+
+
+          //if      ((*quickhack_baseInterface).HasInputPort(channelName))  result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
+          //else if ((*quickhack_baseInterface).HasOutputPort(channelName)) result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+          //else                                                            result = hints.ChannelFlags(0);
+        }
+    }
+    result = LXe_OK;
+  }
+
+  return result;
+}
+
+void CReadItemPackage::sil_ItemAddChannel(ILxUnknownID item_obj)
+{
+  /*
+    When user channels are added to our item type, this function will be
+    called. We use it to invalidate our modifier so that it's reallocated.
+    We don't need to worry about channels being removed, as the evaluation
+    system will automatically invalidate the modifier when channels it
+    writes are removed.
+  */
+
+  CLxUser_Item    item(item_obj);
+  CLxUser_Scene   scene;
+
+  if (item.test() && item.IsA(gItemType_dfgModoPI.Type()))
+  {
+    if (item.GetContext(scene))
+      scene.EvalModInvalidate(SERVER_NAME_dfgModoPI ".mod");
+  }
+}
+
+void CReadItemPackage::sil_ItemChannelName(ILxUnknownID item_obj, unsigned int index)
+{
+  /*
+    When a user channel's name changes, this function will be
+    called. We use it to invalidate our modifier so that it's reallocated.
+  */
+
+  CLxUser_Item    item(item_obj);
+  CLxUser_Scene   scene;
+
+  if (item.test() && item.IsA(gItemType_dfgModoPI.Type()))
+  {
+    if (item.GetContext(scene))
+      scene.EvalModInvalidate(SERVER_NAME_dfgModoPI ".mod");
+  }
+}
+
 LXtItemType CReadItemPackage::MyType()
 {
     if (my_type != LXiTYPE_NONE)
@@ -1638,6 +1783,171 @@ LXtItemType CReadItemPackage::MyType()
     return my_type;
 }
 
+
+
+
+
+
+
+//#define USE_MODIFIER
+
+
+
+
+#ifdef USE_MODIFIER
+  /*
+    Implement the Modifier Element and Server. This reads the input channels as
+    read only channels and output channels as write only channels.
+  */
+
+  class Element : public CLxItemModifierElement
+  {
+   public:
+    Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj);
+    bool    Test(ILxUnknownID item_obj)                                LXx_OVERRIDE;
+    void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)   LXx_OVERRIDE;
+
+   private:
+     CReadItemInstance *m_Instance;
+  };
+
+  class Modifier : public CLxItemModifierServer
+  {
+   public:
+    static void initialize()
+    {
+        CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_dfgModoPI ".mod");
+    }
+
+    const char  *ItemType()   LXx_OVERRIDE;
+
+    CLxItemModifierElement *Alloc(CLxUser_Evaluation &eval, ILxUnknownID item_obj)   LXx_OVERRIDE;
+  };
+
+  Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
+  {
+    m_Instance = GetInstance(item_obj);
+    BaseInterface *b = GetBaseInterface(item_obj);
+    if (!b)
+    { feLogError("GetBaseInterface() returned NULL");
+      return; }
+
+    /*
+      In the constructor, we want to add the input and output channels
+      required for this modifier. The inputs are hardcoded, but for the
+      outputs, we want to scan through all the user channels on the current
+      item and add those. We cache the user channels, so we can easily check
+      when they've changed.
+    */
+
+    CLxUser_Item item(item_obj);
+    if (!item.test())
+      return;
+
+    // add the fixed input channels to eval.
+    eval.AddChan(item, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
+    eval.AddChan(item, CHN_NAME_IO_FabricEval,    LXfECHAN_READ);
+    eval.AddChan(item, CHN_NAME_IO_FabricDisplay, LXfECHAN_READ);
+    eval.AddChan(item, CHN_NAME_IO_FabricOpacity, LXfECHAN_READ);
+    eval.AddChan(item, CHN_NAME_IO_FabricJSON,    LXfECHAN_READ);
+
+    // collect all the user channels and add them to eval.
+    ModoTools::usrChanCollect(item, m_Instance->m_usrChan);
+    for (unsigned i = 0; i < m_Instance->m_usrChan.size(); i++)
+    {
+      ModoTools::UsrChnDef &c = m_Instance->m_usrChan[i];
+
+      unsigned int type;
+      if      (b->HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
+      else if (b->HasOutputPort(c.chan_name.c_str()))     type =                 LXfECHAN_WRITE;
+      else                                                type = LXfECHAN_READ | LXfECHAN_WRITE;
+
+      c.eval_index = eval.AddChan(item, c.chan_index, type);
+    }
+  }
+
+  bool Element::Test(ILxUnknownID item_obj)
+  {
+    /*
+      When the list of user channels for a particular item changes, the
+      modifier will be invalidated. This function will be called to check
+      if the modifier we allocated previously matches what we'd allocate
+      if the Alloc function was called now. We return true if it does.
+    */
+
+    CLxUser_Item             item(item_obj);
+    std::vector <ModoTools::UsrChnDef> tmp;
+
+    if (item.test())
+    {
+      ModoTools::usrChanCollect(item, tmp);
+
+      if (tmp.size() == m_Instance->m_usrChan.size())
+      {
+        bool foundDifference = false;
+        for (int i = 0; i < tmp.size(); i++)
+          if (memcmp(&tmp[i], &m_Instance->m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
+          {
+            foundDifference = true;
+            break;
+          }
+        return !foundDifference;
+      }
+    }
+
+    return false;
+  }
+
+  void Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)
+  {
+    // nothing to do?
+    if (!eval || !attr)
+      return;
+
+{
+  static int i = 0;
+  char s[256];
+  sprintf(s, "Element::Eval():  %ld", i++);
+  feLog(s);
+}
+
+
+
+    // done.
+    return;
+  }
+
+  const char *Modifier::ItemType()
+  {
+    /*
+      The modifier should only associate itself with this item type.
+    */
+
+    return SERVER_NAME_dfgModoPI;
+  }
+
+  CLxItemModifierElement *Modifier::Alloc(CLxUser_Evaluation &eval, ILxUnknownID item)
+  {
+    /*
+      Allocate and return the modifier element.
+    */
+    return new Element (eval, item);
+  }
+
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
 void initialize()
 {
     CLxGenericPolymorph    *srv;
@@ -1645,19 +1955,16 @@ void initialize()
     srv = new CLxPolymorph<CReadItemPackage>;
 
     srv->AddInterface(new CLxIfc_Package            <CReadItemPackage>);
-    srv->AddInterface(new CLxIfc_StaticDesc            <CReadItemPackage>);
-    srv->AddInterface(new CLxIfc_ChannelUI            <CReadItemPackage>);
+    srv->AddInterface(new CLxIfc_StaticDesc         <CReadItemPackage>);
+    srv->AddInterface(new CLxIfc_ChannelUI          <CReadItemPackage>);
+    srv->AddInterface(new CLxIfc_SceneItemListener  <CReadItemPackage>);
 
     thisModule.AddServer(SERVER_NAME_dfgModoPI, srv);
+
+#ifdef USE_MODIFIER
+    Modifier :: initialize();
+#endif
 }
-
-
-
-//----------------
-
-
-
-
 
 };  // namespace dfgModoPI
 

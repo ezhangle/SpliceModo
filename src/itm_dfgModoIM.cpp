@@ -400,22 +400,6 @@ namespace dfgModoIM
     read only channels and output channels as write only channels.
   */
 
-  struct ChannelDef
-  {
-    int  chan_index;            // item channel index.
-    int  eval_index;            // evaluation index.
-    std::string chan_name;      // name of the channnel.
-    bool isSingleton;           // true: all other "is*" flags are equal false.
-    bool isVec2x;               // true: this is the first channel of a 2D vector.
-    bool isVec3x;               // true: this is the first channel of a 3D vector.
-    bool isRGBr;                // true: this is the first channel of a RGB color.
-    bool isRGBAr;               // true: this is the first channel of a RGBA color.
-
-    ChannelDef () : chan_index(-1), eval_index(-1), chan_name(""),
-                    isSingleton(true),
-                    isVec2x(false), isVec3x(false), isRGBr(false), isRGBAr(false) {}
-  };
-
   class Element : public CLxItemModifierElement
   {
    public:
@@ -424,12 +408,10 @@ namespace dfgModoIM
     void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)   LXx_OVERRIDE;
 
    private:
-    int                      m_eval_index_FabricActive;
-    int                      m_eval_index_FabricEval;
-    int                      m_eval_index_FabricJSON;
-    std::vector <ChannelDef> m_usrChan;
-    void        usrChanCollect    (CLxUser_Item &item, std::vector <ChannelDef> &io_usrChan);
-    ChannelDef *usrChanGetFromName(std::string channelName, std::vector <ChannelDef> &usrChan);
+    int                                 m_eval_index_FabricActive;
+    int                                 m_eval_index_FabricEval;
+    int                                 m_eval_index_FabricJSON;
+    std::vector <ModoTools::UsrChnDef>  m_usrChan;
 
     Instance *m_Instance;
   };
@@ -473,10 +455,10 @@ namespace dfgModoIM
     m_eval_index_FabricJSON   = eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
 
     // collect all the user channels and add them to eval.
-    usrChanCollect(item, m_usrChan);
+    ModoTools::usrChanCollect(item, m_usrChan);
     for (unsigned i = 0; i < m_usrChan.size(); i++)
     {
-      ChannelDef &c = m_usrChan[i];
+      ModoTools::UsrChnDef &c = m_usrChan[i];
 
       unsigned int type;
       if      (b->HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
@@ -497,17 +479,17 @@ namespace dfgModoIM
     */
 
     CLxUser_Item             item(item_obj);
-    std::vector <ChannelDef> tmp;
+    std::vector <ModoTools::UsrChnDef> tmp;
 
     if (item.test())
     {
-      usrChanCollect(item, tmp);
+      ModoTools::usrChanCollect(item, tmp);
 
       if (tmp.size() == m_usrChan.size())
       {
         bool foundDifference = false;
         for (int i = 0; i < tmp.size(); i++)
-          if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ChannelDef)))
+          if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
           {
             foundDifference = true;
             break;
@@ -570,7 +552,7 @@ namespace dfgModoIM
             continue;
 
           // get pointer at matching channel definition.
-          ChannelDef *cd = usrChanGetFromName(port->getName(), m_usrChan);
+          ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(port->getName(), m_usrChan);
           if (!cd || cd->eval_index < 0)
           { err  = "unable to find a user channel that matches the port \"" + std::string(port->getName()) + "\"";
             break;  }
@@ -708,7 +690,7 @@ namespace dfgModoIM
 
           // get pointer at matching channel definition.
           std::string name = port->getName();
-          ChannelDef *cd = usrChanGetFromName(name, m_usrChan);
+          ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(name, m_usrChan);
           if (!cd || cd->eval_index < 0)
           { err = "unable to find a user channel that matches the port \"" + name + "\"";
             break;  }
@@ -800,7 +782,7 @@ namespace dfgModoIM
               else if (cd->isRGBAr)     {   N = 4;  retGet = BaseInterface::GetPortValueRGBA(port, val);   }
               else
               {
-                err = "something is wrong with the flags in ChannelDef";
+                err = "something is wrong with the flags in ModoTools::UsrChnDef";
                 break;
               }
 
@@ -844,117 +826,6 @@ namespace dfgModoIM
 
     // done.
     return;
-  }
-
-  void Element::usrChanCollect(CLxUser_Item &item, std::vector <ChannelDef> &io_usrChan)
-  {
-    /*
-      this function collects all of the user channels on the
-      specified item and stores them into io_usrChan.
-    */
-
-    // init.
-    io_usrChan.clear();
-    if (!item.test())
-      return;
-
-    // get amount of channels.
-    unsigned count = 0;
-    item.ChannelCount(&count);
-
-    // go through all channels and add all valid user channels to io_usrChan.
-    for (unsigned i = 0; i < count; i++)
-    {
-      // if the channel has a package (i.e. if it is not a user channel) then skip it.
-      const char *package = NULL;
-      if (LXx_OK(item.ChannelPackage(i, &package)) || package)
-        continue;
-
-      // if the channel has no type then skip it.
-      const char *channel_type = NULL;
-      if (!LXx_OK(item.ChannelEvalType(i, &channel_type) && channel_type))
-        continue;
-
-      // if the channel type is "none" (i.e. if it is a divider) then skip it.
-      if (!strcmp(channel_type, LXsTYPE_NONE))
-        continue;
-
-      // add the channel to io_usrChan.
-      const char *name = NULL;
-      item.ChannelName(i, &name);
-      ChannelDef c;
-      c.eval_index = -1;
-      c.chan_index =  i;
-      c.chan_name  = name;
-      io_usrChan.push_back(c);
-    }
-
-    // go through io_usrChan and set the isVec2, isVec3, etc. flags.
-    for (int i = 0; i < io_usrChan.size(); i++)
-    {
-      ChannelDef          &c    = io_usrChan[i];
-      const std::string   &name = c.chan_name;
-
-      //
-      int idx = i;
-
-      // check if we have a 2D or 3D vector.
-      if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".X") != std::string::npos)
-      {
-        idx++;
-        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Y") != std::string::npos)
-        {
-          idx++;
-          if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".Z") != std::string::npos) c.isVec3x = true;
-          else                                                                                       c.isVec2x = true;
-        }
-      }
-
-      // check if we have a color.
-      if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".R") != std::string::npos)
-      {
-        idx++;
-        if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".G") != std::string::npos)
-        {
-          idx++;
-          if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".B") != std::string::npos)
-          {
-            idx++;
-            if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".A") != std::string::npos) c.isRGBAr = true;
-            else                                                                                       c.isRGBr  = true;
-          }
-        }
-      }
-
-      // set singleton flag.
-      c.isSingleton = (   !c.isVec2x
-                        && !c.isVec3x
-                        && !c.isRGBr
-                        && !c.isRGBAr);
-    }
-  }
-
-  ChannelDef *Element::usrChanGetFromName(std::string channelName, std::vector <ChannelDef> &usrChan)
-  {
-    // "normal" channel?
-    for (int i = 0; i < usrChan.size(); i++)
-    {
-      ChannelDef *c = &usrChan[i];
-      if (channelName == c->chan_name)
-        return c;
-    }
-
-    // vector/color/etc. channel?
-    for (int i = 0; i < usrChan.size(); i++)
-    {
-      ChannelDef *c = &usrChan[i];
-      if (channelName + ".X" == c->chan_name)   return c;
-      if (channelName + ".R" == c->chan_name)   return c;
-      if (channelName + ".U" == c->chan_name)   return c;
-    }
-
-    // not found.
-    return NULL;
   }
 
   const char *Modifier::ItemType()

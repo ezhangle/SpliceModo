@@ -35,10 +35,14 @@ struct bakedChannels
 {    // the last values of the channels CHANNEL_emRd_<variable-name>.
     bool  FabricActive;
     int   FabricEval;
+    int   FabricDisplay;
+    float FabricOpacity;
     void zero(void)
     {
       FabricActive  = false;
       FabricEval    = 0;
+      FabricDisplay = 0;
+      FabricOpacity = 0;
     }
 };
 
@@ -74,9 +78,9 @@ struct _polymesh
     //
     void clear(void)
     {
-      numVertices     = 0;
-      numPolygons     = 0;
-      numSamples      = 0;
+      numVertices     = -1;
+      numPolygons     = -1;
+      numSamples      = -1;
       vertPositions   .clear();
       vertNormals     .clear();
       polyNumVertices .clear();
@@ -88,6 +92,21 @@ struct _polymesh
       bbox[3] = 0;
       bbox[4] = 0;
       bbox[5] = 0;
+    }
+
+    //
+    void setEmptyMesh(void)
+    {
+      clear();
+      numVertices = 0;
+      numPolygons = 0;
+      numSamples  = 0;
+    }
+
+    //
+    bool isValid(void)
+    {
+      return (numVertices >= 0 && numPolygons >= 0 && numSamples >= 0);
     }
 
     // set from DFG port.
@@ -116,7 +135,7 @@ struct _polymesh
         return retGet;  }
 
       // create vertex normals from the polygon node normals.
-      if (numPolygons)
+      if (numPolygons > 0 && polyNodeNormals.size() > 0)
       {
           // resize and zero-out.
           vertNormals.resize       (3 * numVertices, 0.0f);
@@ -164,16 +183,24 @@ struct _polymesh
         bbox[3] = 0;
         bbox[4] = 0;
         bbox[5] = 0;
-        float *pv = vertPositions.data();
-        for (unsigned int i=0;i<numVertices;i++,pv+=3)
+        if (isValid())
         {
-          bbox[0] = __min(bbox[0], pv[0]);
-          bbox[1] = __min(bbox[1], pv[1]);
-          bbox[2] = __min(bbox[2], pv[2]);
-
-          bbox[3] = __min(bbox[3], pv[0]);
-          bbox[4] = __min(bbox[4], pv[1]);
-          bbox[5] = __min(bbox[5], pv[2]);
+          float *pv = vertPositions.data();
+          bbox[0] = pv[0];
+          bbox[1] = pv[1];
+          bbox[2] = pv[2];
+          bbox[3] = pv[0];
+          bbox[4] = pv[1];
+          bbox[5] = pv[2];
+          for (unsigned int i=0;i<numVertices;i++,pv+=3)
+          {
+            bbox[0] = __min(bbox[0], pv[0]);
+            bbox[1] = __min(bbox[1], pv[1]);
+            bbox[2] = __min(bbox[2], pv[2]);
+            bbox[3] = __max(bbox[3], pv[0]);
+            bbox[4] = __max(bbox[4], pv[1]);
+            bbox[5] = __max(bbox[5], pv[2]);
+          }
         }
       }
 
@@ -189,7 +216,7 @@ struct emUserData
     //
     BaseInterface                 *baseInterface;      // pointer at BaseInterface.
     //
-    _polymesh                      pmesh;              // baked polygon mesh.
+    _polymesh                      polymesh;           // baked polygon mesh.
     //
     localModoStuff                 mdo;                // local modo stuff.
     //
@@ -197,7 +224,7 @@ struct emUserData
     {
       chn.zero();
       mdo.zero();
-      pmesh.clear();
+      polymesh.clear();
       baseInterface     = NULL;
       mdo.needsUVs      = false;
     }
@@ -213,7 +240,7 @@ struct emUserData
         delete baseInterface;
         baseInterface = NULL;
       }
-      pmesh.clear();
+      polymesh.clear();
       zero();
     }
 };
@@ -505,10 +532,25 @@ const unsigned    READ_ITEM_MSG_DISABLED    = 1001;
 
 LXtTagInfoDesc CReadItemPackage::descInfo[] =
 {
-    { LXsPKG_SUPERTYPE,        LXsITYPE_LOCATOR    },
-    { LXsPKG_IS_MASK,        "."                    },
-    { LXsSRV_LOGSUBSYSTEM,    LOG_SYSTEM_NAME        },
-    { 0    }
+    { LXsPKG_SUPERTYPE,    LXsITYPE_LOCATOR },
+    { LXsPKG_IS_MASK,      "."              },
+    { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME  },
+    { 0 }
+};
+
+static LXtTextValueHint hint_FabricDisplay[] =
+{
+     0,        "None",
+     1,        "Points",
+     2,        "Edges",
+    -1,         NULL
+};
+
+static LXtTextValueHint hint_FabricOpacity[] =
+{
+     0,        "%min",
+     10000,    "%max",
+    -1,         NULL
 };
 
 // _______________________________
@@ -534,7 +576,12 @@ LxResult CReadPart::Bound(LXtTableauBox bbox)
     return LXe_FAILED;
   emUserData &ud = *m_pUserData;
 
-  bbox = ud.pmesh.bbox;
+  bbox[0] = ud.polymesh.bbox[0];
+  bbox[1] = ud.polymesh.bbox[1];
+  bbox[2] = ud.polymesh.bbox[2];
+  bbox[3] = ud.polymesh.bbox[3];
+  bbox[4] = ud.polymesh.bbox[4];
+  bbox[5] = ud.polymesh.bbox[5];
 
   return LXe_OK;
 }
@@ -651,175 +698,81 @@ LxResult CReadPart::SetVertex(ILxUnknownID vdesc)
 LxResult CReadPart::Sample(const LXtTableauBox bbox, float scale, ILxUnknownID trisoup)
 {
     // init ref at user data.
-    if (!m_pUserData)    return LXe_FAILED;
-    emUserData &ud    = *m_pUserData;
+    if (!m_pUserData)
+      return LXe_FAILED;
+    emUserData &ud = *m_pUserData;
 
     // nothing to do?
-    if (!ud.chn.FabricActive || !ud.baseInterface || !ud.baseInterface->isValid())
+    if (!ud.chn.FabricActive || !ud.polymesh.isValid() || ud.polymesh.numVertices <= 0)
         return LXe_OK;
 
     // init triangle soup.
     CLxUser_TriangleSoup soup(trisoup);
 
     // return early if the bounding box is not visible.
-    if (!soup.TestBox(ud.pmesh.bbox))
+    if (!soup.TestBox(ud.polymesh.bbox))
         return LXe_OK;
 
-    // TEST / WIP
+    // set the Modo geometry from ud.pmesh.
     {
-                LXtVector		 norm;
-                float			 vec[3 * 4];
-                LxResult		 rc;
-                int  *f_pos = ud.mdo.f_pos;
+      // init.
+      LxResult rc = soup.Segment (1, LXiTBLX_SEG_TRIANGLE);
+      if (rc == LXe_FALSE)    return LXe_OK;
+      else if (LXx_FAIL (rc)) return rc;
 
-                BaseInterface *b = ud.baseInterface;
+      // build the vertex list.
+      {
+          unsigned    index;
+          int        *f_pos = ud.mdo.f_pos;
+          float       vec[3 * (4 + 3)] = {0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0};
+          float *vp = ud.polymesh.vertPositions.data();
+          float *vn = ud.polymesh.vertNormals  .data();
+          for (unsigned int i=0;i<ud.polymesh.numVertices;i++,vp+=3,vn+=3)
+          {
+              // position.
+              vec[f_pos[0] + 0] = vp[0];
+              vec[f_pos[0] + 1] = vp[1];
+              vec[f_pos[0] + 2] = vp[2];
 
-                // refs at DFG wrapper members.
-                FabricCore::Client                            *client  = b->getClient();
-                if (!client)
-                {   feLogError("Element::Eval(): getClient() returned NULL");
-                    return LXe_OK;     }
-                FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
-                if (!binding)
-                {   feLogError("Element::Eval(): getBinding() returned NULL");
-                    return LXe_OK;     }
-                FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
-                if (graph.isNull())
-                {   feLogError("Element::Eval(): getExecutable() returned NULL");
-                    return LXe_OK;     }
+              // normal.
+              vec[f_pos[2] + 0] = vn[0];
+              vec[f_pos[2] + 1] = vn[1];
+              vec[f_pos[2] + 2] = vn[2];
 
-                // Fabric Engine (step 1): loop through all the DFG's input ports and set
-                //                         their values from the matching Modo user channels.
-                {
-                }
+              // velocity.
+              vec[f_pos[3] + 0] = 0;
+              vec[f_pos[3] + 1] = 0;
+              vec[f_pos[3] + 2] = 0;
 
-                // Fabric Engine (step 2): execute the DFG.
-                {
-                    try
-                    {
-                        binding->execute();
-                    }
-                    catch (FabricCore::Exception e)
-                    {
-                        feLogError(e.getDesc_cstr());
-                    }
-                }
+              // add vertex.
+              soup.Vertex(vec, &index);
+          }
+      }
 
-                // Fabric Engine (step 3): loop through all the DFG's output ports and set
-                //                         the values of the matching Modo user channels.
-                //
-                // note: the first Fabric "PolygonMesh" port will be used
-                //       to set the actual geometry of the Modo item.
-                {
+      // build triangle list.
+      {
+          // init pointers at polygon data.
+          uint32_t *pn = ud.polymesh.polyNumVertices.data();
+          uint32_t *pi = ud.polymesh.polyVertices.data();
 
+          // go.
+          for (unsigned int i=0;i<ud.polymesh.numPolygons;i++)
+          {
+              // we only use triangles and quads.
+              if        (*pn == 3)    soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
+              else if (*pn == 4)    soup.Quad    ((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
 
-                    // WIP: find the first Fabric output port of type "PolygonMesh" and set the item's geo from it.
-
-                    try
-                    {
-                        char        serr[256];
-                        std::string err = "";
-                        FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
-                        for (int fi=0;fi<portlist.size();fi++)
-                        {
-                            // get port.
-                            FabricServices::DFGWrapper::PortPtr port = portlist[fi];
-                            if (port.isNull())  continue;
-
-                            // wrong type of port?
-                            std::string resolvedType = port->getResolvedType();
-                            if (   port->getPortType() != FabricCore::DFGPortType_Out
-                                || resolvedType        != "PolygonMesh"  )
-                                continue;
-
-                            // set ud.pmesh from port.
-                            int retGet = ud.pmesh.setFromDFGPort(port);
-                            if (retGet)
-                            {
-                                sprintf(serr, "%ld", retGet);
-                                err = "failed to get value from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
-                                break;
-                            }
-
-                            // set Modo geo.
-                            {
-                                // init.
-                                rc = soup.Segment (1, LXiTBLX_SEG_TRIANGLE);
-                                if (rc == LXe_FALSE)    return LXe_OK;
-                                else if (LXx_FAIL (rc)) return rc;
-
-                                // build the vertex list.
-                                {
-                                    unsigned    index;
-                                    float       vec[3 * (4 + 3)] = {0, 0, 0,
-                                                                    0, 0, 0,
-                                                                    0, 0, 0,
-                                                                    0, 0, 0,
-                                                                    0, 0, 0,
-                                                                    0, 0, 0,
-                                                                    0, 0, 0};
-                                    float *vp = ud.pmesh.vertPositions.data();
-                                    float *vn = ud.pmesh.vertNormals  .data();
-                                    for (unsigned int i=0;i<ud.pmesh.numVertices;i++,vp+=3,vn+=3)
-                                    {
-                                        // position.
-                                        vec[f_pos[0] + 0] = vp[0];
-                                        vec[f_pos[0] + 1] = vp[1];
-                                        vec[f_pos[0] + 2] = vp[2];
-
-                                        // normal.
-                                        vec[f_pos[2] + 0] = vn[0];
-                                        vec[f_pos[2] + 1] = vn[1];
-                                        vec[f_pos[2] + 2] = vn[2];
-
-                                        // velocity.
-                                        vec[f_pos[3] + 0] = 0;
-                                        vec[f_pos[3] + 1] = 0;
-                                        vec[f_pos[3] + 2] = 0;
-
-                                        // add vertex.
-                                        soup.Vertex(vec, &index);
-                                    }
-                                }
-
-                                // build triangle list.
-                                {
-                                    // init pointers at polygon data.
-                                    uint32_t *pn = ud.pmesh.polyNumVertices.data();
-                                    uint32_t *pi = ud.pmesh.polyVertices.data();
-
-                                    // go.
-                                    for (unsigned int i=0;i<ud.pmesh.numPolygons;i++)
-                                    {
-                                        // we only use triangles and quads.
-                                        if		(*pn == 3)	soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
-                                        else if (*pn == 4)	soup.Quad	((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
-
-                                        // next.
-                                        pi += *pn;
-                                        pn++;
-                                    }
-                                }
-                            }
-
-                            // done.
-                            break;
-                        }
-
-                        // error?
-                        if (err != "")
-                        {
-                            ud.pmesh.clear();
-                            feLogError(err);
-                            return LXe_OK;
-                        }
-                    }
-                    catch (FabricCore::Exception e)
-                    {
-                        ud.pmesh.clear();
-                        feLogError(e.getDesc_cstr());
-                    }
-                }
+              // next.
+              pi += *pn;
+              pn++;
+          }
+      }
     }
 
     // done.
@@ -1009,7 +962,7 @@ LxResult CReadItemSurface::surf_TagByIndex(LXtID4 type, unsigned int index, cons
 bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
 {
     // init.
-    emUserData &ud    = m_userData;
+    emUserData &ud = m_userData;
 
     //
     CLxUser_Item item(m_item_obj);
@@ -1021,14 +974,14 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
 
     // declare and init the baked channels.
     bakedChannels baked;
-    memset(&baked, NULL, sizeof(bakedChannels));
-    baked.FabricActive  = false;
-    baked.FabricEval    = 0;
+    baked.zero();
 
     // read channels, if available.
     int chanIndex;
-    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricActive);        if (chanIndex >= 0) baked.FabricActive = (chanRead.IValue(m_item_obj, chanIndex) != 0);  else    return false;
-    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval   =  chanRead.IValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricActive);        if (chanIndex >= 0) baked.FabricActive  =       (chanRead.IValue(m_item_obj, chanIndex) != 0);  else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval    =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricDisplay);       if (chanIndex >= 0) baked.FabricDisplay =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricOpacity);       if (chanIndex >= 0) baked.FabricOpacity = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
 
     // call the other Read() function.
     return Read(baked);
@@ -1037,8 +990,8 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
 bool CReadItemInstance::Read(bakedChannels &baked)
 {
     // init return value and ref at user data.
-    bool         ret    = true;
-    emUserData &ud    = m_userData;
+    bool        ret = true;
+    emUserData &ud  = m_userData;
 
     // init the output flag indicating if a channel that is relevant to the geometry was modified since the last call to this function.
     bool changeInGeoRelevantChannel = false;
@@ -1046,24 +999,119 @@ bool CReadItemInstance::Read(bakedChannels &baked)
     // store the stuff in baked in the user data and set changeInGeoRelevantChannel flag.
     {
         // take care of the changeInGeoRelevantChannel flag.
-      changeInGeoRelevantChannel = (     baked.FabricActive != ud.chn.FabricActive
-                                      || baked.FabricEval   != ud.chn.FabricEval
+      changeInGeoRelevantChannel = (   baked.FabricActive != ud.chn.FabricActive
+                                    || baked.FabricEval   != ud.chn.FabricEval
                                    );
 
-        // copy the baked content into the user data.
-        memcpy(&ud.chn, &baked, sizeof(bakedChannels));
+      // copy the baked content into the user data.
+      memcpy(&ud.chn, &baked, sizeof(bakedChannels));
     }
 
     // take care of geometry.
     if (ud.chn.FabricActive)
     {
+      if (changeInGeoRelevantChannel || !ud.polymesh.isValid())
+      {
+        BaseInterface *b = ud.baseInterface;
+        if (!b || !b->isValid())
+          return false;
+
+        // make ud.polymesh a valid, empty mesh.
+        ud.polymesh.setEmptyMesh();
+
+        // refs at DFG wrapper members.
+        FabricCore::Client                            *client  = b->getClient();
+        if (!client)
+        {   feLogError("Element::Eval(): getClient() returned NULL");
+            return LXe_OK;     }
+        FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
+        if (!binding)
+        {   feLogError("Element::Eval(): getBinding() returned NULL");
+            return LXe_OK;     }
+        FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
+        if (graph.isNull())
+        {   feLogError("Element::Eval(): getExecutable() returned NULL");
+            return LXe_OK;     }
+
+        // Fabric Engine (step 1): loop through all the DFG's input ports and set
+        //                         their values from the matching Modo user channels.
+        {
+        }
+
+        // Fabric Engine (step 2): execute the DFG.
+        {
+            try
+            {
+                binding->execute();
+            }
+            catch (FabricCore::Exception e)
+            {
+                feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+            }
+        }
+
+        // Fabric Engine (step 3): loop through all the DFG's output ports and set
+        //                         the values of the matching Modo user channels.
+        //
+        // note: the first Fabric "PolygonMesh" port will be used
+        //       to set the actual geometry of the Modo item.
+        {
+            // WIP: find the first Fabric output port of type "PolygonMesh" and set the item's geo from it.
+            try
+            {
+                char        serr[256];
+                std::string err = "";
+                FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
+                for (int fi=0;fi<portlist.size();fi++)
+                {
+                    // get port.
+                    FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+                    if (port.isNull())  continue;
+
+                    // wrong type of port?
+                    std::string resolvedType = port->getResolvedType();
+                    if (   port->getPortType() != FabricCore::DFGPortType_Out
+                        || resolvedType        != "PolygonMesh"  )
+                      continue;
+
+                    // set ud.pmesh from port.
+                    int retGet = ud.polymesh.setFromDFGPort(port);
+                    if (retGet)
+                    {
+                      sprintf(serr, "%ld", retGet);
+                      err = "failed to get value from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
+                      break;
+                    }
+
+                    // done.
+                    break;
+                }
+
+                // error?
+                if (err != "")
+                {
+                    ud.polymesh.clear();
+                    feLogError(err);
+                    return LXe_OK;
+                }
+            }
+            catch (FabricCore::Exception e)
+            {
+                ud.polymesh.clear();
+                feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+                return LXe_OK;
+            }
+        }
+      }
     }
     else
     {
+      ud.polymesh.clear();
     }
 
     // done.
 _done:
+    if (!ret)   ud.polymesh.clear();
     return ret;
 }
 
@@ -1227,11 +1275,6 @@ LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
     // init ref at user data.
     emUserData &ud    = m_userData;
 
-    //
-    CLxUser_Item item(m_item_obj);
-    if (!item.test())
-      return LXe_OK;
-
     // get tableau.
     CLxUser_Tableau    tbx(tableau);
     
@@ -1242,6 +1285,11 @@ LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
 
     // read channels.
     bool ret = Read(chan0);
+
+    //
+    CLxUser_Item item(m_item_obj);
+    if (!item.test())
+      return LXe_OK;
 
     // nothing to do?
     if (!ret || !ud.chn.FabricActive || !ud.baseInterface || !ud.baseInterface->isValid())
@@ -1327,7 +1375,18 @@ LxResult CReadItemInstance::tsrc_Instance(ILxUnknownID tableau, ILxUnknownID ins
 
 LxResult CReadItemInstance::tsrc_PreviewUpdate(int chanIndex, int *update)
 {
-    if (false)
+  //
+  CLxUser_Item item(m_item_obj);
+  if (!item.test())
+  {
+        *update = LXfTBLX_PREVIEW_UPDATE_GEOMETRY;
+    return LXe_OK;
+  }
+
+  //
+  if ( chanIndex == item.ChannelIndex(CHN_NAME_IO_FabricDisplay)
+        || chanIndex == item.ChannelIndex(CHN_NAME_IO_FabricOpacity)
+       )
     {
         *update = LXfTBLX_PREVIEW_UPDATE_NONE;
     }
@@ -1342,7 +1401,7 @@ LxResult CReadItemInstance::tsrc_PreviewUpdate(int chanIndex, int *update)
 LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID viewStrokeDraw, int selectionFlags, LXtVector itemColor)
 {
     // init ref at user data.
-    emUserData &ud    = m_userData;
+    emUserData &ud = m_userData;
 
     // read channels.
     CLxUser_ChannelRead    chanRead;
@@ -1354,11 +1413,11 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
         return LXe_OK;
 
     // init stroke draw thing.
-    CLxLoc_StrokeDraw    strokeDraw;
+    CLxLoc_StrokeDraw strokeDraw;
     strokeDraw.set(viewStrokeDraw);
 
     // error?
-  if (!ret || !ud.baseInterface || !ud.baseInterface->isValid())
+    if (!ret || !ud.baseInterface || !ud.baseInterface->isValid())
     {
         // draw text.
         if (!ret)
@@ -1378,14 +1437,41 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
     BaseInterface &geo = *ud.baseInterface;
 
     // draw.
+    if (ud.chn.FabricDisplay == 1)      // draw vertices (points).
+    {
+        strokeDraw.Begin(LXiSTROKE_POINTS, itemColor, ud.chn.FabricOpacity);
+        LXtVector vert;
+        float *vp = ud.polymesh.vertPositions.data();
+        for (int i=0;i<ud.polymesh.numVertices;i++,vp+=3)
         {
-            LXtVector color = {1, 0, 0};
-            strokeDraw.Begin(LXiSTROKE_TEXT, color, 1);
-            LXtVector vert = {0.1, 0.1, 0.1};
+            vert[0] = vp[0];
+            vert[1] = vp[1];
+            vert[2] = vp[2];
             strokeDraw.Vertex(vert, LXiSTROKE_ABSOLUTE);
-            strokeDraw.Text("hello world", 1);
         }
-
+    }
+    else if (ud.chn.FabricDisplay == 2) // draw edges (lines).
+    {
+        uint32_t *pn = ud.polymesh.polyNumVertices.data();
+        uint32_t *pi = ud.polymesh.polyVertices.data();
+        float    *vp;
+        LXtVector vert;
+        for (int i=0;i<ud.polymesh.numPolygons;i++)
+        {
+          strokeDraw.BeginW(LXiSTROKE_LINE_LOOP, itemColor, ud.chn.FabricOpacity, 1);
+          for (int j=0;j<*pn;j++)
+          {
+            vp = ud.polymesh.vertPositions.data() + 3 * pi[j];
+            vert[0] = vp[0];
+            vert[1] = vp[1];
+            vert[2] = vp[2];
+            strokeDraw.Vertex(vert, LXiSTROKE_ABSOLUTE);
+          }
+          // next.
+          pi += *pn;
+          pn++;
+        }
+    }
 
     // done.
     return LXe_OK;
@@ -1442,8 +1528,10 @@ LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval, unsigned *index)
     // add custom channels as attributes.
     {
         unsigned chanIndex;
-        *index    = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+        *index    = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
+        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,    LXfECHAN_READ);
+        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricDisplay, LXfECHAN_READ);
+        chanIndex = evaluation.AddChan(m_item_obj, CHN_NAME_IO_FabricOpacity, LXfECHAN_READ);
     }
 
     return LXe_OK;
@@ -1466,8 +1554,10 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     std::string tmpPath;
     std::string tmpName;
     std::string tmpGroupNames;
-    baked.FabricActive  = attributes.Bool(index + 0);
-    baked.FabricEval    = attributes.Int (index + 1);
+    baked.FabricActive  = attributes.Bool (index + 0);
+    baked.FabricEval    = attributes.Int  (index + 1);
+    baked.FabricDisplay = attributes.Int  (index + 2);
+    baked.FabricOpacity = attributes.Float(index + 3);
 
     // call Read().
     Read(baked);
@@ -1502,23 +1592,26 @@ CReadItemPackage::CReadItemPackage()
 LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
 {
     CLxUser_AddChannel    ac(addChan);
-    LXtObjectID            obj;
-    CLxUser_Value        val;
 
-    {
-      ac.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
-      ac.SetDefault(1, true);
+  ac.NewChannel(CHN_NAME_IO_FabricActive,   LXsTYPE_BOOLEAN);
+    ac.SetDefault(1, true);
 
-      ac.NewChannel(CHN_NAME_IO_FabricEval,   LXsTYPE_INTEGER);
-      ac.SetDefault(0, 0);
-      ac.SetInternal();
+    ac.NewChannel(CHN_NAME_IO_FabricEval,     LXsTYPE_INTEGER);
+    ac.SetDefault(0, 0);
+    ac.SetInternal();
 
-      ac.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
-      ac.SetStorage("+" SERVER_NAME_JSONValue);
-      ac.SetInternal();
-    }
+    ac.NewChannel(CHN_NAME_IO_FabricDisplay,  LXsTYPE_INTEGER);
+    ac.SetDefault(0, 2);
+    ac.SetHint(hint_FabricDisplay);
 
-    // done.
+    ac.NewChannel(CHN_NAME_IO_FabricOpacity,  LXsTYPE_PERCENT);
+    ac.SetDefault(0.7f, 0);
+    ac.SetHint(hint_FabricOpacity);
+
+    ac.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
+    ac.SetStorage("+" SERVER_NAME_JSONValue);
+    ac.SetInternal();
+
     return LXe_OK;
 }
 

@@ -78,6 +78,10 @@ struct _polymesh
     LXtTableauBox           bbox; // geo's bounding box.
 
     //
+    _polymesh()   {  clear();  }
+    ~_polymesh()  {  clear();  }
+
+    //
     void clear(void)
     {
       numVertices     = -1;
@@ -95,8 +99,23 @@ struct _polymesh
       bbox[4] = 0;
       bbox[5] = 0;
     }
-
-    //
+    void setMesh(const _polymesh &inMesh)
+    {
+        numVertices    = inMesh.numVertices;
+        numPolygons    = inMesh.numPolygons;
+        numSamples     = inMesh.numSamples;
+        vertPositions  .resize(inMesh.vertPositions  .size());  memcpy(vertPositions  .data(), inMesh.vertPositions  .data(), vertPositions  .size() * sizeof(float)   );
+        vertNormals    .resize(inMesh.vertNormals    .size());  memcpy(vertNormals    .data(), inMesh.vertNormals    .data(), vertNormals    .size() * sizeof(float)   );
+        polyNumVertices.resize(inMesh.polyNumVertices.size());  memcpy(polyNumVertices.data(), inMesh.polyNumVertices.data(), polyNumVertices.size() * sizeof(uint32_t));
+        polyVertices   .resize(inMesh.polyVertices   .size());  memcpy(polyVertices   .data(), inMesh.polyVertices   .data(), polyVertices   .size() * sizeof(uint32_t));
+        polyNodeNormals.resize(inMesh.polyNodeNormals.size());  memcpy(polyNodeNormals.data(), inMesh.polyNodeNormals.data(), polyNodeNormals.size() * sizeof(float)   );
+        bbox[0] = inMesh.bbox[0];
+        bbox[1] = inMesh.bbox[1];
+        bbox[2] = inMesh.bbox[2];
+        bbox[3] = inMesh.bbox[3];
+        bbox[4] = inMesh.bbox[4];
+        bbox[5] = inMesh.bbox[5];
+    }
     void setEmptyMesh(void)
     {
       clear();
@@ -104,17 +123,49 @@ struct _polymesh
       numPolygons = 0;
       numSamples  = 0;
     }
-
-    //
     bool isValid(void) const
     {
-      return (numVertices >= 0 && numPolygons >= 0 && numSamples >= 0);
+      return (   numVertices >= 0
+              && numPolygons >= 0
+              && numSamples  >= 0
+              && vertPositions  .size() == 3 * numVertices
+              && vertNormals    .size() == 3 * numVertices
+              && polyNumVertices.size() ==     numPolygons
+              && polyVertices   .size() ==     numSamples
+              && polyNodeNormals.size() == 3 * numSamples
+             );
     }
-
-    //
     bool isEmpty(void) const
     {
       return (numVertices == 0);
+    }
+    void calcBBox(void)
+    {
+      bbox[0] = 0;
+      bbox[1] = 0;
+      bbox[2] = 0;
+      bbox[3] = 0;
+      bbox[4] = 0;
+      bbox[5] = 0;
+      if (isValid() && !isEmpty())
+      {
+        float *pv = vertPositions.data();
+        bbox[0] = pv[0];
+        bbox[1] = pv[1];
+        bbox[2] = pv[2];
+        bbox[3] = pv[0];
+        bbox[4] = pv[1];
+        bbox[5] = pv[2];
+        for (unsigned int i=0;i<numVertices;i++,pv+=3)
+        {
+          bbox[0] = __min(bbox[0], pv[0]);
+          bbox[1] = __min(bbox[1], pv[1]);
+          bbox[2] = __min(bbox[2], pv[2]);
+          bbox[3] = __max(bbox[3], pv[0]);
+          bbox[4] = __max(bbox[4], pv[1]);
+          bbox[5] = __max(bbox[5], pv[2]);
+        }
+      }
     }
 
     // set from DFG port.
@@ -184,33 +235,7 @@ struct _polymesh
       }
 
       // calc bbox.
-      {
-        bbox[0] = 0;
-        bbox[1] = 0;
-        bbox[2] = 0;
-        bbox[3] = 0;
-        bbox[4] = 0;
-        bbox[5] = 0;
-        if (isValid())
-        {
-          float *pv = vertPositions.data();
-          bbox[0] = pv[0];
-          bbox[1] = pv[1];
-          bbox[2] = pv[2];
-          bbox[3] = pv[0];
-          bbox[4] = pv[1];
-          bbox[5] = pv[2];
-          for (unsigned int i=0;i<numVertices;i++,pv+=3)
-          {
-            bbox[0] = __min(bbox[0], pv[0]);
-            bbox[1] = __min(bbox[1], pv[1]);
-            bbox[2] = __min(bbox[2], pv[2]);
-            bbox[3] = __max(bbox[3], pv[0]);
-            bbox[4] = __max(bbox[4], pv[1]);
-            bbox[5] = __max(bbox[5], pv[2]);
-          }
-        }
-      }
+      calcBBox();
 
       // done.
       return retGet;
@@ -220,54 +245,51 @@ struct _polymesh
     bool merge(const _polymesh &inMesh)
     {
       // trivial cases.
-      if (!inMesh.isValid())
-        return false;
-      if (inMesh.isEmpty())
       {
-        if (!isValid())
-          setEmptyMesh();
-        return true;
-      }
-      if (!isValid() || isEmpty())
-      {
-        *this = inMesh;
-        return true;
-      }
-
-      // merge.
-      *this = inMesh;
-
-      // re-calc bbox.
-      {
-        bbox[0] = 0;
-        bbox[1] = 0;
-        bbox[2] = 0;
-        bbox[3] = 0;
-        bbox[4] = 0;
-        bbox[5] = 0;
-        if (isValid())
+        if (!inMesh.isValid())        // input mesh is invalid.
         {
-          float *pv = vertPositions.data();
-          bbox[0] = pv[0];
-          bbox[1] = pv[1];
-          bbox[2] = pv[2];
-          bbox[3] = pv[0];
-          bbox[4] = pv[1];
-          bbox[5] = pv[2];
-          for (unsigned int i=0;i<numVertices;i++,pv+=3)
-          {
-            bbox[0] = __min(bbox[0], pv[0]);
-            bbox[1] = __min(bbox[1], pv[1]);
-            bbox[2] = __min(bbox[2], pv[2]);
-            bbox[3] = __max(bbox[3], pv[0]);
-            bbox[4] = __max(bbox[4], pv[1]);
-            bbox[5] = __max(bbox[5], pv[2]);
-          }
+          return false;
+        }
+        if (inMesh.isEmpty())         // input mesh is empty.
+        {
+          setEmptyMesh();
+          return isValid();
+        }
+        if (!isValid() || isEmpty())  // this mesh is empty or invalid.
+        {
+          setMesh(inMesh);
+          return isValid();
         }
       }
 
+      // append inMesh' arrays to this' arrays.
+      uint32_t nThis, nIn, nSum;
+      nThis = vertPositions  .size(); nIn = inMesh.vertPositions  .size();  nSum = nThis + nIn; vertPositions  .resize(nSum); memcpy(vertPositions  .data() + nThis, inMesh.vertPositions  .data(), nIn * sizeof(float)   );
+      nThis = vertNormals    .size(); nIn = inMesh.vertNormals    .size();  nSum = nThis + nIn; vertNormals    .resize(nSum); memcpy(vertNormals    .data() + nThis, inMesh.vertNormals    .data(), nIn * sizeof(float)   );
+      nThis = polyNumVertices.size(); nIn = inMesh.polyNumVertices.size();  nSum = nThis + nIn; polyNumVertices.resize(nSum); memcpy(polyNumVertices.data() + nThis, inMesh.polyNumVertices.data(), nIn * sizeof(uint32_t));
+      nThis = polyVertices   .size(); nIn = inMesh.polyVertices   .size();  nSum = nThis + nIn; polyVertices   .resize(nSum); memcpy(polyVertices   .data() + nThis, inMesh.polyVertices   .data(), nIn * sizeof(uint32_t));
+      nThis = polyNodeNormals.size(); nIn = inMesh.polyNodeNormals.size();  nSum = nThis + nIn; polyNodeNormals.resize(nSum); memcpy(polyNodeNormals.data() + nThis, inMesh.polyNodeNormals.data(), nIn * sizeof(float)   );
+
+      // fix vertex indices.
+      uint32_t *pi = polyVertices.data() + numSamples;
+      for (int i = 0; i < inMesh.numSamples; i++,pi++)
+        *pi += numVertices;
+
+      // fix amounts.
+      numVertices += inMesh.numVertices;
+      numPolygons += inMesh.numPolygons;
+      numSamples  += inMesh.numSamples;
+
+      // re-calc bbox.
+      bbox[0] = __min(bbox[0], inMesh.bbox[0]);
+      bbox[1] = __min(bbox[1], inMesh.bbox[1]);
+      bbox[2] = __min(bbox[2], inMesh.bbox[2]);
+      bbox[3] = __max(bbox[3], inMesh.bbox[3]);
+      bbox[4] = __max(bbox[4], inMesh.bbox[4]);
+      bbox[5] = __max(bbox[5], inMesh.bbox[5]);
+
       // done.
-      return true;
+      return isValid();
     }
 };
 
@@ -1090,12 +1112,20 @@ bool CReadItemInstance::Read(bakedChannels &baked)
 
         // Fabric Engine (step 1): loop through all the DFG's input ports and set
         //                         their values from the matching Modo user channels.
+        if (ret)
         {
 
         }
 
         // Fabric Engine (step 2): execute the DFG.
+        if (ret)
         {
+          {
+            static int i = 0;
+            char s[256];
+            sprintf(s, "binding->execute(); (%ld)", i++);
+            feLog(s);
+          }
           try
             {
                 binding->execute();
@@ -1103,10 +1133,12 @@ bool CReadItemInstance::Read(bakedChannels &baked)
             catch (FabricCore::Exception e)
             {
                 feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+                ret = false;
             }
         }
 
         // Fabric Engine (step 3): ...
+        if (ret)
         {
             try
             {
@@ -1125,23 +1157,17 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                         || resolvedType        != "PolygonMesh"  )
                       continue;
 
-                    if (!ud.polymesh.isEmpty())
-                    {
-                      feLog("currently only 1 output port supported. Skipping this port.");
-                      continue;
-                    }
-
-                    // get polygon mesh from port.
+                    // put the port's polygon mesh in tmpMesh.
                     _polymesh tmpMesh;
                     int retGet = tmpMesh.setFromDFGPort(port);
                     if (retGet)
                     {
                       sprintf(serr, "%ld", retGet);
-                      err = "failed to get value from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
+                      err = "failed to get mesh from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
                       break;
                     }
 
-                    // merge mesh with ud.polymesh.
+                    // merge tmpMesh with ud.polymesh.
                     if (!ud.polymesh.merge(tmpMesh))
                     {
                       sprintf(serr, "%ld", retGet);

@@ -218,10 +218,13 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
           std::string name = (v ? v->getStringData() : "");
 
           // delete current channel.
-          ModoTools::DeleteUserChannel(unknownID, name, err, true);
+          if (!ModoTools::DeleteUserChannel(unknownID, name, err, true))
+          {
+             // failed, but we don't log an error.
+          }
 
           // create new channel
-          if (!graph.isNull())
+          if (!graph.isNull() && graph->getPort(name.c_str())->getResolvedType() != std::string("PolygonMesh"))
             b.CreateModoUserChannelForPort(graph->getPort(name.c_str()));
         }
       }
@@ -240,7 +243,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
           // rename channel.
           std::string err;
           if (!ModoTools::RenameUserChannel(unknownID, oldName, newName, err, true))
-            logErrorFunc(0, err.c_str(), err.length());
+          {
+             // failed, but we don't log an error.
+          }
         }
       }
 
@@ -256,7 +261,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
           // remove channel.
           std::string err;
           if (!ModoTools::DeleteUserChannel(unknownID, name, err, true))
-            logErrorFunc(0, err.c_str(), err.length());
+          {
+             // failed, but we don't log an error.
+          }
         }
       }
 
@@ -283,7 +290,7 @@ void BaseInterface::logFunc(void *userData, const char *message, unsigned int le
   }
   else
   {
-    printf("BaseInterface: %s\n", message);
+    printf("BaseInterface: %s\n", message ? message : "");
   }
 }
 
@@ -296,7 +303,7 @@ void BaseInterface::logErrorFunc(void *userData, const char *message, unsigned i
   }
   else
   {
-    printf("BaseInterface: error: %s\n", message);
+    printf("BaseInterface: error: %s\n", message ? message : "");
   }
 }
 

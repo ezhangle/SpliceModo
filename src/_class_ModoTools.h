@@ -80,11 +80,12 @@ class ModoTools
   //          out_err                                 contains an error description if the function returns false.
   //          out_actualChannelName                   if the channel was found then this contains the "actual" channel name, typically
   //                                                  it is equal channelName, but for vector or color channels it can differ.
+  //          out_isUserChannel                       true: the channel is a user channel, false: it is a fixed channel.
   //          interpretate_ptr_as_ILxUnknownID        if true then the parameter ptr_CLxUser_Item is not interpretated
   //                                                  as being a pointer at CLxUser_Item but as being a ILxUnknownID.
   // returns: true if the item ptr_CLxUser_Item has a channel called channelName, false otherwise.
-  static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID = false);
-  static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID = false);
+  static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool &out_isUserChannel, bool interpretate_ptr_as_ILxUnknownID);
+  static bool HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool &out_isUserChannel, bool interpretate_ptr_as_ILxUnknownID);
 
   // creates a new user channel.
   // params:  ptr_CLxUser_Item        pointer at CLxUser_Item.

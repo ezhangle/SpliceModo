@@ -137,7 +137,7 @@ ModoTools::UsrChnDef *ModoTools::usrChanGetFromName(std::string channelName, std
   return NULL;
 }
 
-bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_actualChannelName, std::string &out_err, bool &out_isUserChannel, bool interpretate_ptr_as_ILxUnknownID)
 {
   // check params.
   if (!ptr_CLxUser_Item)
@@ -155,7 +155,7 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
   if (interpretate_ptr_as_ILxUnknownID)
   {
     CLxUser_Item item((ILxUnknownID)ptr_CLxUser_Item);
-    return HasChannel(&item, channelName, out_actualChannelName, out_err);
+    return HasChannel(&item, channelName, out_actualChannelName, out_err, out_isUserChannel, false);
   }
 
   // init error string and ouput.
@@ -168,30 +168,31 @@ bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelNam
     return false; }
 
   // look up the channel.
+  const char *package = NULL;
   unsigned int index;
   if (item.ChannelLookup(channelName.c_str(), &index) == LXe_OK)
   {
     out_actualChannelName = channelName;
+    out_isUserChannel = !(LXx_OK(item.ChannelPackage(index, &package)) || package);  // if the channel has a package then it is not a user channel.
     return true;
   }
 
   // we didn't find it, so now we look for a vector/color channel.
-  // NOTE: Modo doesn't have common-sense vector and color channels, instead they are represented as consecutive
-  //       scalar channels with a naming convention. For example a 3D vector called "myVec" would have three
-  //       channels called "myVec.X", "myVec.Y" and "myVec.Z".
+  // NOTE: in Modo vector and color channels are represented as consecutive scalar channels with a naming,
+  //       e.g. a 3D vector called "myVec" would have three channels called "myVec.X", "myVec.Y" and "myVec.Z".
   std::string cname;
-  cname = channelName + ".X"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    { out_actualChannelName = cname;  return true;  }
-  cname = channelName + ".R"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    { out_actualChannelName = cname;  return true;  }
-  cname = channelName + ".U"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    { out_actualChannelName = cname;  return true;  }
+  cname = channelName + ".X"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    { out_actualChannelName = cname;  out_isUserChannel = !(LXx_OK(item.ChannelPackage(index, &package)) || package); return true;  }
+  cname = channelName + ".R"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    { out_actualChannelName = cname;  out_isUserChannel = !(LXx_OK(item.ChannelPackage(index, &package)) || package); return true;  }
+  cname = channelName + ".U"; if (item.ChannelLookup(cname.c_str(), &index) == LXe_OK)    { out_actualChannelName = cname;  out_isUserChannel = !(LXx_OK(item.ChannelPackage(index, &package)) || package); return true;  }
 
   // not found.
   return false;
 }
 
-bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
+bool ModoTools::HasChannel(void *ptr_CLxUser_Item, const std::string &channelName, std::string &out_err, bool &out_isUserChannel, bool interpretate_ptr_as_ILxUnknownID)
 {
   std::string tmp;
-  return HasChannel(ptr_CLxUser_Item, channelName, tmp, out_err, interpretate_ptr_as_ILxUnknownID);
+  return HasChannel(ptr_CLxUser_Item, channelName, tmp, out_err, out_isUserChannel, interpretate_ptr_as_ILxUnknownID);
 };
 
 bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &dataType, const std::string &structType, std::string &out_err)
@@ -215,8 +216,11 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     return false; }
 
   // channel already exists?
-  if (HasChannel(ptr_CLxUser_Item, channelName, out_err))
-  { out_err = "the channel " + channelName + " already exists";
+  bool isUserChannel;
+  if (HasChannel(ptr_CLxUser_Item, channelName, out_err, isUserChannel, false))
+  { if (!isUserChannel)
+      return true;
+    out_err = "the channel " + channelName + " already exists";
     return false; }
 
   // execute command.
@@ -360,10 +364,15 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
   }
 
   // get actual channel name.
+  bool isUserChannel;
   std::string actualName;
-  if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err))
+  if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err, isUserChannel, false))
   { out_err = "item does not have a channel called \"" + channelName + "\"";
     return false; }
+
+  // not a user channel.
+  if (!isUserChannel)
+    return false;
 
   // ref at item.
   CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
@@ -427,10 +436,15 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
   }
 
   // get actual channel name.
+  bool isUserChannel;
   std::string actualName;
-  if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err))
+  if (!HasChannel(ptr_CLxUser_Item, channelName, actualName, out_err, isUserChannel, false))
   { out_err = "item does not have a channel called \"" + channelName + "\"";
     return false; }
+
+  // not a user channel?
+  if (!isUserChannel)
+    return false;
 
   // ref at item.
   CLxUser_Item &item = *(CLxUser_Item *)ptr_CLxUser_Item;
@@ -439,9 +453,19 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     return false; }
 
   // channel already exists?
-  if (HasChannel(ptr_CLxUser_Item, channelNameNew, out_err))
-  { out_err = "the channel " + channelNameNew + " already exists";
-    return false; }
+  if (HasChannel(ptr_CLxUser_Item, channelNameNew, out_err, isUserChannel, false))
+  {
+    if (!isUserChannel)
+    {
+      DeleteUserChannel(ptr_CLxUser_Item, channelName, out_err);
+      return true;
+    }
+    else
+    {
+      out_err = "the channel " + channelNameNew + " already exists";
+      return false;
+    }
+  }
 
   // execute command.
   if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), out_err))

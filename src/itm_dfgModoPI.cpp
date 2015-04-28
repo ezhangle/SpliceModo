@@ -35,18 +35,22 @@ enum
 // baked channels structure
 struct bakedChannels
 {    // the last values of the channels CHANNEL_emRd_<variable-name>.
-    bool  FabricActive;
-    int   FabricEval;
-    float Time;
-    int   Frame;
-    int   FabricDisplay;
-    float FabricOpacity;
+    bool        FabricActive;
+    int         FabricEval;
+    float       time;
+    int         frame;
+    LXtMatrix4  matrix;
+    int         FabricDisplay;
+    float       FabricOpacity;
     void zero(void)
     {
       FabricActive  = false;
       FabricEval    = 0;
-      Time          = 0;
-      Frame         = 0;
+      time          = 0;
+      frame         = 0;
+      for (int i=0;i<4;i++)
+        for (int j=0;j<4;j++)
+          matrix[i][j] = 0;;
       FabricDisplay = 0;
       FabricOpacity = 0;
     }
@@ -1061,8 +1065,11 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
     int chanIndex;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricActive);        if (chanIndex >= 0) baked.FabricActive  =       (chanRead.IValue(m_item_obj, chanIndex) != 0);  else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval    =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
-    chanIndex = item.ChannelIndex(CHN_NAME_IO_Time);                if (chanIndex >= 0) baked.Time          = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
-    chanIndex = item.ChannelIndex(CHN_NAME_IO_Frame);               if (chanIndex >= 0) baked.Frame         =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_time);                if (chanIndex >= 0) baked.time          = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_frame);               if (chanIndex >= 0) baked.frame         =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
+
+
+
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricDisplay);       if (chanIndex >= 0) baked.FabricDisplay =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricOpacity);       if (chanIndex >= 0) baked.FabricOpacity = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
 
@@ -1084,9 +1091,13 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         // take care of the changeInGeoRelevantChannel flag.
       changeInGeoRelevantChannel = (   baked.FabricActive != ud.chn.FabricActive
                                     || baked.FabricEval   != ud.chn.FabricEval
-                                    || baked.Time         != ud.chn.Time
-                                    || baked.Frame        != ud.chn.Frame
+                                    || baked.time         != ud.chn.time
+                                    || baked.frame        != ud.chn.frame
                                    );
+      for (int i=0;i<4;i++)
+        for (int j=0;j<4;j++)
+          if (baked.matrix[i][j] != ud.chn.matrix[i][j])
+            changeInGeoRelevantChannel = true;
 
       // copy the baked content into the user data.
       memcpy(&ud.chn, &baked, sizeof(bakedChannels));
@@ -1137,10 +1148,11 @@ bool CReadItemInstance::Read(bakedChannels &baked)
               if (port->getPortType() != FabricCore::DFGPortType_In)
                 continue;
 
-              // set item_user_channel and continue if port is called "Time" or "Frame".
+              // set item_user_channel and continue if port is not called "time" nor "frame" nor "matrix".
               double item_user_channel = 0;
-              if      (port->getName() == std::string(CHN_NAME_IO_Time))    item_user_channel = ud.chn.Time;
-              else if (port->getName() == std::string(CHN_NAME_IO_Frame))   item_user_channel = ud.chn.Frame;
+              if      (port->getName() == std::string(CHN_NAME_IO_time))    item_user_channel = ud.chn.time;
+              else if (port->getName() == std::string(CHN_NAME_IO_frame))   item_user_channel = ud.chn.frame;
+              else if (port->getName() == std::string(CHN_NAME_IO_matrix))  item_user_channel = 0;
               else                                                continue;
 
               // "DFG port value = item user channel".
@@ -1167,6 +1179,13 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                        || port__resolvedType == "Float64" )   {
                                                                 double val = item_user_channel;
                                                                 BaseInterface::SetValueOfPortFloat(*client, *binding, port, val);
+                                                              }
+              else if (   port__resolvedType == "Mat44")      {
+                                                                std::vector <double> val;
+                                                                for (int j = 0; j < 4; j++)
+                                                                  for (int i = 0; i < 4; i++)
+                                                                    val.push_back(ud.chn.matrix[i][j]);
+                                                                BaseInterface::SetValueOfPortMat44(*client, *binding, port, val);
                                                               }
               else
               {
@@ -1694,8 +1713,9 @@ LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval_ID, unsigned *index)
         unsigned chanIndex;
         *index    = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
         chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,    LXfECHAN_READ);
-        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_Time,          LXfECHAN_READ);
-        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_Frame,         LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_time,          LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_frame,         LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_matrix,        LXfECHAN_READ);
         chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricDisplay, LXfECHAN_READ);
         chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricOpacity, LXfECHAN_READ);
     }
@@ -1717,15 +1737,20 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     memset(&baked, NULL, sizeof(bakedChannels));
 
     // fill baked with the attributes so that Modo correctly updates the OpenGL stuff.
-    int            tmpFormat;
-    std::string tmpPath;
-    std::string tmpName;
-    std::string tmpGroupNames;
+    CLxUser_Matrix	tmpMatrix;
+    int             tmpFormat;
+    std::string     tmpPath;
+    std::string     tmpName;
+    std::string     tmpGroupNames;
     unsigned i = index;
     baked.FabricActive  = attributes.Bool (i++);
     baked.FabricEval    = attributes.Int  (i++);
-    baked.Time          = attributes.Float(i++);
-    baked.Frame         = attributes.Int  (i++);
+    baked.time          = attributes.Float(i++);
+    baked.frame         = attributes.Int  (i++);
+
+	  if (attributes.ObjectRO(i++, tmpMatrix) && tmpMatrix.test())
+		  tmpMatrix.Get4(baked.matrix);
+
     baked.FabricDisplay = attributes.Int  (i++);
     baked.FabricOpacity = attributes.Float(i++);
 
@@ -1770,11 +1795,14 @@ LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
     ac.SetDefault(0, 0);
     ac.SetInternal();
 
-    ac.NewChannel(CHN_NAME_IO_Time,           LXsTYPE_FLOAT);
+    ac.NewChannel(CHN_NAME_IO_time,           LXsTYPE_FLOAT);
     ac.SetDefault(0, 0);
 
-    ac.NewChannel(CHN_NAME_IO_Frame,          LXsTYPE_INTEGER);
+    ac.NewChannel(CHN_NAME_IO_frame,          LXsTYPE_INTEGER);
     ac.SetDefault(0, 0);
+
+    ac.NewChannel(CHN_NAME_IO_matrix,         LXsTYPE_MATRIX4);
+		ac.SetStorage(LXsTYPE_MATRIX4);
 
     ac.NewChannel(CHN_NAME_IO_FabricDisplay,  LXsTYPE_INTEGER);
     ac.SetDefault(0, 2);
@@ -1830,8 +1858,9 @@ LxResult CReadItemPackage::cui_UIHints(const char *channelName, ILxUnknownID hin
         {
           result = hints.ChannelFlags(0);   // by default we don't display these fixed channels in the schematic view.
         }
-        else if (   !strcmp(channelName, CHN_NAME_IO_Time)
-                 || !strcmp(channelName, CHN_NAME_IO_Frame)
+        else if (   !strcmp(channelName, CHN_NAME_IO_time)
+                 || !strcmp(channelName, CHN_NAME_IO_frame)
+                 || !strcmp(channelName, CHN_NAME_IO_matrix)
                 )
         {
           result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);

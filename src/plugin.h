@@ -21,8 +21,9 @@
 // constants: fixed channel names.
 #define CHN_NAME_IO_FabricActive  "FabricActive"  // io: enable/disable execution of DFG for this item.
 #define CHN_NAME_IO_FabricEval    "FabricEval"    // io: internal counter used to re-evaluate the item.
-#define CHN_NAME_IO_Time    "Time"          // io: (mesh item only) time input  (THIS IS TEMPORARY AND WILL BE REMOVED WHEN THE USER CHANNELS WORK).
-#define CHN_NAME_IO_Frame   "Frame"         // io: (mesh item only) frame input (THIS IS TEMPORARY AND WILL BE REMOVED WHEN THE USER CHANNELS WORK).
+#define CHN_NAME_IO_time    "time"          // io: (mesh item only) time  input (THIS IS TEMPORARY AND WILL BE REMOVED WHEN THE USER CHANNELS WORK).
+#define CHN_NAME_IO_frame   "frame"         // io: (mesh item only) frame input (THIS IS TEMPORARY AND WILL BE REMOVED WHEN THE USER CHANNELS WORK).
+#define CHN_NAME_IO_matrix  "matrix"        // io: (mesh item only) mat44 input (THIS IS TEMPORARY AND WILL BE REMOVED WHEN THE USER CHANNELS WORK).
 #define CHN_NAME_IO_FabricDisplay "FabricDisplay" // io: (mesh item only) display mode.
 #define CHN_NAME_IO_FabricOpacity "FabricOpacity" // io: (mesh item only) opacity.
 #define CHN_NAME_IO_FabricJSON    "FabricJSON"    // io: custom value for persistence (read/write BaseInterface's JSON).

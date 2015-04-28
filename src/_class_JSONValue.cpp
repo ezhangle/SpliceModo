@@ -17,7 +17,7 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
   if (!otherData) return LXe_FAILED;
   
   m_data.s             = otherData->s;
-  m_data.baseInterface = NULL;
+  m_data.baseInterface = otherData->baseInterface;
 
   return LXe_OK;
 }

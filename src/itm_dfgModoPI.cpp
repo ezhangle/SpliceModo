@@ -37,12 +37,16 @@ struct bakedChannels
 {    // the last values of the channels CHANNEL_emRd_<variable-name>.
     bool  FabricActive;
     int   FabricEval;
+    float Time;
+    int   Frame;
     int   FabricDisplay;
     float FabricOpacity;
     void zero(void)
     {
       FabricActive  = false;
       FabricEval    = 0;
+      Time          = 0;
+      Frame         = 0;
       FabricDisplay = 0;
       FabricOpacity = 0;
     }
@@ -1057,6 +1061,8 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
     int chanIndex;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricActive);        if (chanIndex >= 0) baked.FabricActive  =       (chanRead.IValue(m_item_obj, chanIndex) != 0);  else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval    =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_Time);                if (chanIndex >= 0) baked.Time          = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_Frame);               if (chanIndex >= 0) baked.Frame         =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricDisplay);       if (chanIndex >= 0) baked.FabricDisplay =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricOpacity);       if (chanIndex >= 0) baked.FabricOpacity = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
 
@@ -1078,6 +1084,8 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         // take care of the changeInGeoRelevantChannel flag.
       changeInGeoRelevantChannel = (   baked.FabricActive != ud.chn.FabricActive
                                     || baked.FabricEval   != ud.chn.FabricEval
+                                    || baked.Time         != ud.chn.Time
+                                    || baked.Frame        != ud.chn.Frame
                                    );
 
       // copy the baked content into the user data.
@@ -1110,11 +1118,75 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         {   feLogError("CReadItemInstance::Read(): getExecutable() returned NULL");
             return LXe_OK;     }
 
-        // Fabric Engine (step 1): loop through all the DFG's input ports and set
-        //                         their values from the matching Modo user channels.
+        // Fabric Engine (step 1): WIP set the DFG ports (if available) from the fixed "Time" and "Frame" channels.
         if (ret)
         {
+          try
+          {
+            char        serr[256];
+            std::string err = "";
+            FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
 
+            for (int fi = 0; fi < portlist.size(); fi++)
+            {
+              // get port.
+              FabricServices::DFGWrapper::PortPtr port = portlist[fi];
+              if (port.isNull())  continue;
+
+              // if the port has the wrong type then skip it.
+              if (port->getPortType() != FabricCore::DFGPortType_In)
+                continue;
+
+              // set item_user_channel and continue if port is called "Time" or "Frame".
+              double item_user_channel = 0;
+              if      (port->getName() == std::string(CHN_NAME_IO_Time))    item_user_channel = ud.chn.Time;
+              else if (port->getName() == std::string(CHN_NAME_IO_Frame))   item_user_channel = ud.chn.Frame;
+              else                                                continue;
+
+              // "DFG port value = item user channel".
+              std::string port__resolvedType = port->getResolvedType();
+              if      (   port__resolvedType == "Boolean")    {
+                                                                bool val = (item_user_channel != 0);
+                                                                BaseInterface::SetValueOfPortBoolean(*client, *binding, port, val);
+                                                              }
+              else if (   port__resolvedType == "SInt8"
+                       || port__resolvedType == "SInt16"
+                       || port__resolvedType == "SInt32"
+                       || port__resolvedType == "SInt64" )    {
+                                                                int val = (int)item_user_channel;
+                                                                BaseInterface::SetValueOfPortSInt(*client, *binding, port, val);
+                                                              }
+              else if (   port__resolvedType == "UInt8"
+                       || port__resolvedType == "UInt16"
+                       || port__resolvedType == "UInt32"
+                       || port__resolvedType == "UInt64" )    {
+                                                                unsigned int val = (unsigned int)item_user_channel;
+                                                                BaseInterface::SetValueOfPortUInt(*client, *binding, port, val);
+                                                              }
+              else if (   port__resolvedType == "Float32"
+                       || port__resolvedType == "Float64" )   {
+                                                                double val = item_user_channel;
+                                                                BaseInterface::SetValueOfPortFloat(*client, *binding, port, val);
+                                                              }
+              else
+              {
+                err = "the port \"" + std::string(port->getName()) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
+                break;
+              }
+            }
+
+            // error?
+            if (err != "")
+            {
+              feLogError(err);
+              return false;
+            }
+          }
+          catch (FabricCore::Exception e)
+          {
+            std::string s = std::string("Element::Eval()(step 1): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+            feLogError(s);
+          }
         }
 
         // Fabric Engine (step 2): execute the DFG.
@@ -1622,6 +1694,8 @@ LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval_ID, unsigned *index)
         unsigned chanIndex;
         *index    = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
         chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricEval,    LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_Time,          LXfECHAN_READ);
+        chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_Frame,         LXfECHAN_READ);
         chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricDisplay, LXfECHAN_READ);
         chanIndex = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricOpacity, LXfECHAN_READ);
     }
@@ -1647,10 +1721,13 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     std::string tmpPath;
     std::string tmpName;
     std::string tmpGroupNames;
-    baked.FabricActive  = attributes.Bool (index + 0);
-    baked.FabricEval    = attributes.Int  (index + 1);
-    baked.FabricDisplay = attributes.Int  (index + 2);
-    baked.FabricOpacity = attributes.Float(index + 3);
+    unsigned i = index;
+    baked.FabricActive  = attributes.Bool (i++);
+    baked.FabricEval    = attributes.Int  (i++);
+    baked.Time          = attributes.Float(i++);
+    baked.Frame         = attributes.Int  (i++);
+    baked.FabricDisplay = attributes.Int  (i++);
+    baked.FabricOpacity = attributes.Float(i++);
 
     // call Read().
     Read(baked);
@@ -1686,12 +1763,18 @@ LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
 {
     CLxUser_AddChannel    ac(addChan);
 
-  ac.NewChannel(CHN_NAME_IO_FabricActive,   LXsTYPE_BOOLEAN);
+  ac.NewChannel(CHN_NAME_IO_FabricActive,     LXsTYPE_BOOLEAN);
     ac.SetDefault(1, true);
 
     ac.NewChannel(CHN_NAME_IO_FabricEval,     LXsTYPE_INTEGER);
     ac.SetDefault(0, 0);
     ac.SetInternal();
+
+    ac.NewChannel(CHN_NAME_IO_Time,           LXsTYPE_FLOAT);
+    ac.SetDefault(0, 0);
+
+    ac.NewChannel(CHN_NAME_IO_Frame,          LXsTYPE_INTEGER);
+    ac.SetDefault(0, 0);
 
     ac.NewChannel(CHN_NAME_IO_FabricDisplay,  LXsTYPE_INTEGER);
     ac.SetDefault(0, 2);
@@ -1745,7 +1828,13 @@ LxResult CReadItemPackage::cui_UIHints(const char *channelName, ILxUnknownID hin
             || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
             )
         {
-          result = hints.ChannelFlags(0);   // by default we don't display the fixed channels in the schematic view.
+          result = hints.ChannelFlags(0);   // by default we don't display these fixed channels in the schematic view.
+        }
+        else if (   !strcmp(channelName, CHN_NAME_IO_Time)
+                 || !strcmp(channelName, CHN_NAME_IO_Frame)
+                )
+        {
+          result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
         }
         else
         {

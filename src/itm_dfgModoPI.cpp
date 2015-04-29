@@ -1067,9 +1067,12 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricEval);          if (chanIndex >= 0) baked.FabricEval    =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_time);                if (chanIndex >= 0) baked.time          = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_frame);               if (chanIndex >= 0) baked.frame         =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
-
-
-
+    chanIndex = item.ChannelIndex(CHN_NAME_IO_matrix);              if (chanIndex >= 0)
+                                                                    {
+                                                                      CLxUser_Matrix	tmpMatrix;
+                                                                      if (chanRead.Object(m_item_obj, chanIndex, tmpMatrix))
+  		                                                                  tmpMatrix.Get4(baked.matrix);
+                                                                    } else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricDisplay);       if (chanIndex >= 0) baked.FabricDisplay =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricOpacity);       if (chanIndex >= 0) baked.FabricOpacity = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
 

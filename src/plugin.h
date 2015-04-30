@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.021
+#define FABRICMODO_PLUGIN_VERSION   0.021   // version 0.021 was "FMX Demo".
 
 // disable some annoying VS warnings.
 #pragma warning(disable : 4530)   // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.

@@ -100,12 +100,8 @@ struct _polymesh
       polyNumVertices .clear();
       polyVertices    .clear();
       polyNodeNormals .clear();
-      bbox[0] = 0;
-      bbox[1] = 0;
-      bbox[2] = 0;
-      bbox[3] = 0;
-      bbox[4] = 0;
-      bbox[5] = 0;
+      for (int i = 0; i < 6; i++)
+        bbox[i] = 0;
     }
     void setMesh(const _polymesh &inMesh)
     {
@@ -117,12 +113,8 @@ struct _polymesh
         polyNumVertices.resize(inMesh.polyNumVertices.size());  memcpy(polyNumVertices.data(), inMesh.polyNumVertices.data(), polyNumVertices.size() * sizeof(uint32_t));
         polyVertices   .resize(inMesh.polyVertices   .size());  memcpy(polyVertices   .data(), inMesh.polyVertices   .data(), polyVertices   .size() * sizeof(uint32_t));
         polyNodeNormals.resize(inMesh.polyNodeNormals.size());  memcpy(polyNodeNormals.data(), inMesh.polyNodeNormals.data(), polyNodeNormals.size() * sizeof(float)   );
-        bbox[0] = inMesh.bbox[0];
-        bbox[1] = inMesh.bbox[1];
-        bbox[2] = inMesh.bbox[2];
-        bbox[3] = inMesh.bbox[3];
-        bbox[4] = inMesh.bbox[4];
-        bbox[5] = inMesh.bbox[5];
+        for (int i = 0; i < 6; i++)
+          bbox[i] = inMesh.bbox[i];
     }
     void setEmptyMesh(void)
     {
@@ -149,12 +141,8 @@ struct _polymesh
     }
     void calcBBox(void)
     {
-      bbox[0] = 0;
-      bbox[1] = 0;
-      bbox[2] = 0;
-      bbox[3] = 0;
-      bbox[4] = 0;
-      bbox[5] = 0;
+      for (int i = 0; i < 6; i++)
+        bbox[i] = 0;
       if (isValid() && !isEmpty())
       {
         float *pv = vertPositions.data();
@@ -256,7 +244,8 @@ struct _polymesh
       {
         if (!inMesh.isValid())        // input mesh is invalid.
         {
-          return false;
+          clear();
+          return isValid();
         }
         if (inMesh.isEmpty())         // input mesh is empty.
         {
@@ -661,12 +650,19 @@ LxResult CReadPart::Bound(LXtTableauBox bbox)
     return LXe_FAILED;
   emUserData &ud = *m_pUserData;
 
-  bbox[0] = ud.polymesh.bbox[0];
-  bbox[1] = ud.polymesh.bbox[1];
-  bbox[2] = ud.polymesh.bbox[2];
-  bbox[3] = ud.polymesh.bbox[3];
-  bbox[4] = ud.polymesh.bbox[4];
-  bbox[5] = ud.polymesh.bbox[5];
+  for (int i = 0; i < 6; i++)
+    bbox[i] = ud.polymesh.bbox[i];
+
+  //{
+  //  char s[256];
+  //  std::string l = "bbox";
+  //  for (int i = 0; i < 6; i++)
+  //  {
+  //    sprintf(s, "  %g", bbox[i]);
+  //    l += s;
+  //  }
+  //  feLog(l);
+  //}
 
   return LXe_OK;
 }
@@ -1750,10 +1746,8 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     baked.FabricEval    = attributes.Int  (i++);
     baked.time          = attributes.Float(i++);
     baked.frame         = attributes.Int  (i++);
-
 	  if (attributes.ObjectRO(i++, tmpMatrix) && tmpMatrix.test())
 		  tmpMatrix.Get4(baked.matrix);
-
     baked.FabricDisplay = attributes.Int  (i++);
     baked.FabricOpacity = attributes.Float(i++);
 

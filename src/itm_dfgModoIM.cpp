@@ -192,41 +192,6 @@ namespace dfgModoIM
     }
   }
 
-  Instance *GetInstance(ILxUnknownID item_obj)
-  {
-    CLxUser_Item item(item_obj);
-    if (!item.test())
-      return NULL;
-
-    // check the type.
-    {
-      const char *typeName = NULL;
-      CLxUser_SceneService srv;
-      if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
-        return NULL;
-
-      const unsigned int numBytes = __min(strlen(typeName), strlen(SERVER_NAME_dfgModoIM));
-      if (memcmp(typeName, SERVER_NAME_dfgModoIM, numBytes))
-        return NULL;
-    }
-
-    // get/return pointer at Instance.
-    CLxLoc_PackageInstance pkg_inst(item_obj);
-    if (pkg_inst.test())
-    {
-      CLxSpawner <Instance> spawn(SERVER_NAME_dfgModoIM ".inst");
-      return spawn.Cast(pkg_inst);
-    }
-    return NULL;
-  }
-
-  BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
-  {
-    Instance *inst = GetInstance(item_obj);
-    if (inst)   return inst->m_baseInterface;
-    else        return NULL;
-  }
-
   class Package : public CLxImpl_Package,
                   public CLxImpl_ChannelUI,
                   public CLxImpl_SceneItemListener
@@ -843,6 +808,41 @@ namespace dfgModoIM
       Allocate and return the modifier element.
     */
     return new Element (eval, item);
+  }
+
+  Instance *GetInstance(ILxUnknownID item_obj)
+  {
+    CLxUser_Item item(item_obj);
+    if (!item.test())
+      return NULL;
+
+    // check the type.
+    {
+      const char *typeName = NULL;
+      CLxUser_SceneService srv;
+      if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
+        return NULL;
+
+      const unsigned int numBytes = __min(strlen(typeName), strlen(SERVER_NAME_dfgModoIM));
+      if (memcmp(typeName, SERVER_NAME_dfgModoIM, numBytes))
+        return NULL;
+    }
+
+    // get/return pointer at Instance.
+    CLxLoc_PackageInstance pkg_inst(item_obj);
+    if (pkg_inst.test())
+    {
+      CLxSpawner <Instance> spawn(SERVER_NAME_dfgModoIM ".inst");
+      return spawn.Cast(pkg_inst);
+    }
+    return NULL;
+  }
+
+  BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
+  {
+    Instance *inst = GetInstance(item_obj);
+    if (inst)   return inst->m_baseInterface;
+    else        return NULL;
   }
 
   // used in the plugin's initialize() function (see plugin.cpp).

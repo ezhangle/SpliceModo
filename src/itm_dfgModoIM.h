@@ -3,10 +3,10 @@
 
 namespace dfgModoIM
 {
-    void initialize();
-    class Instance;
-    Instance *GetInstance(ILxUnknownID item_obj);
-    BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
+  void initialize();
+  class Instance;
+  Instance *GetInstance(ILxUnknownID item_obj);
+  BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
 };
 
 #endif  // SRC_ITM_DFGMODOIM_H_

@@ -15,6 +15,8 @@ thirdpartyDirs = {
   'FABRIC_UI_DIR': "Should point to the root of FabricUI checkout.",
 }
 
+buildType = 'Release'
+
 # help debug print
 if GetOption('help'):
   print ''
@@ -57,10 +59,10 @@ qtDir = os.environ['QT_DIR']
 qtFlags = {}
 qtMOC = None
 if platform.system().lower().startswith('win'):
-  # if buildType == 'Debug':
-  #   suffix = 'd4'
-  # else:
-  suffix = '4'
+  if buildType == 'Debug':
+    suffix = 'd4'
+  else:
+  	suffix = '4'
   qtFlags['CPPPATH'] = [os.path.join(qtDir, 'include')]
   qtFlags['LIBPATH'] = [os.path.join(qtDir, 'lib')]
   qtFlags['LIBS'] = ['QtCore'+suffix, 'QtGui'+suffix, 'QtOpenGL'+suffix]

@@ -1,0 +1,438 @@
+{
+  "objectType" : "Graph",
+  "metadata" : {
+    "uiGraphZoom" : "{\"value\": 1.06}",
+    "uiGraphPan" : "{\"x\": 205.483, \"y\": -47.8033}"
+    },
+  "title" : "",
+  "ports" : [
+    {
+      "metadata" : {},
+      "name" : "inPosConstrainer",
+      "portType" : "In",
+      "typeSpec" : "Vec3"
+      },
+    {
+      "metadata" : {},
+      "name" : "inPosTarget",
+      "portType" : "In",
+      "typeSpec" : "Vec3"
+      },
+    {
+      "metadata" : {},
+      "name" : "outRotation",
+      "portType" : "Out",
+      "typeSpec" : "Mat44"
+      },
+    {
+      "metadata" : {},
+      "name" : "outScale",
+      "portType" : "Out",
+      "typeSpec" : "Vec3"
+      }
+    ],
+  "extDeps" : {},
+  "nodes" : [
+    {
+      "name" : "SetFromDirectionAndUpvector",
+      "executable" : "Fabric.Exts.Math.Quat.SetFromDirectionAndUpvector",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 226, \"y\": 208}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Vec3" : {
+              "x" : 0,
+              "y" : 0,
+              "z" : 1
+              }
+            }
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Sub",
+      "executable" : "Fabric.Core.Math.Sub",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -99.785, \"y\": 236.548}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "ToMat33",
+      "executable" : "Fabric.Exts.Math.Quat.ToMat33",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 544.662, \"y\": 274.181}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "SetFromMat33",
+      "executable" : "Fabric.Exts.Math.Mat44.SetFromMat33",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 687.39, \"y\": 273.909}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Length",
+      "executable" : "Fabric.Exts.Math.Vec3.Length",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 37.1651, \"y\": 358.472}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Vec3",
+      "executable" : "Fabric.Exts.Math.Vec3.ComposeVec3",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 736.374, \"y\": 518.889}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "If",
+      "executable" : "Fabric.Core.Control.If",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 382.87, \"y\": 407.106}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 1
+            }
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.5
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Gt",
+      "executable" : "Fabric.Core.Logic.Gt",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 220.086, \"y\": 382.868}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.5
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Mul",
+      "executable" : "Fabric.Core.Math.Mul",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 176.047, \"y\": 438.428}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 2
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Sub2",
+      "executable" : "Fabric.Core.Math.Sub",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 270.184, \"y\": 437.825}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 1
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Sub3",
+      "executable" : "Fabric.Core.Math.Sub",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 178.514, \"y\": 491.934}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {
+            "Float32" : 0.5
+            }
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Mul2",
+      "executable" : "Fabric.Core.Math.Mul",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 273.733, \"y\": 492.355}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 2
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Lt",
+      "executable" : "Fabric.Core.Logic.Lt",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 503.67, \"y\": 452.603}",
+        "uiCollapsedState" : "2"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.1000000014901161
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "If2",
+      "executable" : "Fabric.Core.Control.If",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 615.975, \"y\": 429.587}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.1000000014901161
+            }
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      }
+    ],
+  "connections" : {
+    "inPosConstrainer" : [
+      "Sub.lhs"
+      ],
+    "inPosTarget" : [
+      "Sub.rhs"
+      ],
+    "SetFromDirectionAndUpvector.result" : [
+      "ToMat33.this"
+      ],
+    "Sub.result" : [
+      "SetFromDirectionAndUpvector.upvector",
+      "Length.this"
+      ],
+    "ToMat33.result" : [
+      "SetFromMat33.m"
+      ],
+    "SetFromMat33.this" : [
+      "outRotation"
+      ],
+    "Length.result" : [
+      "Gt.lhs",
+      "Mul.lhs",
+      "Sub3.rhs"
+      ],
+    "Vec3.result" : [
+      "outScale"
+      ],
+    "If.result" : [
+      "Lt.lhs",
+      "If2.if_false"
+      ],
+    "Gt.result" : [
+      "If.cond"
+      ],
+    "Mul.result" : [
+      "Sub2.lhs"
+      ],
+    "Sub2.result" : [
+      "If.if_true"
+      ],
+    "Sub3.result" : [
+      "Mul2.lhs"
+      ],
+    "Mul2.result" : [
+      "If.if_false"
+      ],
+    "Lt.result" : [
+      "If2.cond"
+      ],
+    "If2.result" : [
+      "Vec3.x",
+      "Vec3.y",
+      "Vec3.z"
+      ]
+    },
+  "args" : [
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : -0.4021249115467072,
+        "y" : 0.6329494714736939,
+        "z" : -0.5941452383995056
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : -1.840000033378601,
+        "y" : 0.5799999833106995,
+        "z" : -0.2899999916553497
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "Mat44",
+      "value" : {
+        "row0" : {
+          "x" : 0.03679996728897095,
+          "y" : 0.9993226528167725,
+          "z" : 0,
+          "t" : 0
+          },
+        "row1" : {
+          "x" : -0.9993226528167725,
+          "y" : 0.03679996728897095,
+          "z" : 0,
+          "t" : 0
+          },
+        "row2" : {
+          "x" : 0,
+          "y" : -0,
+          "z" : 1,
+          "t" : 0
+          },
+        "row3" : {
+          "x" : 0,
+          "y" : 0,
+          "z" : 0,
+          "t" : 1
+          }
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : 1.941287279129028,
+        "y" : 1.941287279129028,
+        "z" : 1.941287279129028
+        },
+      "ext" : "Math"
+      }
+    ]
+  }

@@ -41,9 +41,6 @@
         },
       "pins" : [
         {
-          "defaultValues" : {}
-          },
-        {
           "defaultValues" : {
             "Vec3" : {
               "x" : 0,

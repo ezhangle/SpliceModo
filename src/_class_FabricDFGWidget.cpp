@@ -15,23 +15,30 @@ std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
 FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
 {
-  m_baseInterface = baseInterface;
-  if (m_baseInterface)
+  try
   {
-    FabricUI::DFG::DFGConfig config;
-    config.klEditorConfig.codeBackgroundColor = QColor(255, 0, 0);
+    m_baseInterface = baseInterface;
+    if (m_baseInterface)
+    {
+      FabricUI::DFG::DFGConfig config;
+      config.klEditorConfig.codeBackgroundColor = QColor(255, 0, 0);
 
-    init(m_baseInterface->getClient(),
-         m_baseInterface->getManager(),
-         m_baseInterface->getHost(),
-        *m_baseInterface->getBinding(),
-         m_baseInterface->getGraph(),
-         m_baseInterface->getStack(),
-         false,
-         config);
+      init(m_baseInterface->getClient(),
+           m_baseInterface->getManager(),
+           m_baseInterface->getHost(),
+          *m_baseInterface->getBinding(),
+           m_baseInterface->getGraph(),
+           m_baseInterface->getStack(),
+           false,
+           config);
+    }
+
+    QObject::connect(this, SIGNAL(valueChanged()), this, SLOT(onDefaultValueChanged()));
   }
-
-  QObject::connect(this, SIGNAL(valueChanged()), this, SLOT(onDefaultValueChanged()));
+  catch (FabricCore::Exception e)
+  {
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+  }
 }
 
 FabricDFGWidget::~FabricDFGWidget()
@@ -56,45 +63,53 @@ FabricDFGWidget::~FabricDFGWidget()
 
 FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
 {
-  std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
-  if (it == s_instances.end())
+  try
   {
-    // don't create new widget?
-    if (!createNewIfNoneFound)
-      return NULL;
-
-    // if necessary create FabricView.
-    if (FabricView::s_FabricViews.size() == 0)
+    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
+    if (it == s_instances.end())
     {
-      std::string cmdEerr;
-      if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", cmdEerr))
-        ModoTools::ExecuteCommand("customview.view FabricCanvas", cmdEerr);
+      // don't create new widget?
+      if (!createNewIfNoneFound)
+        return NULL;
+
+      // if necessary create FabricView.
+      if (FabricView::s_FabricViews.size() == 0)
+      {
+        std::string cmdEerr;
+        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", cmdEerr))
+          ModoTools::ExecuteCommand("customview.view FabricCanvas", cmdEerr);
+      }
+
+      // no FabricView?
+      if (FabricView::s_FabricViews.size() == 0)
+        return NULL;
+
+      // get the last FabricView.
+      FabricView *fv = FabricView::s_FabricViews.back();
+      if (!fv)
+        return NULL;
+
+      // create Fabric DFG widget
+      FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
+      fv->setWidget(newDFGWidget);
+      fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
+
+      // insert in map.
+      s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newDFGWidget));
+
+      // done.
+      return newDFGWidget;
     }
 
-    // no FabricView?
-    if (FabricView::s_FabricViews.size() == 0)
-      return NULL;
-
-    // get the last FabricView.
-    FabricView *fv = FabricView::s_FabricViews.back();
-    if (!fv)
-      return NULL;
-
-    // create Fabric DFG widget
-    FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
-    fv->setWidget(newDFGWidget);
-    fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
-
-    // insert in map.
-    s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newDFGWidget));
-
-    // done.
-    return newDFGWidget;
+    if (it->second)
+      it->second->refreshGraph();
+    return it->second;
   }
-
-  if (it->second)
-    it->second->refreshGraph();
-  return it->second;
+  catch (FabricCore::Exception e)
+  {
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    return NULL;
+  }
 }
 
 void FabricDFGWidget::onRecompilation()
@@ -124,8 +139,15 @@ void FabricDFGWidget::onDefaultValueChanged()
 
 void FabricDFGWidget::showEvent(QShowEvent *event)
 {
-  DFGCombinedWidget::showEvent(event);
-  refreshGraph();
+  try
+  {
+    DFGCombinedWidget::showEvent(event);
+    refreshGraph();
+  }
+  catch (FabricCore::Exception e)
+  {
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+  }
 }
 
 QMainWindow *FabricDFGWidget::getPointerAtMainWindow(void)
@@ -140,7 +162,14 @@ QMainWindow *FabricDFGWidget::getPointerAtMainWindow(void)
 
 void FabricDFGWidget::refreshGraph(void)
 {
-  if (!m_baseInterface)   return;
-  if (!getDfgWidget())    return;
-  getDfgWidget()->setGraph(m_baseInterface->getHost(), *m_baseInterface->getBinding(), m_baseInterface->getGraph());
+  try
+  {
+    if (!m_baseInterface)   return;
+    if (!getDfgWidget())    return;
+    getDfgWidget()->setGraph(m_baseInterface->getHost(), *m_baseInterface->getBinding(), m_baseInterface->getGraph());
+  }
+  catch (FabricCore::Exception e)
+  {
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+  }
 }

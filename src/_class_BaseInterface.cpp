@@ -141,8 +141,8 @@ std::string BaseInterface::getJSON()
   catch (FabricCore::Exception e)
   {
     logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    return "";
   }
-  return "";
 }
 
 void BaseInterface::setFromJSON(const std::string & json)
@@ -309,24 +309,23 @@ void BaseInterface::logErrorFunc(void *userData, const char *message, unsigned i
 
 bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
 {
-  // check/init.
-  if (!in_portName || in_portName[0] == '\0')  return false;
-  const FabricCore::DFGPortType portType = (testForInput ? FabricCore::DFGPortType_In : FabricCore::DFGPortType_Out);
-
-  // set the port name we will use for the search, i.e. check if the last two characters resemble
-  // something like ".X", ".R", etc. meaning we are dealing with a scalar channel belonging to a vector/color channel.
-  std::string portName = in_portName;
-  if (portName.length() > 2)
-  {
-    char lastChar       = portName.back();   portName.pop_back();
-    char beforeLastChar = portName.back();   portName.pop_back();
-    if (beforeLastChar  != '.')
-      portName = in_portName;
-  }
-
-  // go.
   try
   {
+    // check/init.
+    if (!in_portName || in_portName[0] == '\0')  return false;
+    const FabricCore::DFGPortType portType = (testForInput ? FabricCore::DFGPortType_In : FabricCore::DFGPortType_Out);
+
+    // set the port name we will use for the search, i.e. check if the last two characters resemble
+    // something like ".X", ".R", etc. meaning we are dealing with a scalar channel belonging to a vector/color channel.
+    std::string portName = in_portName;
+    if (portName.length() > 2)
+    {
+      char lastChar       = portName.back();   portName.pop_back();
+      char beforeLastChar = portName.back();   portName.pop_back();
+      if (beforeLastChar  != '.')
+        portName = in_portName;
+    }
+
     // get the graph.
     FabricServices::DFGWrapper::GraphExecutablePtr graph = DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable());
     if (graph.isNull())
@@ -377,13 +376,13 @@ int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::PortPtr port,
   // init output.
   out = false;
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -425,13 +424,13 @@ int BaseInterface::GetPortValueInteger(FabricServices::DFGWrapper::PortPtr port,
   // init output.
   out = 0;
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -473,13 +472,13 @@ int BaseInterface::GetPortValueFloat(FabricServices::DFGWrapper::PortPtr port, d
   // init output.
   out = 0;
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -521,13 +520,13 @@ int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::PortPtr port, 
   // init output.
   out = "";
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -582,13 +581,13 @@ int BaseInterface::GetPortValueVec2(FabricServices::DFGWrapper::PortPtr port, st
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -616,13 +615,13 @@ int BaseInterface::GetPortValueVec3(FabricServices::DFGWrapper::PortPtr port, st
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -664,13 +663,13 @@ int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::PortPtr port, st
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -709,13 +708,13 @@ int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::PortPtr port, s
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -766,13 +765,13 @@ int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::PortPtr port, std
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -814,13 +813,13 @@ int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::PortPtr port, st
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
       std::string resolvedType = port->getResolvedType();
       FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -865,13 +864,13 @@ int BaseInterface::GetPortValueQuat(FabricServices::DFGWrapper::PortPtr port, st
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -903,13 +902,13 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::PortPtr port, s
   // init output.
   out.clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-    return -2;
-
   // set out from port value.
   try
   {
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+      return -2;
+
     std::string resolvedType = port->getResolvedType();
     FabricCore::RTVal rtval  = port->getArgValue();
 
@@ -960,30 +959,40 @@ int BaseInterface::GetPortValuePolygonMesh(FabricServices::DFGWrapper::PortPtr  
   if (out_polygonVertices)    out_polygonVertices    -> clear();
   if (out_polygonNodeNormals) out_polygonNodeNormals -> clear();
 
-  // invalid port?
-  if (port.isNull() || !port->isValid())
-      return -2;
-
   // set out from port value.
   int errID = 0;
-  do
+  try
   {
-    try
+    // invalid port?
+    if (port.isNull() || !port->isValid())
+        return -2;
+
+    // check type.
+    std::string resolvedType = port->getResolvedType();
+    if (   resolvedType.length() == 0
+        || resolvedType != "PolygonMesh")
+      return -1;
+
+    // RTVal of the polygon mesh.
+    FabricCore::RTVal rtMesh = port->getArgValue();
+
+    // get amount of points, polys, etc.
+    out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
+    out_numPolygons = rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
+    out_numSamples  = rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
+    if (   out_numVertices == UINT_MAX
+        || out_numPolygons == UINT_MAX
+        || out_numSamples  == UINT_MAX)
     {
-      // check type.
-      std::string resolvedType = port->getResolvedType();
-      if (   resolvedType.length() == 0
-          || resolvedType != "PolygonMesh")
-        return -1;
+      out_numVertices = 0;
+      out_numPolygons = 0;
+      out_numSamples  = 0;
+      return errID;
+    }
 
-      // RTVal of the polygon mesh.
-      FabricCore::RTVal rtMesh = port->getArgValue();
-
-      // get amount of points, polys, etc.
-      out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
-      out_numPolygons = rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
-      out_numSamples  = rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
-
+    // get the rest.
+    do
+    {
       // get vertex positions.
       if (   out_positions  != NULL
           && out_numVertices > 0  )
@@ -1049,14 +1058,13 @@ int BaseInterface::GetPortValuePolygonMesh(FabricServices::DFGWrapper::PortPtr  
         args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "Float32", data.size(), (void *)data.data());
         rtMesh.callMethod("", "getNormalsAsExternalArray", 1, &args[0]);
       }
-    }
-    catch (FabricCore::Exception e)
-    {
-      logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-      errID = -4;
-      break;
-    }
-  } while (false);
+    } while (false);
+  }
+  catch (FabricCore::Exception e)
+  {
+    logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    errID = -4;
+  }
 
   // if an error occurred then clear all outputs.
   if (errID)

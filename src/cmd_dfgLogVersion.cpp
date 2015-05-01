@@ -19,7 +19,14 @@ dfgLogVersion::Command::Command(void)
 // execute code.
 void dfgLogVersion::Command::cmd_Execute(unsigned flags)
 {
-  char s[1024];
-  snprintf(s, sizeof(s), "plugin v. %.3f  /  core v. %s", FABRICMODO_PLUGIN_VERSION, FabricCore::GetVersionStr());
-  feLog(s);
+  try
+  {
+    char s[1024];
+    snprintf(s, sizeof(s), "plugin v. %.3f  /  core v. %s", FABRICMODO_PLUGIN_VERSION, FabricCore::GetVersionStr());
+    feLog(s);
+  }
+  catch (FabricCore::Exception e)
+  {
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+  }
 }

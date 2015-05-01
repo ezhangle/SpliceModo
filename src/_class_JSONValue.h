@@ -62,7 +62,7 @@ class JSONValue : public CLxImpl_Value,
   _JSONValue m_data;
 
   JSONValue()   { m_data.zero(); }
-  ~JSONValue()  {                }
+  ~JSONValue()  { m_data.zero(); }
   
   unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
   LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;

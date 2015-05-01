@@ -73,7 +73,7 @@ void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
   }
   catch (FabricCore::Exception e)
   {
-    feLogError(e.getDesc_cstr());
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
   }
 }
 

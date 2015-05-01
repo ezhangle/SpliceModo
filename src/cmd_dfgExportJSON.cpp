@@ -70,7 +70,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
     return;  }
 
   // get filepath.
-  std::string filePath;// = "C:\\Temp\\test.dfg.json";
+  std::string filePath;
   {
     static QString last_fPath;
     QString filter = "DFG Preset (*.dfg.json)";
@@ -92,11 +92,14 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   try
   {
     std::string json = b->getJSON();
-    t.write(json.c_str(), json.length());
+    if (json.c_str())   t.write(json.c_str(), json.length());
+    else                t.write("", 0);
   }
   catch (std::exception &e)
   {
-    err += "write error for \"" + filePath + "\": " + e.what();
+    err += "write error for \"" + filePath + "\": ";
+    if (e.what())   err += e.what();
+    else            err += "";
     feLogError(err);
     return;
   }

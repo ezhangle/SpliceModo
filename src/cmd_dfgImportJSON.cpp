@@ -70,7 +70,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
     return; }
 
   // get filepath.
-  std::string filePath;// = "C:\\Temp\\test.dfg.json";
+  std::string filePath;
   {
     static QString last_fPath;
     QString filter = "DFG Preset (*.dfg.json)";
@@ -134,6 +134,6 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
   }
   catch (FabricCore::Exception e)
   {
-    feLogError(e.getDesc_cstr());
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
   }
 }

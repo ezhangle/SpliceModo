@@ -13,7 +13,7 @@ LxResult FabricView::customview_Init(ILxUnknownID pane)
   if (!p.test())
     return LXe_FAILED;
 
-  void* parent = NULL;
+  void *parent = NULL;
   p.GetParent(&parent);
   if (!parent)
     return LXe_FAILED;
@@ -41,16 +41,25 @@ FabricDFGWidget *FabricView::widget()
 
 void FabricView::setWidget(FabricDFGWidget *dfgWidget)
 {
-  if (m_dfgWidget)
+  try
   {
-    m_dfgWidget->close();
-    m_dfgWidget->deleteLater();
-  }
-  m_dfgWidget = dfgWidget;
+    if (m_dfgWidget)
+    {
+      m_dfgWidget->close();
+      m_dfgWidget->deleteLater();
+    }
+    m_dfgWidget = dfgWidget;
 
-  // add the new widget to the parent widget's layout
-  QVBoxLayout *layout = (QVBoxLayout *)m_parentWidget->layout();
-  layout->addWidget(m_dfgWidget);
+    // add the new widget to the parent widget's layout
+    QVBoxLayout *layout = (QVBoxLayout *)m_parentWidget->layout();
+    layout->addWidget(m_dfgWidget);
+  }
+  catch (FabricCore::Exception e)
+  {
+    feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+  }
+
+
 }
 
 void FabricView::setWidgetNULL()

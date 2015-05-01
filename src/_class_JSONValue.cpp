@@ -49,9 +49,8 @@ LxResult JSONValue::val_SetString(const char *val)
     Similar to the get string function, this function sets the string.
   */
 
-  if (!val)       return LXe_FAILED;
-
-  m_data.s = val;
+  if (!val)   m_data.s = val;
+  else        m_data.s.clear();
     
   return LXe_OK;
 }
@@ -86,7 +85,8 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   try
   {
     std::string json = m_data.baseInterface->getJSON();
-    return write.WriteString(json.c_str());
+    if (json.c_str())   return write.WriteString(json.c_str());
+    else                return write.WriteString("");
   }
   catch (FabricCore::Exception e)
   {
@@ -113,10 +113,8 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
 
   if (!read.test())  return LXe_FAILED;
 
-  if (read.Read(m_data.s))
-    return LXe_OK;
-  else
-    return LXe_FAILED;
+  if (read.Read(m_data.s))  return LXe_OK;
+  else                      return LXe_FAILED;
 }
 
 LXtTagInfoDesc JSONValue::descInfo[] =

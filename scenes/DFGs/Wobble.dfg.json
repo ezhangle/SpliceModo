@@ -1,0 +1,103 @@
+{
+  "objectType" : "Graph",
+  "metadata" : {},
+  "title" : "",
+  "ports" : [
+    {
+      "metadata" : {},
+      "name" : "wobble",
+      "portType" : "Out",
+      "typeSpec" : "Vec3"
+      },
+    {
+      "metadata" : {},
+      "name" : "Frame",
+      "portType" : "In",
+      "typeSpec" : "SInt32"
+      }
+    ],
+  "extDeps" : {},
+  "nodes" : [
+    {
+      "name" : "wobbleFunction",
+      "definition" : {
+        "objectType" : "Function",
+        "metadata" : {},
+        "title" : "wobble_function",
+        "ports" : [
+          {
+            "metadata" : {},
+            "name" : "t",
+            "portType" : "In",
+            "typeSpec" : "Float32"
+            },
+          {
+            "metadata" : {},
+            "name" : "pos",
+            "portType" : "Out",
+            "typeSpec" : "Vec3"
+            },
+          {
+            "metadata" : {},
+            "name" : "freq",
+            "portType" : "In",
+            "typeSpec" : "Float32"
+            },
+          {
+            "metadata" : {},
+            "name" : "amp",
+            "portType" : "In",
+            "typeSpec" : "Float32"
+            }
+          ],
+        "extDeps" : {},
+        "filename" : "",
+        "code" : "dfgEntry {\n  Float32 a = freq * t / 3.14159;\n  pos.x = amp * sin(1 * a);\n  pos.y = amp * sin(2 * a);\n  pos.z = amp * sin(3 * a);\n}\n"
+        },
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 477, \"y\": 152}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.1160999983549118
+            }
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.6517999768257141
+            }
+          }
+        ]
+      }
+    ],
+  "connections" : {
+    "Frame" : [
+      "wobbleFunction.t"
+      ],
+    "wobbleFunction.pos" : [
+      "wobble"
+      ]
+    },
+  "args" : [
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : -0.6200110912322998,
+        "y" : -0.3825289309024811,
+        "z" : 0.384001761674881
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "SInt32",
+      "value" : 136
+      }
+    ]
+  }

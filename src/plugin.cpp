@@ -55,6 +55,10 @@ void feLogError(const std::string &s)
   feLogError(NULL, s.c_str(), s.length());
 }
 
+// a global BaseInterface: its only purpose is to ensure
+// that Fabric is "up and running" when Modo is up as well.
+BaseInterface gblBaseInterface_dummy;
+
 // plugin initialization.
 void initialize()
 {

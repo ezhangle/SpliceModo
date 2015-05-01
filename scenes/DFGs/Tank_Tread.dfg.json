@@ -1,0 +1,962 @@
+{
+  "objectType" : "Graph",
+  "metadata" : {
+    "uiGraphZoom" : "{\"value\": 0.871935}",
+    "uiGraphPan" : "{\"x\": 161.272, \"y\": 66.675}"
+    },
+  "title" : "",
+  "ports" : [
+    {
+      "metadata" : {},
+      "name" : "time",
+      "portType" : "In",
+      "typeSpec" : "Float32"
+      },
+    {
+      "metadata" : {},
+      "name" : "frame",
+      "portType" : "In",
+      "typeSpec" : "SInt32"
+      },
+    {
+      "metadata" : {},
+      "name" : "matrix",
+      "portType" : "In",
+      "typeSpec" : "Mat4"
+      }
+    ],
+  "extDeps" : {},
+  "nodes" : [
+    {
+      "name" : "PolygonMesh",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.PolygonMesh",
+      "cacheRule" : "never",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 396.7, \"y\": -125.749}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "MergeMeshClones",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.MergeMeshClones",
+      "cacheRule" : "never",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 777.167, \"y\": 79.0921}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Boolean" : true
+            }
+          }
+        ]
+      },
+    {
+      "name" : "TankControl",
+      "executable" : "Rigging.Tank.TankControl",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 403.567, \"y\": 83.0902}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Clear",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.Clear",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 557.539, \"y\": -78.3054}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "RecomputePointNormals",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.RecomputePointNormals",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 969.421, \"y\": 78.211}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "TankControl2",
+      "executable" : "Rigging.Tank.TankControl",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 406.221, \"y\": 252.382}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Add",
+      "executable" : "Fabric.Core.Math.Add",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 547.86, \"y\": 231.094}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Add2",
+      "executable" : "Fabric.Core.Math.Add",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 176.25, \"y\": 312.15}",
+        "uiCollapsedState" : "0"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {
+            "Float32" : 0
+            }
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 11
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Add3",
+      "executable" : "Fabric.Core.Math.Add",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 179.663, \"y\": 420.494}",
+        "uiCollapsedState" : "0"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {
+            "Float32" : 0
+            }
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 1
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Add4",
+      "executable" : "Fabric.Core.Math.Add",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 183.751, \"y\": 527.722}",
+        "uiCollapsedState" : "0"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {
+            "SInt32" : 0
+            }
+          },
+        {
+          "defaultValues" : {
+            "SInt32" : 52
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "AddCube",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.AddCube",
+      "cacheRule" : "never",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 566.253, \"y\": 25.6225}",
+        "uiCollapsedState" : "1"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.4000000059604645
+            }
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.4000000059604645
+            }
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 2
+            }
+          }
+        ]
+      },
+    {
+      "name" : "PolygonMesh2",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.PolygonMesh",
+      "cacheRule" : "never",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 273.872, \"y\": -49.4456}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Clear2",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.Clear",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 434.711, \"y\": -1.99352}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Mul",
+      "executable" : "Fabric.Core.Math.Mul",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -15.0325, \"y\": 347.716}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Mul2",
+      "executable" : "Fabric.Core.Math.Mul",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -18.2673, \"y\": 462.491}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "offset",
+      "definition" : {
+        "objectType" : "Graph",
+        "metadata" : {
+          "uiGraphPan" : "{\"x\": -156, \"y\": 8}"
+          },
+        "title" : "",
+        "ports" : [
+          {
+            "metadata" : {},
+            "name" : "result",
+            "portType" : "Out",
+            "typeSpec" : "Mat44"
+            },
+          {
+            "metadata" : {},
+            "name" : "mat",
+            "portType" : "In",
+            "typeSpec" : "Mat44"
+            },
+          {
+            "metadata" : {},
+            "name" : "other",
+            "portType" : "In",
+            "typeSpec" : "Vec3",
+            "defaultValues" : {
+              "Vec3" : {
+                "x" : 0,
+                "y" : 0,
+                "z" : 1
+                }
+              }
+            }
+          ],
+        "extDeps" : {},
+        "nodes" : [
+          {
+            "name" : "ToMat44",
+            "executable" : "Fabric.Exts.Math.Xfo.ToMat44",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 1215.29, \"y\": 65.378}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "Xfo",
+            "executable" : "Fabric.Exts.Math.Xfo.Xfo",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 252.923, \"y\": 130.298}",
+              "uiCollapsedState" : "0"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "DecomposeXfo",
+            "executable" : "Fabric.Exts.Math.Xfo.DecomposeXfo",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 412.669, \"y\": 155.685}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "ComposeXfo",
+            "executable" : "Fabric.Exts.Math.Xfo.ComposeXfo",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 1068.56, \"y\": 118.483}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {
+                  "Vec3" : {
+                    "x" : 1.200000047683716,
+                    "y" : 0.5,
+                    "z" : 1.200000047683716
+                    }
+                  }
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "ToMat33",
+            "executable" : "Fabric.Exts.Math.Quat.ToMat33",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 582.182, \"y\": 79.718}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "MultiplyVector",
+            "executable" : "Fabric.Exts.Math.Mat33.MultiplyVector",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 725, \"y\": 68}",
+              "uiCollapsedState" : "0"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {
+                  "Vec3" : {
+                    "x" : 0,
+                    "y" : 0,
+                    "z" : 1
+                    }
+                  }
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "Add",
+            "executable" : "Fabric.Core.Math.Add",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 871, \"y\": 217}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            }
+          ],
+        "connections" : {
+          "mat" : [
+            "Xfo.mat"
+            ],
+          "other" : [
+            "MultiplyVector.other"
+            ],
+          "ToMat44.result" : [
+            "result"
+            ],
+          "Xfo.result" : [
+            "DecomposeXfo.value"
+            ],
+          "DecomposeXfo.ori" : [
+            "ComposeXfo.ori",
+            "ToMat33.this"
+            ],
+          "DecomposeXfo.tr" : [
+            "Add.rhs"
+            ],
+          "ComposeXfo.result" : [
+            "ToMat44.this"
+            ],
+          "ToMat33.result" : [
+            "MultiplyVector.this"
+            ],
+          "MultiplyVector.result" : [
+            "Add.lhs"
+            ],
+          "Add.result" : [
+            "ComposeXfo.tr"
+            ]
+          }
+        },
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -9.3802, \"y\": 40.6762}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Vec3" : {
+              "x" : 0,
+              "y" : 0,
+              "z" : -5
+              }
+            }
+          }
+        ]
+      },
+    {
+      "name" : "offset2",
+      "definition" : {
+        "objectType" : "Graph",
+        "metadata" : {},
+        "title" : "",
+        "ports" : [
+          {
+            "metadata" : {},
+            "name" : "result",
+            "portType" : "Out",
+            "typeSpec" : "Mat44"
+            },
+          {
+            "metadata" : {},
+            "name" : "mat",
+            "portType" : "In",
+            "typeSpec" : "Mat44"
+            },
+          {
+            "metadata" : {},
+            "name" : "other",
+            "portType" : "In",
+            "typeSpec" : "Vec3",
+            "defaultValues" : {
+              "Vec3" : {
+                "x" : 0,
+                "y" : 0,
+                "z" : 1
+                }
+              }
+            }
+          ],
+        "extDeps" : {},
+        "nodes" : [
+          {
+            "name" : "ToMat44",
+            "executable" : "Fabric.Exts.Math.Xfo.ToMat44",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 1215.29, \"y\": 65.378}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "Xfo",
+            "executable" : "Fabric.Exts.Math.Xfo.Xfo",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 252.923, \"y\": 130.298}",
+              "uiCollapsedState" : "0"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "DecomposeXfo",
+            "executable" : "Fabric.Exts.Math.Xfo.DecomposeXfo",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 412.669, \"y\": 155.685}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "ComposeXfo",
+            "executable" : "Fabric.Exts.Math.Xfo.ComposeXfo",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 1068.56, \"y\": 118.483}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {
+                  "Vec3" : {
+                    "x" : 1.200000047683716,
+                    "y" : 0.5,
+                    "z" : 1.200000047683716
+                    }
+                  }
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "ToMat33",
+            "executable" : "Fabric.Exts.Math.Quat.ToMat33",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 582.182, \"y\": 79.718}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "MultiplyVector",
+            "executable" : "Fabric.Exts.Math.Mat33.MultiplyVector",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 725, \"y\": 68}",
+              "uiCollapsedState" : "0"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {
+                  "Vec3" : {
+                    "x" : 0,
+                    "y" : 0,
+                    "z" : 1
+                    }
+                  }
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            },
+          {
+            "name" : "Add",
+            "executable" : "Fabric.Core.Math.Add",
+            "metadata" : {
+              "uiGraphPos" : "{\"x\": 871, \"y\": 217}"
+              },
+            "pins" : [
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                },
+              {
+                "defaultValues" : {}
+                }
+              ]
+            }
+          ],
+        "connections" : {
+          "mat" : [
+            "Xfo.mat"
+            ],
+          "other" : [
+            "MultiplyVector.other"
+            ],
+          "ToMat44.result" : [
+            "result"
+            ],
+          "Xfo.result" : [
+            "DecomposeXfo.value"
+            ],
+          "DecomposeXfo.ori" : [
+            "ComposeXfo.ori",
+            "ToMat33.this"
+            ],
+          "DecomposeXfo.tr" : [
+            "Add.rhs"
+            ],
+          "ComposeXfo.result" : [
+            "ToMat44.this"
+            ],
+          "ToMat33.result" : [
+            "MultiplyVector.this"
+            ],
+          "MultiplyVector.result" : [
+            "Add.lhs"
+            ],
+          "Add.result" : [
+            "ComposeXfo.tr"
+            ]
+          }
+        },
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -6.893, \"y\": 148.189}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Vec3" : {
+              "x" : 0,
+              "y" : 0,
+              "z" : 5
+              }
+            }
+          }
+        ]
+      },
+    {
+      "name" : "Xfo",
+      "executable" : "Fabric.Exts.Math.Xfo.Xfo",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 158.771, \"y\": 67.5226}",
+        "uiCollapsedState" : "0"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Xfo2",
+      "executable" : "Fabric.Exts.Math.Xfo.Xfo",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 160.107, \"y\": 188.189}",
+        "uiCollapsedState" : "0"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "AddSphere",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.AddSphere",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 574.869, \"y\": 96.192}",
+        "uiCollapsedState" : "1"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 1
+            }
+          },
+        {
+          "defaultValues" : {
+            "UInt32" : 8
+            }
+          }
+        ]
+      }
+    ],
+  "connections" : {
+    "time" : [
+      "Mul.lhs"
+      ],
+    "frame" : [
+      "Mul2.lhs"
+      ],
+    "matrix" : [
+      "offset.mat",
+      "offset2.mat"
+      ],
+    "PolygonMesh.result" : [
+      "Clear.this"
+      ],
+    "MergeMeshClones.this" : [
+      "RecomputePointNormals.this"
+      ],
+    "TankControl.treadXfos" : [
+      "Add.lhs"
+      ],
+    "Clear.this" : [
+      "MergeMeshClones.this"
+      ],
+    "TankControl2.treadXfos" : [
+      "Add.rhs"
+      ],
+    "Add.result" : [
+      "MergeMeshClones.transformXfos"
+      ],
+    "Add2.result" : [
+      "TankControl2.length",
+      "TankControl.length"
+      ],
+    "Add3.result" : [
+      "TankControl.radius",
+      "TankControl2.radius"
+      ],
+    "Add4.result" : [
+      "TankControl2.count",
+      "TankControl.count"
+      ],
+    "AddCube.this" : [
+      "MergeMeshClones.source"
+      ],
+    "PolygonMesh2.result" : [
+      "Clear2.this"
+      ],
+    "Clear2.this" : [
+      "AddCube.this",
+      "AddSphere.this"
+      ],
+    "Mul.result" : [
+      "Add2.lhs",
+      "Add3.lhs"
+      ],
+    "Mul2.result" : [
+      "Add4.lhs"
+      ],
+    "offset.result" : [
+      "Xfo.mat"
+      ],
+    "offset2.result" : [
+      "Xfo2.mat"
+      ],
+    "Xfo.result" : [
+      "TankControl.xfo"
+      ],
+    "Xfo2.result" : [
+      "TankControl2.xfo"
+      ]
+    },
+  "args" : [
+    {
+      "type" : "Float32",
+      "value" : 0
+      },
+    {
+      "type" : "SInt32",
+      "value" : 0
+      },
+    {
+      "type" : "Mat44",
+      "value" : {
+        "row0" : {
+          "x" : 1,
+          "y" : 0,
+          "z" : 0,
+          "t" : 0
+          },
+        "row1" : {
+          "x" : 0,
+          "y" : 1,
+          "z" : 0,
+          "t" : 0
+          },
+        "row2" : {
+          "x" : 0,
+          "y" : 0,
+          "z" : 1,
+          "t" : 0
+          },
+        "row3" : {
+          "x" : 0,
+          "y" : 0,
+          "z" : 0,
+          "t" : 1
+          }
+        },
+      "ext" : "Math"
+      }
+    ]
+  }

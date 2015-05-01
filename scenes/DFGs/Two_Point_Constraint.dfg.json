@@ -1,0 +1,213 @@
+{
+  "objectType" : "Graph",
+  "metadata" : {},
+  "title" : "",
+  "ports" : [
+    {
+      "metadata" : {},
+      "name" : "inPos1",
+      "portType" : "In",
+      "typeSpec" : "Vec3"
+      },
+    {
+      "metadata" : {},
+      "name" : "inPos2",
+      "portType" : "In",
+      "typeSpec" : "Vec3"
+      },
+    {
+      "metadata" : {},
+      "name" : "outPosition",
+      "portType" : "Out",
+      "typeSpec" : "Vec3"
+      },
+    {
+      "metadata" : {},
+      "name" : "outOrientation",
+      "portType" : "Out",
+      "typeSpec" : "Mat44"
+      }
+    ],
+  "extDeps" : {},
+  "nodes" : [
+    {
+      "name" : "LinearInterpolate",
+      "executable" : "Fabric.Exts.Math.Vec3.LinearInterpolate",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 453, \"y\": 27}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Float32" : 0.5
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "ToMat33",
+      "executable" : "Fabric.Exts.Math.Quat.ToMat33",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 475, \"y\": 194}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "SetFromMat33",
+      "executable" : "Fabric.Exts.Math.Mat44.SetFromMat33",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 595, \"y\": 194}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "SetFromDirectionAndUpvector",
+      "executable" : "Fabric.Exts.Math.Quat.SetFromDirectionAndUpvector",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 227, \"y\": 182}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {
+            "Vec3" : {
+              "x" : 0,
+              "y" : 1,
+              "z" : 0
+              }
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Sub",
+      "executable" : "Fabric.Core.Math.Sub",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 92, \"y\": 138}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      }
+    ],
+  "connections" : {
+    "inPos1" : [
+      "LinearInterpolate.this",
+      "Sub.lhs"
+      ],
+    "inPos2" : [
+      "LinearInterpolate.other",
+      "Sub.rhs"
+      ],
+    "LinearInterpolate.result" : [
+      "outPosition"
+      ],
+    "ToMat33.result" : [
+      "SetFromMat33.m"
+      ],
+    "SetFromMat33.this" : [
+      "outOrientation"
+      ],
+    "SetFromDirectionAndUpvector.result" : [
+      "ToMat33.this"
+      ],
+    "Sub.result" : [
+      "SetFromDirectionAndUpvector.direction"
+      ]
+    },
+  "args" : [
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : -3.299999952316284,
+        "y" : 3.019999980926514,
+        "z" : 0.6600000262260437
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : 0.720000147819519,
+        "y" : 1.050000071525574,
+        "z" : -0.7200000286102295
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "Vec3",
+      "value" : {
+        "x" : -1.289999961853027,
+        "y" : 2.035000085830689,
+        "z" : -0.03000003099441528
+        },
+      "ext" : "Math"
+      },
+    {
+      "type" : "Mat44",
+      "value" : {
+        "row0" : {
+          "x" : 0.324685275554657,
+          "y" : 0.3977415263652802,
+          "z" : -0.8581265211105347,
+          "t" : 0
+          },
+        "row1" : {
+          "x" : 0,
+          "y" : 0.9072811007499695,
+          "z" : 0.4205246865749359,
+          "t" : 0
+          },
+        "row2" : {
+          "x" : 0.9458221197128296,
+          "y" : -0.136538177728653,
+          "z" : 0.2945808172225952,
+          "t" : 0
+          },
+        "row3" : {
+          "x" : 0,
+          "y" : 0,
+          "z" : 0,
+          "t" : 1
+          }
+        },
+      "ext" : "Math"
+      }
+    ]
+  }

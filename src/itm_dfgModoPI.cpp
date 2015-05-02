@@ -315,11 +315,18 @@ struct emUserData
       if (baseInterface)
       {
         feLog("dfgModoPI::emUserData() delete BaseInterface");
-        // delete widget and base interface.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
-        if (w) delete w;
-        delete baseInterface;
-        baseInterface = NULL;
+        try
+        {
+          // delete widget and base interface.
+          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+          if (w) delete w;
+          delete baseInterface;
+          baseInterface = NULL;
+        }
+        catch (FabricCore::Exception e)
+        {
+          feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        }
       }
       polymesh.clear();
       zero();
@@ -994,7 +1001,7 @@ LxResult CReadItemBin::tsrf_Sample(const LXtTableauBox bbox, float scale, ILxUnk
 LxResult CReadItemSurface::Init(CReadItemPackage *pkg, emUserData *userData)
 {
     m_src_pkg    = pkg;
-    m_pUserData    = userData;
+    m_pUserData  = userData;
     return LXe_OK;
 }
 
@@ -1204,6 +1211,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
           {
             std::string s = std::string("Element::Eval()(step 1): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
             feLogError(s);
+            ret = false;
           }
         }
 
@@ -1217,14 +1225,14 @@ bool CReadItemInstance::Read(bakedChannels &baked)
             feLog(s);
           }
           try
-            {
-                binding->execute();
-            }
-            catch (FabricCore::Exception e)
-            {
-                feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-                ret = false;
-            }
+          {
+            binding->execute();
+          }
+          catch (FabricCore::Exception e)
+          {
+            feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+            ret = false;
+          }
         }
 
         // Fabric Engine (step 3): ...
@@ -1422,9 +1430,16 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
   {
     if (m_userData.baseInterface)
     {
-      // delete only widget.
-      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
-      if (w) delete w;
+      try
+      {
+        // delete only widget.
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+        if (w) delete w;
+      }
+      catch (FabricCore::Exception e)
+      {
+        feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+      }
     }
   }
 
@@ -1558,7 +1573,7 @@ LxResult CReadItemInstance::tsrc_PreviewUpdate(int chanIndex, int *update)
   CLxUser_Item item(m_item_obj);
   if (!item.test())
   {
-        *update = LXfTBLX_PREVIEW_UPDATE_GEOMETRY;
+        *update = LXfTBLX_PREVIEW_UPDATE_NONE;
     return LXe_OK;
   }
 
@@ -1583,7 +1598,7 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
     emUserData &ud = m_userData;
 
     // read channels.
-    CLxUser_ChannelRead    chanRead;
+    CLxUser_ChannelRead chanRead;
     chanRead.set(itemChanRead);
     bool ret = Read(chanRead);
 
@@ -1611,9 +1626,6 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
         // return.
         return LXe_OK;
     }
-
-    // ref at geometry.
-    BaseInterface &geo = *ud.baseInterface;
 
     // draw.
     if (ud.chn.FabricDisplay == 1)      // draw vertices (points).

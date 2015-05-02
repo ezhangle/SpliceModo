@@ -5,7 +5,7 @@
 #include "_class_ModoTools.h"
 
 FabricCore::Client BaseInterface::s_client;
-DFGWrapper::Host * BaseInterface::s_host = NULL;
+FabricServices::DFGWrapper::Host * BaseInterface::s_host = NULL;
 FabricServices::ASTWrapper::KLASTManager * BaseInterface::s_manager = NULL;
 FabricServices::Commands::CommandStack BaseInterface::s_stack;
 unsigned int BaseInterface::s_maxId = 0;
@@ -26,20 +26,20 @@ BaseInterface::BaseInterface()
     {
       // create a client
       FabricCore::Client::CreateOptions options;
-      memset( &options, 0, sizeof( options ) );
+      memset(&options, 0, sizeof(options));
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
       s_client = FabricCore::Client(&logFunc, NULL, &options);
 
       // load basic extensions
-      s_client.loadExtension("Math",     "", false);
-      s_client.loadExtension("Geometry", "", false);
-      s_client.loadExtension("FileIO",   "", false);
+      s_client.loadExtension("Math",           "", false);
+      s_client.loadExtension("Geometry",       "", false);
+      s_client.loadExtension("FileIO",         "", false);
 
       // create a host for Canvas
-      s_host = new DFGWrapper::Host(s_client);
+      s_host = new FabricServices::DFGWrapper::Host(s_client);
 
       // create KL AST manager
-      s_manager = new ASTWrapper::KLASTManager(&s_client);
+      s_manager = new FabricServices::ASTWrapper::KLASTManager(&s_client);
       s_manager->loadAllExtensionsFromExtsPath();
     }
     catch (FabricCore::Exception e)
@@ -59,7 +59,7 @@ BaseInterface::BaseInterface()
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
 
     // set the graph on the view
-    DFGWrapper::View::setGraph(DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
+    FabricServices::DFGWrapper::View::setGraph(FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
   catch (FabricCore::Exception e)
   {
@@ -71,7 +71,7 @@ BaseInterface::~BaseInterface()
 {
   std::map<unsigned int, BaseInterface*>::iterator it = s_instances.find(m_id);
 
-  m_binding = DFGWrapper::Binding();
+  m_binding = FabricServices::DFGWrapper::Binding();
 
   if (it != s_instances.end())
   {
@@ -151,7 +151,7 @@ void BaseInterface::setFromJSON(const std::string & json)
   {
     m_binding = s_host->createBindingFromJSON(json.c_str());
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
-    DFGWrapper::View::setGraph(DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
+    FabricServices::DFGWrapper::View::setGraph(FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
   catch (FabricCore::Exception e)
   {
@@ -180,7 +180,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
   {
     // get the base interface, its graph and the notification variant.
     BaseInterface                                  &b            = *(BaseInterface *)userData;
-    FabricServices::DFGWrapper::GraphExecutablePtr  graph        = DFGWrapper::GraphExecutablePtr::StaticCast(b.getBinding()->getExecutable());
+    FabricServices::DFGWrapper::GraphExecutablePtr  graph        = FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(b.getBinding()->getExecutable());
     FabricCore::Variant                             notification = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
 
     // get the notification's description and possibly the value of name.
@@ -327,7 +327,7 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     }
 
     // get the graph.
-    FabricServices::DFGWrapper::GraphExecutablePtr graph = DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable());
+    FabricServices::DFGWrapper::GraphExecutablePtr graph = FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable());
     if (graph.isNull())
     {
       std::string s = "BaseInterface::HasPort(): m_binding.getExecutable() returned NULL pointer.";

@@ -1121,19 +1121,30 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         // make ud.polymesh a valid, empty mesh.
         ud.polymesh.setEmptyMesh();
 
-        // refs at DFG wrapper members.
-        FabricCore::Client                            *client  = b->getClient();
-        if (!client)
-        {   feLogError("CReadItemInstance::Read(): getClient() returned NULL");
-            return LXe_OK;     }
-        FabricServices::DFGWrapper::Binding           *binding = b->getBinding();
-        if (!binding)
-        {   feLogError("CReadItemInstance::Read(): getBinding() returned NULL");
-            return LXe_OK;     }
-        FabricServices::DFGWrapper::GraphExecutablePtr graph   = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
-        if (graph.isNull())
-        {   feLogError("CReadItemInstance::Read(): getExecutable() returned NULL");
-            return LXe_OK;     }
+        // pointers at DFG wrapper members.
+        FabricCore::Client                            *client;
+        FabricServices::DFGWrapper::Binding           *binding;
+        FabricServices::DFGWrapper::GraphExecutablePtr graph;
+        try
+        {
+          client = b->getClient();
+          if (!client)
+          {   feLogError("CReadItemInstance::Read(): getClient() returned NULL");
+              return false;     }
+          binding = b->getBinding();
+          if (!binding)
+          {   feLogError("CReadItemInstance::Read(): getBinding() returned NULL");
+              return false;     }
+          graph = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
+          if (graph.isNull())
+          {   feLogError("CReadItemInstance::Read(): getExecutable() returned NULL");
+              return false;     }
+        }
+        catch (FabricCore::Exception e)
+        {
+          feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+          return false;
+        }
 
         // Fabric Engine (step 1): WIP set the DFG ports (if available) from the fixed "Time" and "Frame" channels.
         if (ret)
@@ -1211,7 +1222,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
           {
             std::string s = std::string("Element::Eval()(step 1): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
             feLogError(s);
-            ret = false;
+            return false;
           }
         }
 
@@ -1279,14 +1290,14 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                 {
                     ud.polymesh.clear();
                     feLogError(err);
-                    return LXe_OK;
+                    return false;
                 }
             }
             catch (FabricCore::Exception e)
             {
                 ud.polymesh.clear();
                 feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-                return LXe_OK;
+                return false;
             }
         }
       }

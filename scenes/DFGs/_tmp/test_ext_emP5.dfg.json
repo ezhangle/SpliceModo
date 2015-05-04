@@ -1,0 +1,153 @@
+{
+  "objectType" : "Graph",
+  "metadata" : {
+    "camera_mat44" : "{\n  \"row0\" : {\n    \"x\" : 0.800000011920929,\n    \"y\" : -0.2228344082832336,\n    \"z\" : 0.5570859909057617,\n    \"t\" : 18\n    },\n  \"row1\" : {\n    \"x\" : 2.235174179077148e-08,\n    \"y\" : 0.9284766912460327,\n    \"z\" : 0.371390700340271,\n    \"t\" : 12\n    },\n  \"row2\" : {\n    \"x\" : -0.6000000238418579,\n    \"y\" : -0.2971125245094299,\n    \"z\" : 0.7427813410758972,\n    \"t\" : 24\n    },\n  \"row3\" : {\n    \"x\" : 0,\n    \"y\" : 0,\n    \"z\" : 0,\n    \"t\" : 1\n    }\n  }",
+    "timeline_start" : "1",
+    "camera_focalDistance" : "32.31098937988281",
+    "timeline_current" : "1",
+    "timeline_end" : "50",
+    "uiGraphPan" : "{\"x\": 28, \"y\": -67}"
+    },
+  "title" : "",
+  "ports" : [
+    {
+      "metadata" : {},
+      "name" : "detail",
+      "portType" : "In",
+      "typeSpec" : "Float32"
+      },
+    {
+      "metadata" : {},
+      "name" : "radius",
+      "portType" : "In",
+      "typeSpec" : "Float32"
+      },
+    {
+      "metadata" : {},
+      "name" : "value",
+      "portType" : "Out",
+      "typeSpec" : "Size"
+      }
+    ],
+  "extDeps" : {},
+  "nodes" : [
+    {
+      "name" : "func",
+      "definition" : {
+        "objectType" : "Function",
+        "metadata" : {},
+        "title" : "func",
+        "ports" : [
+          {
+            "metadata" : {},
+            "name" : "detail",
+            "portType" : "In",
+            "typeSpec" : "Float32"
+            },
+          {
+            "metadata" : {},
+            "name" : "radius",
+            "portType" : "In",
+            "typeSpec" : "Float32"
+            },
+          {
+            "metadata" : {},
+            "name" : "result",
+            "portType" : "IO",
+            "typeSpec" : "PolygonMesh"
+            }
+          ],
+        "extDeps" : {},
+        "filename" : "",
+        "code" : "require Geometry;\nrequire emPolygonizer5;\n\ndfgEntry\n{\n  Vec3 positions[];\n  positions.resize(1);\n//  positions[1].x = 0.0f;\n//  positions[2] = 1.0f;\n\n  report(\"hello worlds\");\n\n//  SInt32 ret = emPolygonizer5::BuildPolygonMesh(positions, detail, radius, result);\n//  if (ret != MZD_SUCCESS)\n//    report(\"error: emPolygonizer5 returned \" + ret);\n  \n}\n"
+        },
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 697, \"y\": 143}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "PolygonCount",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.PolygonCount",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 871, \"y\": 196}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Report",
+      "executable" : "Fabric.Core.Func.Report",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 1073, \"y\": 227}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "Clear",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.Clear",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 532, \"y\": 231}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          }
+        ]
+      }
+    ],
+  "connections" : {
+    "detail" : [
+      "func.detail"
+      ],
+    "radius" : [
+      "func.radius"
+      ],
+    "func.result" : [
+      "PolygonCount.this"
+      ],
+    "PolygonCount.result" : [
+      "Report.value"
+      ],
+    "Report.value" : [
+      "value"
+      ],
+    "Clear.this" : [
+      "func.result"
+      ]
+    },
+  "args" : [
+    {
+      "type" : "Float32",
+      "value" : 1
+      },
+    {
+      "type" : "Float32",
+      "value" : 0.772599995136261
+      },
+    {
+      "type" : "UInt32",
+      "value" : 0
+      }
+    ]
+  }

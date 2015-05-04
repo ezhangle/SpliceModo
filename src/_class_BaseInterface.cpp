@@ -27,6 +27,7 @@ BaseInterface::BaseInterface()
       // create a client
       FabricCore::Client::CreateOptions options;
       memset(&options, 0, sizeof(options));
+      options.guarded = 1;
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
       s_client = FabricCore::Client(&logFunc, NULL, &options);
 

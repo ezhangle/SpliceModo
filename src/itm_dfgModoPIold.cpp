@@ -1071,9 +1071,9 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
     chanIndex = item.ChannelIndex(CHN_NAME_IO_frame);               if (chanIndex >= 0) baked.frame         =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_matrix);              if (chanIndex >= 0)
                                                                     {
-                                                                      CLxUser_Matrix	tmpMatrix;
+                                                                      CLxUser_Matrix  tmpMatrix;
                                                                       if (chanRead.Object(m_item_obj, chanIndex, tmpMatrix))
-  		                                                                  tmpMatrix.Get4(baked.matrix);
+                                                                        tmpMatrix.Get4(baked.matrix);
                                                                     } else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricDisplay);       if (chanIndex >= 0) baked.FabricDisplay =        chanRead.IValue(m_item_obj, chanIndex);        else    return false;
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricOpacity);       if (chanIndex >= 0) baked.FabricOpacity = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
@@ -1758,7 +1758,7 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     memset(&baked, NULL, sizeof(bakedChannels));
 
     // fill baked with the attributes so that Modo correctly updates the OpenGL stuff.
-    CLxUser_Matrix	tmpMatrix;
+    CLxUser_Matrix  tmpMatrix;
     int             tmpFormat;
     std::string     tmpPath;
     std::string     tmpName;
@@ -1768,8 +1768,8 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     baked.FabricEval    = attributes.Int  (i++);
     baked.time          = attributes.Float(i++);
     baked.frame         = attributes.Int  (i++);
-	  if (attributes.ObjectRO(i++, tmpMatrix) && tmpMatrix.test())
-		  tmpMatrix.Get4(baked.matrix);
+    if (attributes.ObjectRO(i++, tmpMatrix) && tmpMatrix.test())
+      tmpMatrix.Get4(baked.matrix);
     baked.FabricDisplay = attributes.Int  (i++);
     baked.FabricOpacity = attributes.Float(i++);
 
@@ -1821,7 +1821,7 @@ LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
     ac.SetDefault(0, 0);
 
     ac.NewChannel(CHN_NAME_IO_matrix,         LXsTYPE_MATRIX4);
-		ac.SetStorage(LXsTYPE_MATRIX4);
+    ac.SetStorage(LXsTYPE_MATRIX4);
 
     ac.NewChannel(CHN_NAME_IO_FabricDisplay,  LXsTYPE_INTEGER);
     ac.SetDefault(0, 2);

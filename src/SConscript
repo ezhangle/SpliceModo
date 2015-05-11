@@ -9,7 +9,7 @@ env.Append(LIBS = [commonLib])
 if platform.system().lower().startswith('win'):
   env.Append(CCFLAGS = ['/Od', '/Zi']) # 'Z7'
 
-headers = Flatten(Glob('*.h'))	
+headers = Flatten(Glob('*.h'))
 sources = Flatten(Glob('*.cpp'))
 sources += Flatten(env.GlobQObjectSources('*.h'))
 

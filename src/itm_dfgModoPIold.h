@@ -9,5 +9,9 @@ namespace dfgModoPIold
     BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
 };
 
+#define CHN_NAME_IO_time    "time"
+#define CHN_NAME_IO_frame   "frame"
+#define CHN_NAME_IO_matrix  "matrix"
+
 #endif  // SRC_ITM_DFGMODOPIOLD_H_
 

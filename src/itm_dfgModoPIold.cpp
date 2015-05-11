@@ -8,6 +8,9 @@
 
 static CLxItemType gItemType_dfgModoPIold(SERVER_NAME_dfgModoPIold);
 
+extern LXtTextValueHint hint_FabricDisplay[];
+extern LXtTextValueHint hint_FabricOpacity[];
+
 namespace dfgModoPIold
 {
 
@@ -70,7 +73,7 @@ struct localModoStuff
     }
 };
 
-// cached polymesh.
+// baked/cached polymesh.
 struct _polymesh
 {
     unsigned int            numVertices;
@@ -616,21 +619,6 @@ LXtTagInfoDesc CReadItemPackage::descInfo[] =
     { LXsPKG_IS_MASK,      "."              },
     { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME  },
     { 0 }
-};
-
-static LXtTextValueHint hint_FabricDisplay[] =
-{
-     0,        "None",
-     1,        "Points",
-     2,        "Edges",
-    -1,         NULL
-};
-
-static LXtTextValueHint hint_FabricOpacity[] =
-{
-     0,        "%min",
-     10000,    "%max",
-    -1,         NULL
 };
 
 // _______________________________
@@ -1729,7 +1717,7 @@ LxResult CReadItemInstance::isurf_Prepare(ILxUnknownID eval_ID, unsigned *index)
       { feLogError("eval.test() == false");
       return LXe_OK; }
 
-    // add custom channels as attributes.
+    // add standard channels as attributes.
     {
         unsigned chanIndex;
         *index    = eval.AddChan(m_item_obj, CHN_NAME_IO_FabricActive,  LXfECHAN_READ);
@@ -1805,9 +1793,9 @@ CReadItemPackage::CReadItemPackage()
 
 LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
 {
-    CLxUser_AddChannel    ac(addChan);
+    CLxUser_AddChannel ac(addChan);
 
-  ac.NewChannel(CHN_NAME_IO_FabricActive,     LXsTYPE_BOOLEAN);
+    ac.NewChannel(CHN_NAME_IO_FabricActive,     LXsTYPE_BOOLEAN);
     ac.SetDefault(1, true);
 
     ac.NewChannel(CHN_NAME_IO_FabricEval,     LXsTYPE_INTEGER);

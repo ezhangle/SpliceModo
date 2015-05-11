@@ -10,85 +10,270 @@ static CLxItemType gItemType_dfgModoPI(SERVER_NAME_dfgModoPI);
 
 namespace dfgModoPI
 {
+  // polymesh structure.
+  struct _polymesh
+  {
+    unsigned int            numVertices;
+    unsigned int            numPolygons;
+    unsigned int            numSamples;
+    std::vector <float>     vertPositions;
+    std::vector <float>     vertNormals;
+    std::vector <uint32_t>  polyNumVertices;
+    std::vector <uint32_t>  polyVertices;
+    std::vector <float>     polyNodeNormals;
 
+    // mesh bounding box.
+    float bbox[6];
 
+    // constructor/destructor.
+    _polymesh()   {  clear();  }
+    ~_polymesh()  {  clear();  }
 
-
-
-
-
-#define CHAN_DIMENSIONS        "dimensions"
-
-
-
-
-
-
-/*NOT_FORMATED*/
-/*
- *    First we define a structure that can be used for store user channels. It just
- *    stores the channel index and any evaluation index that has been allocated for
- *    this item.
- */
-
-/*NOT_FORMATED*/
-struct ChannelDef
-{
-    int             chan_index;
-    int             eval_index;
-    
-    ChannelDef () : chan_index (-1), eval_index (-1) {}
-};
-/*NOT_FORMATED*/
-void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userChannels)
-{
-    /*
-     *    This function collects all of the user channels on the specified item
-     *    and adds them to the provided vector of channel definitions. We loop
-     *    through all channels on the item and test their package. If they have
-     *    no package, then it's a user channel and it's added to the vector.
-     *    We also check if the channel type is a divider, if it is, we skip it.
-     */
-    
-    unsigned count = 0;
-    
-    userChannels.clear();
-    
-    if (!item.test())
-        return;
-    
-    item.ChannelCount(&count);
-    
-    for (unsigned i = 0; i < count; i++)
+    // clear and invalidate the mesh.
+    void clear(void)
     {
-        const char        *package = NULL, *channel_type = NULL;
-    
-        if (LXx_OK (item.ChannelPackage (i, &package)) || package)
-            continue;
-        
-        if (LXx_OK (item.ChannelEvalType (i, &channel_type) && channel_type))
-        {
-            if (strcmp (channel_type, LXsTYPE_NONE) != 0)
-            {
-                ChannelDef channel;
-            
-                channel.chan_index = i;
-            
-                userChannels.push_back(channel);
-            }
-        }
+      numVertices     = -1;
+      numPolygons     = -1;
+      numSamples      = -1;
+      vertPositions   .clear();
+      vertNormals     .clear();
+      polyNumVertices .clear();
+      polyVertices    .clear();
+      polyNodeNormals .clear();
+      for (int i = 0; i < 6; i++)
+        bbox[i] = 0;
     }
-}
+    
+    // sets this mesh from the input mesh.
+    void setMesh(const _polymesh &inMesh)
+    {
+      numVertices    = inMesh.numVertices;
+      numPolygons    = inMesh.numPolygons;
+      numSamples     = inMesh.numSamples;
+      vertPositions  .resize(inMesh.vertPositions  .size());  memcpy(vertPositions  .data(), inMesh.vertPositions  .data(), vertPositions  .size() * sizeof(float)   );
+      vertNormals    .resize(inMesh.vertNormals    .size());  memcpy(vertNormals    .data(), inMesh.vertNormals    .data(), vertNormals    .size() * sizeof(float)   );
+      polyNumVertices.resize(inMesh.polyNumVertices.size());  memcpy(polyNumVertices.data(), inMesh.polyNumVertices.data(), polyNumVertices.size() * sizeof(uint32_t));
+      polyVertices   .resize(inMesh.polyVertices   .size());  memcpy(polyVertices   .data(), inMesh.polyVertices   .data(), polyVertices   .size() * sizeof(uint32_t));
+      polyNodeNormals.resize(inMesh.polyNodeNormals.size());  memcpy(polyNodeNormals.data(), inMesh.polyNodeNormals.data(), polyNodeNormals.size() * sizeof(float)   );
+      for (int i = 0; i < 6; i++)
+        bbox[i] = inMesh.bbox[i];
+    }
+    
+    // make this mesh an empty mesh.
+    void setEmptyMesh(void)
+    {
+      clear();
+      numVertices = 0;
+      numPolygons = 0;
+      numSamples  = 0;
+    }
+    
+    // returns true if this is a valid mesh.
+    bool isValid(void) const
+    {
+      return (   numVertices >= 0
+              && numPolygons >= 0
+              && numSamples  >= 0
+              && vertPositions  .size() == 3 * numVertices
+              && vertNormals    .size() == 3 * numVertices
+              && polyNumVertices.size() ==     numPolygons
+              && polyVertices   .size() ==     numSamples
+              && polyNodeNormals.size() == 3 * numSamples
+             );
+    }
+    
+    // returns true if this is an empty mesh.
+    bool isEmpty(void) const
+    {
+      return (numVertices == 0);
+    }
+    
+    // calculate bounding box (i.e. set member bbox).
+    void calcBBox(void)
+    {
+      for (int i=0;i<6;i++)
+        bbox[i] = 0;
+      if (isValid() && !isEmpty())
+      {
+        float *pv = vertPositions.data();
+        bbox[0] = pv[0];
+        bbox[1] = pv[1];
+        bbox[2] = pv[2];
+        bbox[3] = pv[0];
+        bbox[4] = pv[1];
+        bbox[5] = pv[2];
+        for (unsigned int i=0;i<numVertices;i++,pv+=3)
+        {
+          bbox[0] = __min(bbox[0], pv[0]);
+          bbox[1] = __min(bbox[1], pv[1]);
+          bbox[2] = __min(bbox[2], pv[2]);
+          bbox[3] = __max(bbox[3], pv[0]);
+          bbox[4] = __max(bbox[4], pv[1]);
+          bbox[5] = __max(bbox[5], pv[2]);
+        }
+      }
+    }
 
+    // set from DFG port.
+    // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
+    int setFromDFGPort(FabricServices::DFGWrapper::PortPtr &port)
+    {
+      // clear current.
+      clear();
 
+      // get RTVal.
+      FabricCore::RTVal rtMesh = port->getArgValue();
 
+      // get the mesh data (except for the vertex normals).
+      int retGet = BaseInterface::GetPortValuePolygonMesh( port,
+                                                           numVertices,
+                                                           numPolygons,
+                                                           numSamples,
+                                                          &vertPositions,
+                                                          &polyNumVertices,
+                                                          &polyVertices,
+                                                          &polyNodeNormals
+                                                         );
+      // error?
+      if (retGet)
+      { clear();
+        return retGet;  }
 
+      // create vertex normals from the polygon node normals.
+      if (numPolygons > 0 && polyNodeNormals.size() > 0)
+      {
+        // resize and zero-out.
+        vertNormals.resize       (3 * numVertices, 0.0f);
+        if (vertNormals.size() != 3 * numVertices)
+        { clear();
+          return -3;  }
 
+        // fill.
+        uint32_t *pvi = polyVertices.data();
+        float    *pnn = polyNodeNormals.data();
+        for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
+        {
+          float *vn = vertNormals.data() + (*pvi) * 3;
+          vn[0] += pnn[0];
+          vn[1] += pnn[1];
+          vn[2] += pnn[2];
+        }
 
+        // normalize vertex normals.
+        float *vn = vertNormals.data();
+        for (unsigned int i=0;i<numVertices;i++,vn+=3)
+        {
+          float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
+          if (f > 1.0e-012f)
+          {
+            f = 1.0f / sqrt(f);
+            vn[0] *= f;
+            vn[1] *= f;
+            vn[2] *= f;
+          }
+          else
+          {
+            vn[0] = 0;
+            vn[1] = 1.0f;
+            vn[2] = 0;
+          }
+        }
+      }
 
+      // calc bbox.
+      calcBBox();
 
+      // done.
+      return retGet;
+    }
 
+    // merge this mesh with the input mesh.
+    bool merge(const _polymesh &inMesh)
+    {
+      // trivial cases.
+      {
+        if (!inMesh.isValid())        // input mesh is invalid.
+        {
+          clear();
+          return isValid();
+        }
+        if (inMesh.isEmpty())         // input mesh is empty.
+        {
+          setEmptyMesh();
+          return isValid();
+        }
+        if (!isValid() || isEmpty())  // this mesh is empty or invalid.
+        {
+          setMesh(inMesh);
+          return isValid();
+        }
+      }
 
+      // append inMesh' arrays to this' arrays.
+      uint32_t nThis, nIn, nSum;
+      nThis = vertPositions  .size(); nIn = inMesh.vertPositions  .size();  nSum = nThis + nIn; vertPositions  .resize(nSum); memcpy(vertPositions  .data() + nThis, inMesh.vertPositions  .data(), nIn * sizeof(float)   );
+      nThis = vertNormals    .size(); nIn = inMesh.vertNormals    .size();  nSum = nThis + nIn; vertNormals    .resize(nSum); memcpy(vertNormals    .data() + nThis, inMesh.vertNormals    .data(), nIn * sizeof(float)   );
+      nThis = polyNumVertices.size(); nIn = inMesh.polyNumVertices.size();  nSum = nThis + nIn; polyNumVertices.resize(nSum); memcpy(polyNumVertices.data() + nThis, inMesh.polyNumVertices.data(), nIn * sizeof(uint32_t));
+      nThis = polyVertices   .size(); nIn = inMesh.polyVertices   .size();  nSum = nThis + nIn; polyVertices   .resize(nSum); memcpy(polyVertices   .data() + nThis, inMesh.polyVertices   .data(), nIn * sizeof(uint32_t));
+      nThis = polyNodeNormals.size(); nIn = inMesh.polyNodeNormals.size();  nSum = nThis + nIn; polyNodeNormals.resize(nSum); memcpy(polyNodeNormals.data() + nThis, inMesh.polyNodeNormals.data(), nIn * sizeof(float)   );
+
+      // fix vertex indices.
+      uint32_t *pi = polyVertices.data() + numSamples;
+      for (int i = 0; i < inMesh.numSamples; i++,pi++)
+        *pi += numVertices;
+
+      // fix amounts.
+      numVertices += inMesh.numVertices;
+      numPolygons += inMesh.numPolygons;
+      numSamples  += inMesh.numSamples;
+
+      // re-calc bbox.
+      bbox[0] = __min(bbox[0], inMesh.bbox[0]);
+      bbox[1] = __min(bbox[1], inMesh.bbox[1]);
+      bbox[2] = __min(bbox[2], inMesh.bbox[2]);
+      bbox[3] = __max(bbox[3], inMesh.bbox[3]);
+      bbox[4] = __max(bbox[4], inMesh.bbox[4]);
+      bbox[5] = __max(bbox[5], inMesh.bbox[5]);
+
+      // done.
+      return isValid();
+    }
+  };
+
+  // user data structure.
+  struct emUserData
+  {
+    BaseInterface  *baseInterface;      // pointer at BaseInterface.
+    _polymesh       polymesh;           // baked polygon mesh.
+    //
+    void zero(void)
+    {
+      polymesh.clear();
+      baseInterface = NULL;
+    }
+    void clear(void)
+    {
+      feLog("dfgModoPI::emUserData::clear() called");
+      if (baseInterface)
+      {
+        feLog("dfgModoPI::emUserData() delete BaseInterface");
+        try
+        {
+          // delete widget and base interface.
+          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+          if (w) delete w;
+          delete baseInterface;
+          baseInterface = NULL;
+        }
+        catch (FabricCore::Exception e)
+        {
+          feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        }
+      }
+      polymesh.clear();
+      zero();
+    }
+  };
 
   /*
     The procedural geometry that we're generating can be evaluated in multiple
@@ -103,44 +288,54 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
    public:
     SurfDef() : m_size (0.5) {}
     
-    LxResult Prepare  (CLxUser_Evaluation &eval, CLxUser_Item &item, unsigned *index);
+    LxResult Prepare  (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *index);
     LxResult Evaluate (CLxUser_Attributes &attr, unsigned index);
-    LxResult Evaluate (CLxUser_ChannelRead &chan_read, CLxUser_Item &item);
+    LxResult Evaluate (CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj);
     LxResult Copy     (SurfDef *other);
     int      Compare  (SurfDef *other);
     
     double m_size;
     
    private:
-    std::vector <ChannelDef> m_user_channels;
+    std::vector <ModoTools::UsrChnDef>  m_usrChan;
   };
 
-  LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, CLxUser_Item &item, unsigned *index)
+  LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *index)
   {
-    // before generating the surface, we need to read a
-    // number of input channel values and cache them.
-    
+    BaseInterface *b = GetBaseInterface(item_obj);
+    if (!b)
+    { feLogError("SurfDef::Prepare(): GetBaseInterface() returned NULL");
+      return LXe_INVALIDARG; }
+
+    //
+    CLxUser_Item item(item_obj);
     if (!eval.test() || !item.test())   return LXe_NOINTERFACE;
     if (!index)                         return LXe_INVALIDARG;
     
-    // collect the user channels on this item.
-    m_user_channels.clear();
-    userChannels_collect(item, m_user_channels);
-    
-    // allocate any standard channels as inputs.
-    index[0] = eval.AddChan(item, CHAN_DIMENSIONS, LXfECHAN_READ);
-    
-    // enumerate over the user channels and add them as inputs.
-    for (unsigned i = 0; i < m_user_channels.size(); i++)
+   
+    // add the fixed input channels to eval.
+    *index = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+             eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+             eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
+
+    // collect all the user channels and add them to eval.
+    ModoTools::usrChanCollect(item, m_usrChan);
+    for (unsigned i = 0; i < m_usrChan.size(); i++)
     {
-      ChannelDef *channel = &m_user_channels[i];
-      channel->eval_index = eval.AddChan(item, channel->chan_index, LXfECHAN_READ);
+      ModoTools::UsrChnDef &c = m_usrChan[i];
+
+      unsigned int type;
+      if      (b->HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
+      else if (b->HasOutputPort(c.chan_name.c_str()))     type =                 LXfECHAN_WRITE;
+      else                                                type = LXfECHAN_READ | LXfECHAN_WRITE;
+
+      c.eval_index = eval.AddChan(item, c.chan_index, type);
     }
     
     // done.
     return LXe_OK;
   }
-
+  
   LxResult SurfDef::Evaluate(CLxUser_Attributes &attr, unsigned index)
   {
     // once the channels have been allocated as inputs for the surface,
@@ -148,8 +343,11 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
     
     if (!attr.test ())  return LXe_NOINTERFACE;
     
-    // read the size channel and cache it.
-    m_size = attr.Float(index);
+    // read fixed channels.
+    int FabricActive = attr.Int(index + 0);
+    m_size = (FabricActive ? 1 : 0.1);
+    int FabricEval   = attr.Int(index + 1);
+    m_size += 0.01 * FabricEval;
     
     /*
       Enumerate over the user channels and read them here. We don't do
@@ -158,26 +356,28 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
       FETODO: Add support for the other channel types and do something with
       the channels.
     */
-    for (int i = 0; i < m_user_channels.size(); i++)
+    for (int i = 0; i < m_usrChan.size(); i++)
     {
-      ChannelDef *channel = &m_user_channels[i];
-      unsigned    type    = 0;
+      ModoTools::UsrChnDef *channel = &m_usrChan[i];
+      unsigned              type    = 0;
         
       if (channel->eval_index < 0)
         continue;
 
       type = attr.Type((unsigned)channel->eval_index);
 
-      if (type == LXi_TYPE_INTEGER)     attr.Int  ((unsigned)channel->eval_index);
-      else if (type == LXi_TYPE_FLOAT)  attr.Float((unsigned)channel->eval_index);
+      if (type == LXi_TYPE_INTEGER)     m_size += 0.1 * attr.Int  ((unsigned)channel->eval_index);
+      else if (type == LXi_TYPE_FLOAT)  m_size += 0.1 * attr.Float((unsigned)channel->eval_index);
     }
 
     // done.
     return LXe_OK;
   }
 
-  LxResult SurfDef::Evaluate(CLxUser_ChannelRead &chan_read, CLxUser_Item &item)
+  LxResult SurfDef::Evaluate(CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj)
   {
+    CLxUser_Item item(item_obj);
+
     // In some instances, the surface may be evaluated using a channel read
     // object to simply evaluate the surface directly. This function is used
     // to read the channels and cache them.
@@ -185,11 +385,13 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
     if (!chan_read.test() || !item.test())  return LXe_NOINTERFACE;
     
     // collect the user channels on this item.
-    m_user_channels.clear();
-    userChannels_collect(item, m_user_channels);
+    ModoTools::usrChanCollect(item, m_usrChan);
     
-    // read the size channel and cache it.
-    m_size = chan_read.FValue(item, CHAN_DIMENSIONS);
+    // read fixed channels.
+    int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
+    m_size = (FabricActive ? 1 : 0.1);
+    int FabricEval = chan_read.IValue(item, CHN_NAME_IO_FabricEval);
+    m_size += 0.01 * FabricEval;
     
     /*
       Enumerate over the user channels and read them here. We don't do
@@ -198,18 +400,18 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
       FETODO: Add support for the other channel types and do something with
       the channels.
     */
-    for (int i = 0; i < m_user_channels.size(); i++)
+    for (int i = 0; i < m_usrChan.size(); i++)
     {
-      ChannelDef *channel = &m_user_channels[i];
-      unsigned    type    = 0;
+      ModoTools::UsrChnDef *channel = &m_usrChan[i];
+      unsigned              type    = 0;
         
       if (channel->eval_index < 0)
         continue;
         
       item.ChannelType(channel->chan_index, &type);
 
-      if (type == LXiCHANTYPE_INTEGER)    chan_read.IValue(item, channel->chan_index);
-      else if (type == LXiCHANTYPE_FLOAT) chan_read.FValue(item, channel->chan_index);
+      if (type == LXi_TYPE_INTEGER)     m_size += 0.1 * chan_read.IValue(item, (unsigned)channel->eval_index);
+      else if (type == LXi_TYPE_FLOAT)  m_size += 0.1 * chan_read.FValue(item, (unsigned)channel->eval_index);
     }
 
     // done.
@@ -224,9 +426,9 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
     if (!other) return LXe_INVALIDARG;
     
     // copy the cached user channel information.
-    m_user_channels.clear();
-    m_user_channels.reserve(other->m_user_channels.size());
-    std::copy(other->m_user_channels.begin(), other->m_user_channels.end(), std::back_inserter(m_user_channels));
+    m_usrChan.clear();
+    m_usrChan.reserve(other->m_usrChan.size());
+    std::copy(other->m_usrChan.begin(), other->m_usrChan.end(), std::back_inserter(m_usrChan));
     
     // copy any built in channel values.
     m_size = other->m_size;
@@ -251,7 +453,11 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
     
     if (!other) return 0;
 
-    return (m_size > other->m_size) - (other->m_size > m_size);
+    if (m_size > other->m_size)                     return  1;
+    if (m_size < other->m_size)                     return -1;
+    if (m_usrChan.size() > other->m_usrChan.size()) return  1;
+    if (m_usrChan.size() < other->m_usrChan.size()) return  1;
+    return 0;
   }
 
   /*
@@ -790,40 +996,198 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
       lx::AddSpawner          (SERVER_NAME_dfgModoPI ".inst", srv);
     }
     
-    Instance () : m_surf_spawn(SERVER_NAME_dfgModoPI ".surf") {}
+    Instance() : m_surf_spawn(SERVER_NAME_dfgModoPI ".surf")
+    {
+      feLog("dfgModoPI::Instance::Instance() new BaseInterface");
+      // init members and create base interface.
+      m_userData.zero();
+      m_userData.baseInterface = new BaseInterface();
+    }
+    ~Instance()
+    {
+      // note: for some reason this destructor doesn't get called.
+      //       as a workaround the cleaning up, i.e. deleting the base interface, is done
+      //       in the function pins_Cleanup().
+    };
 
-    LxResult     pins_Initialize  (ILxUnknownID item_obj, ILxUnknownID super_obj)             LXx_OVERRIDE;
+    LxResult    pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)                  LXx_OVERRIDE;
+    LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)                         LXx_OVERRIDE;
+    LxResult    pins_AfterLoad(void)                                                        LXx_OVERRIDE;
+    void        pins_Doomed(void)                                                           LXx_OVERRIDE;
+    void        pins_Cleanup(void)                                                          LXx_OVERRIDE;
     
-    LxResult     isurf_GetSurface (ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)  LXx_OVERRIDE;
-    LxResult     isurf_Prepare    (ILxUnknownID eval_obj, unsigned *index)                    LXx_OVERRIDE;
-    LxResult     isurf_Evaluate   (ILxUnknownID attr_obj, unsigned index, void **ppvObj)      LXx_OVERRIDE;
+    LxResult    isurf_GetSurface (ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj) LXx_OVERRIDE;
+    LxResult    isurf_Prepare    (ILxUnknownID eval_obj, unsigned *index)                   LXx_OVERRIDE;
+    LxResult    isurf_Evaluate   (ILxUnknownID attr_obj, unsigned index, void **ppvObj)     LXx_OVERRIDE;
+
+   public:
+    ILxUnknownID        m_item_obj;
+    emUserData          m_userData;
 
    private:
     CLxSpawner<Surface> m_surf_spawn;
-    
-    CLxUser_Item        m_item;
     SurfDef             m_surf_def;
   };
 
-  LxResult Instance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super_obj)
+  LxResult Instance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)
+  {
+    // store item ID in our member.
+    m_item_obj = item_obj;
+
+    //
+    if (m_userData.baseInterface)   m_userData.baseInterface->m_ILxUnknownID_dfgModoPI = item_obj;
+    else                            feLogError("m_userData.baseInterface == NULL");
+
+    // done.
+    return LXe_OK;
+  }
+
+  LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
   {
     /*
-      Cache the item for this instance - this is so we can use it for
-      channel reads and evaluations in the SurfaceItem interface.
+      This function is called when an item is added.
+      We store the pointer at the BaseInterface here so that the
+      functions JSONValue::io_Write() can write the JSON string
+      when the scene is saved.
+
+      note: this function is *not* called when a scene is loaded,
+            instead pins_AfterLoad() is called.
     */
 
-    return (m_item.set(item_obj) ? LXe_OK : LXe_FAILED);
+    // store pointer at BaseInterface in JSON channel.
+    bool ok = false;
+    CLxUser_Item item(m_item_obj);
+    if (item.test())
+    {
+      CLxUser_ChannelWrite chanWrite;
+      if (chanWrite.from(item))
+      {
+        CLxUser_Value value_json;
+        if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
+        {
+          JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
+          if (jv)
+          {
+            ok = true;
+            jv->baseInterface = m_userData.baseInterface;
+          }
+        }
+      }
+    }
+    if (!ok)
+      feLogError("failed to store pointer at BaseInterface in JSON channel");
+
+    // done.
+    return LXe_OK;
+  }
+
+  LxResult Instance::pins_AfterLoad(void)
+  {
+    /*
+      This function is called when a scene was loaded.
+
+      We store the pointer at the BaseInterface here so that the
+      functions JSONValue::io_Write() can write the JSON string
+      when the scene is saved.
+
+      Furthermore we set the graph from the content (i.e. the string)
+      of the channel CHN_NAME_IO_FabricJSON.
+    */
+
+    // init err string.
+    std::string err = "pins_AfterLoad() failed: ";
+
+    // get BaseInterface.
+    BaseInterface *b = m_userData.baseInterface;
+
+    // create item.
+    CLxUser_Item item(m_item_obj);
+    if (!item.test())
+    { err += "item(m_item_obj) failed";
+      feLogError(err);
+      return LXe_OK;  }
+
+    // log.
+    std::string itemName;
+    item.GetUniqueName(itemName);
+    std::string info;
+    info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
+    feLog(0, info.c_str(), info.length());
+
+    // create channel reader.
+    CLxUser_ChannelRead chanRead;
+    if (!chanRead.from(item))
+    { err += "failed to create channel reader.";
+      feLogError(err);
+      return LXe_OK;  }
+
+    // get value object.
+    CLxUser_Value value;
+    if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
+    { // note: we don't log an error here.
+      return LXe_OK;  }
+
+    // get content of channel CHN_NAME_IO_FabricJSON.
+    JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+    if (!jv)
+    { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
+      feLogError(err);
+      return LXe_OK;  }
+
+    // set pointer at BaseInterface.
+    jv->baseInterface = m_userData.baseInterface;
+
+    // do it.
+    try
+    {
+      if (jv->s.length() > 0)
+        b->setFromJSON(jv->s);
+    }
+    catch (FabricCore::Exception e)
+    {
+      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+      feLogError(err);
+    }
+
+    // done.
+    return LXe_OK;
+  }
+
+  void Instance::pins_Doomed(void)
+  {
+    if (m_userData.baseInterface)
+    {
+      // delete only widget.
+      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+      if (w) delete w;
+    }
+  }
+
+  void Instance::pins_Cleanup(void)
+  {
+    // note: for some reason the destructor doesn't get called,
+    //       so the workaround is to delete the base interface
+    //       and the rest of the user data here.
+
+    m_userData.clear();
   }
 
   LxResult Instance::isurf_GetSurface(ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)
   {
     /*
-      This function is used to allocate a surface for displaying in the GL
-      viewport. We're given a channel read object and we're expected to
+      This function is used to allocate a surface for displaying in the
+      GL viewport. We're given a channel read object and we're expected to
       read the channels needed to generate the surface and then return the
       spawned surface. We basically redirect the calls to the SurfDef
       helper functions.
     */
+
+    CLxUser_Item item(m_item_obj);
+    if (!item.test())
+    {
+      feLogError("Instance::isurf_GetSurface(): item(m_item_obj) failed");
+      return LXe_FAILED;
+    }
 
     CLxUser_ChannelRead chan_read (chanRead_obj);
     Surface            *surface    = NULL;
@@ -836,7 +1200,7 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
       definition = surface->Definition();
     
       if (definition)
-        return definition->Evaluate(chan_read, m_item);
+        return definition->Evaluate(chan_read, item);
     }
     
     return LXe_FAILED;
@@ -857,7 +1221,7 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
 
     CLxUser_Evaluation eval(eval_obj);
     
-    return m_surf_def.Prepare(eval, m_item, index);
+    return m_surf_def.Prepare(eval, m_item_obj, index);
   }
 
   LxResult Instance::isurf_Evaluate(ILxUnknownID attr_obj, unsigned index, void **ppvObj)
@@ -927,21 +1291,31 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
   LxResult Package::pkg_SetupChannels(ILxUnknownID addChan_obj)
   {
     /*
-      Add two channels to our item. One is an objref channel and is used for
-      caching the instanceable version of our surface, the other is a
-      dimensions channel that controls the size of the surface item.
+      Add some basic built in channels.
     */
 
-    CLxUser_AddChannel add_chan(addChan_obj);
-    
+    CLxUser_AddChannel  add_chan(addChan_obj);
+    LxResult            result = LXe_FAILED;
+
     if (add_chan.test())
     {
-      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);
-        
-      add_chan.NewChannel(CHAN_DIMENSIONS, LXsTYPE_DISTANCE);
-      add_chan.SetDefault(0.5, 0);
+      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);  // objref channel, used for caching the instanceable version of the surface
+
+      add_chan.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
+      add_chan.SetDefault(1, 1);
+
+      add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
+      add_chan.SetDefault(0, 0);
+      add_chan.SetInternal();
+
+      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
+      add_chan.SetStorage("+" SERVER_NAME_JSONValue);
+      add_chan.SetInternal();
+
+      result = LXe_OK;
     }
-    return LXe_OK;
+
+    return result;
   }
 
   LxResult Package::pkg_Attach(void **ppvObj)
@@ -1013,9 +1387,9 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
     void        Eval  (CLxUser_Evaluation &eval, CLxUser_Attributes &attr)  LXx_OVERRIDE;
     
    private:
-    int                       m_chan_index;
-    SurfDef                   m_surf_def;
-    std::vector <ChannelDef>  m_user_channels;
+    int                                 m_chan_index;
+    SurfDef                             m_surf_def;
+    std::vector <ModoTools::UsrChnDef>  m_usrChan;
   };
 
   Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
@@ -1050,10 +1424,10 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
     /*
       Next, we want to grab all of the user channels on the item and cache
       them. This is mostly so we can compare the list when the modifier
-      changes. This could potentially be moved to the Surface Defintion.
+      changes. This could potentially be moved to the Surface definition.
     */
     
-    userChannels_collect(item, m_user_channels);
+    ModoTools::usrChanCollect(item, m_usrChan);
   }
 
   bool Element::Test(ILxUnknownID item_obj)
@@ -1067,14 +1441,14 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
       specified item matches what we cached when we allocated the modifier.
     */
     
-    CLxUser_Item              item(item_obj);
-    std::vector <ChannelDef>  user_channels;
+    CLxUser_Item                        item(item_obj);
+    std::vector <ModoTools::UsrChnDef>  user_channels;
     
     if (item.test())
     {
-      userChannels_collect (item, user_channels);
+      ModoTools::usrChanCollect(item, user_channels);
         
-      return (user_channels.size() == m_user_channels.size());
+      return (user_channels.size() == m_usrChan.size());
     }
     
     return false;
@@ -1191,9 +1565,9 @@ void userChannels_collect (CLxUser_Item &item, std::vector <ChannelDef> &userCha
 
   BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
   {
-    /*Instance *inst = GetInstance(item_obj);
-    if (inst)   return inst->m_baseInterface;
-    else        */return NULL;
+    Instance *inst = GetInstance(item_obj);
+    if (inst)   return inst->m_userData.baseInterface;
+    else        return NULL;
   }
 
   // used in the plugin's initialize() function (see plugin.cpp).

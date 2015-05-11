@@ -2,6 +2,21 @@
 
 #include "_class_ModoTools.h"
 
+LXtTextValueHint hint_FabricDisplay[] =
+{
+   0,        "None",
+   1,        "Points",
+   2,        "Edges",
+  -1,         NULL
+};
+
+LXtTextValueHint hint_FabricOpacity[] =
+{
+   0,        "%min",
+   10000,    "%max",
+  -1,         NULL
+};
+
 bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
 {
   // init.

@@ -13,11 +13,11 @@
 
 std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
-FabricDFGWidget::FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface) : DFG::DFGCombinedWidget(parent)
+FabricDFGWidget::FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInterface) : DFG::DFGCombinedWidget(in_parent)
 {
   try
   {
-    m_baseInterface = baseInterface;
+    m_baseInterface = in_baseInterface;
     if (m_baseInterface)
     {
       FabricUI::DFG::DFGConfig config;
@@ -61,11 +61,14 @@ FabricDFGWidget::~FabricDFGWidget()
   }
 }
 
-FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound)
+FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound)
 {
+  if (!in_baseInterface)
+    return NULL;
+
   try
   {
-    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(baseInterface);
+    std::map<BaseInterface*, FabricDFGWidget*>::iterator it = s_instances.find(in_baseInterface);
     if (it == s_instances.end())
     {
       // don't create new widget?
@@ -90,12 +93,12 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *baseI
         return NULL;
 
       // create Fabric DFG widget
-      FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), baseInterface);
+      FabricDFGWidget *newDFGWidget = new FabricDFGWidget(fv->parentWidget(), in_baseInterface);
       fv->setWidget(newDFGWidget);
       fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
 
       // insert in map.
-      s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(baseInterface, newDFGWidget));
+      s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(in_baseInterface, newDFGWidget));
 
       // done.
       return newDFGWidget;
@@ -116,8 +119,9 @@ void FabricDFGWidget::onRecompilation()
 {
   if (m_baseInterface)
   {
-    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPIold) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIold);
   }
 }
 
@@ -132,8 +136,9 @@ void FabricDFGWidget::onDefaultValueChanged()
 {
   if (m_baseInterface)
   {
-    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPIold) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIold);
   }
 }
 

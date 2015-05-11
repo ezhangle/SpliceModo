@@ -16,8 +16,9 @@ std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
 BaseInterface::BaseInterface()
 {
   m_id                     = s_maxId++;
-  m_ILxUnknownID_dfgModoIM = NULL;
-  m_ILxUnknownID_dfgModoPI = NULL;
+  m_ILxUnknownID_dfgModoIM    = NULL;
+  m_ILxUnknownID_dfgModoPI    = NULL;
+  m_ILxUnknownID_dfgModoPIold = NULL;
 
   // construct the client
   if (s_instances.size() == 0)
@@ -193,6 +194,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     void             *unknownID = NULL;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoIM;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPI;
+    if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPIold;
 
     // log.
     if (false)
@@ -1437,8 +1439,9 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Por
     std::string err;
     CLxUser_Item item;
 
-    if      (m_ILxUnknownID_dfgModoIM)  item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
-    else if (m_ILxUnknownID_dfgModoPI)  item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
+    if      (m_ILxUnknownID_dfgModoIM)    item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
+    else if (m_ILxUnknownID_dfgModoPI)    item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
+    else if (m_ILxUnknownID_dfgModoPIold) item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPIold);
     else                        {   err = "m_ILxUnknownID_dfgModo??? == NULL";
                                     logErrorFunc(0, err.c_str(), err.length());
                                     return false;   }

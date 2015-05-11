@@ -1,7 +1,7 @@
 {
   "objectType" : "Graph",
   "metadata" : {
-    "uiGraphPan" : "{\"x\": -20, \"y\": -43}"
+    "uiGraphPan" : "{\"x\": 396.351, \"y\": -4.556}"
     },
   "title" : "",
   "ports" : [
@@ -10,6 +10,12 @@
       "name" : "frame",
       "portType" : "In",
       "typeSpec" : "SInt32"
+      },
+    {
+      "metadata" : {},
+      "name" : "mesh",
+      "portType" : "Out",
+      "typeSpec" : "PolygonMesh"
       }
     ],
   "extDeps" : {},
@@ -23,7 +29,7 @@
       "pins" : [
         {
           "defaultValues" : {
-            "String" : "T:\\SoftXSI_Plug-ins\\fabricDevelopment\\FabricEngine-2.0.0-preview-2-Windows-x86_64\\Resources\\frog.abc"
+            "String" : ""
             }
           },
         {
@@ -167,9 +173,71 @@
       "name" : "Clear",
       "executable" : "Fabric.Exts.Geometry.PolygonMesh.Clear",
       "metadata" : {
-        "uiGraphPos" : "{\"x\": 616.971, \"y\": 304.274}"
+        "uiGraphPos" : "{\"x\": 621.971, \"y\": 334.274}"
         },
       "pins" : [
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "PolygonMesh",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.PolygonMesh",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": 482.149, \"y\": 381.129}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "FilePathS",
+      "executable" : "Fabric.Exts.FileIO.FilePath.FilePath",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -376.186, \"y\": 66.472}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {
+            "String" : "${FABRIC_DIR}/Resources/frog.abc"
+            }
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "ExpandEnvVars",
+      "executable" : "Fabric.Exts.FileIO.FilePath.ExpandEnvVars",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -214.185, \"y\": 70.472}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
+        {
+          "defaultValues" : {}
+          }
+        ]
+      },
+    {
+      "name" : "String",
+      "executable" : "Fabric.Exts.FileIO.FilePath.String",
+      "metadata" : {
+        "uiGraphPos" : "{\"x\": -47.184, \"y\": 69.472}"
+        },
+      "pins" : [
+        {
+          "defaultValues" : {}
+          },
         {
           "defaultValues" : {}
           }
@@ -195,17 +263,37 @@
     "GetPolyMesh.result" : [
       "ReadSample.this"
       ],
+    "ReadSample.mesh" : [
+      "mesh"
+      ],
     "FrameToSeconds.seconds" : [
       "ReadSample.time"
       ],
     "Clear.this" : [
       "ReadSample.mesh"
+      ],
+    "PolygonMesh.result" : [
+      "Clear.this"
+      ],
+    "FilePathS.result" : [
+      "ExpandEnvVars.this"
+      ],
+    "ExpandEnvVars.result" : [
+      "String.this"
+      ],
+    "String.result" : [
+      "AlembicArchiveReader.fileName"
       ]
     },
   "args" : [
     {
       "type" : "SInt32",
-      "value" : 41
+      "value" : 0
+      },
+    {
+      "type" : "PolygonMesh",
+      "value" : null,
+      "ext" : "Geometry"
       }
     ]
   }

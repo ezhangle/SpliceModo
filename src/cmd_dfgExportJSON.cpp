@@ -6,6 +6,7 @@
 #include "cmd_dfgExportJSON.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
+#include "itm_dfgModoPIold.h"
 
 #include <fstream>
 #include <streambuf>
@@ -64,6 +65,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   BaseInterface *b = NULL;
   if (!b) b = dfgModoIM::GetBaseInterface(item);
   if (!b) b = dfgModoPI::GetBaseInterface(item);
+  if (!b) b = dfgModoPIold::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);

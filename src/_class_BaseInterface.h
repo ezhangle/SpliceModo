@@ -22,6 +22,7 @@ class BaseInterface : public FabricServices::DFGWrapper::View
 
   void *m_ILxUnknownID_dfgModoIM;     // ILxUnknownID of the Modo item modifier node   "dfgModoIM"). Cast this to ILxUnknownID.
   void *m_ILxUnknownID_dfgModoPI;     // ILxUnknownID of the Modo procedural item node "dfgModoPI"). Cast this to ILxUnknownID.
+  void *m_ILxUnknownID_dfgModoPIold;  // ILxUnknownID of the Modo procedural item node "dfgModoPIold"). Cast this to ILxUnknownID.
 
   // instance management
   // right now there are no locks in place,

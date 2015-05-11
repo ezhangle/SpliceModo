@@ -823,8 +823,7 @@ namespace dfgModoIM
       if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
         return NULL;
 
-      const unsigned int numBytes = __min(strlen(typeName), strlen(SERVER_NAME_dfgModoIM));
-      if (memcmp(typeName, SERVER_NAME_dfgModoIM, numBytes))
+      if (strcmp(typeName, SERVER_NAME_dfgModoIM))
         return NULL;
     }
 

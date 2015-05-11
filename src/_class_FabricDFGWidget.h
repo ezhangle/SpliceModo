@@ -28,10 +28,10 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
   Q_OBJECT
 
  public:
-  FabricDFGWidget(QWidget *parent, BaseInterface *baseInterface);
+  FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInterface);
   ~FabricDFGWidget();
 
-  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *baseInterface, bool createNewIfNoneFound = true);
+  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound = true);
 
  public slots:
   virtual void onRecompilation();

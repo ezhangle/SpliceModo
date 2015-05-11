@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.022   // note: version 0.021 was "FMX Demo", i.e. the last version before using Matt Cox' surfaceItem sample instead of my own emReader code.
+#define FABRICMODO_PLUGIN_VERSION   0.100   // note: version 0.021 was "FMX Demo", i.e. the last version before using Matt Cox' surfaceItem sample instead of my own emReader code.
 
 // disable some annoying VS warnings.
 #pragma warning(disable : 4530)   // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
@@ -17,7 +17,7 @@
 #define SERVER_NAME_JSONValue     "dfgJSONValue"  // the JSON custom type (used by the channels "FabricJSON").
 #define SERVER_NAME_dfgModoIM     "dfgModoIM"     // dfgModo "item modifier".
 #define SERVER_NAME_dfgModoPI     "dfgModoPI"     // dfgModo "procedural item".
-#define SERVER_NAME_dfgModoPInew  "dfgModoPInew"  // dfgModo "procedural item" (new version based on Matt's sample).
+#define SERVER_NAME_dfgModoPIold  "dfgModoPIold"  // dfgModo "procedural item" (old version based on emReader).
 
 // constants: fixed channel names.
 #define CHN_NAME_INSTOBJ          "instObj"       // out: (dfgModoPI only) objref channel.

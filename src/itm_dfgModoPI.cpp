@@ -418,7 +418,7 @@ namespace dfgModoPI
     return LXe_OK;
   }
 
-  LxResult SurfDef::Copy (SurfDef *other)
+  LxResult SurfDef::Copy(SurfDef *other)
   {
     // This function is used to copy the cached channel values from one
     // surface definition to another. We also copy the cached user channels.
@@ -441,7 +441,7 @@ namespace dfgModoPI
     return LXe_OK;
   }
 
-  int SurfDef::Compare (SurfDef *other)
+  int SurfDef::Compare(SurfDef *other)
   {
     /*
       This function does a comparison of another SurfDef with this one. It
@@ -456,7 +456,7 @@ namespace dfgModoPI
     if (m_size > other->m_size)                     return  1;
     if (m_size < other->m_size)                     return -1;
     if (m_usrChan.size() > other->m_usrChan.size()) return  1;
-    if (m_usrChan.size() < other->m_usrChan.size()) return  1;
+    if (m_usrChan.size() < other->m_usrChan.size()) return -1;
     return 0;
   }
 
@@ -1261,7 +1261,9 @@ namespace dfgModoPI
     Implement the Package.
   */
 
-  class Package : public CLxImpl_Package, public CLxImpl_SceneItemListener
+  class Package : public CLxImpl_Package,
+                  public CLxImpl_ChannelUI,
+                  public CLxImpl_SceneItemListener
   {
    public:
     static void initialize()
@@ -1276,16 +1278,17 @@ namespace dfgModoPI
 
     Package () : m_inst_spawn(SERVER_NAME_dfgModoPI ".inst") {}
     
-    LxResult    pkg_SetupChannels (ILxUnknownID addChan_obj)    LXx_OVERRIDE;
-    LxResult    pkg_Attach        (void **ppvObj)               LXx_OVERRIDE;
-    LxResult    pkg_TestInterface (const LXtGUID *guid)         LXx_OVERRIDE;
-    
-    void        sil_ItemAddChannel(ILxUnknownID item_obj)       LXx_OVERRIDE;
+    LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)                          LXx_OVERRIDE;
+    LxResult    pkg_Attach          (void **ppvObj)                                     LXx_OVERRIDE;
+    LxResult    pkg_TestInterface   (const LXtGUID *guid)                               LXx_OVERRIDE;
 
-    static LXtTagInfoDesc   descInfo[];
+    void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
+    void        sil_ItemChannelName (ILxUnknownID item_obj, unsigned int index)         LXx_OVERRIDE;
+
+    static LXtTagInfoDesc descInfo[];
     
    private:
-    CLxSpawner<Instance>    m_inst_spawn;
+    CLxSpawner <Instance> m_inst_spawn;
   };
 
   LxResult Package::pkg_SetupChannels(ILxUnknownID addChan_obj)
@@ -1356,6 +1359,23 @@ namespace dfgModoPI
     CLxUser_Item  item(item_obj);
     CLxUser_Scene scene;
     
+    if (item.test() && item.IsA(gItemType_dfgModoPI.Type()))
+    {
+      if (item.GetContext(scene))
+        scene.EvalModInvalidate(SERVER_NAME_dfgModoPI ".mod");
+    }
+  }
+
+  void Package::sil_ItemChannelName(ILxUnknownID item_obj, unsigned int index)
+  {
+    /*
+      When a user channel's name changes, this function will be
+      called. We use it to invalidate our modifier so that it's reallocated.
+    */
+
+    CLxUser_Item    item(item_obj);
+    CLxUser_Scene   scene;
+
     if (item.test() && item.IsA(gItemType_dfgModoPI.Type()))
     {
       if (item.GetContext(scene))
@@ -1436,21 +1456,29 @@ namespace dfgModoPI
       When the list of user channels for a particular item changes, the
       modifier will be invalidated. This function will be called to check
       if the modifier we allocated previously matches what we'd allocate
-      if the Alloc function was called now. We return true if it does. In
-      our case, we check if the current list of user channels for the
-      specified item matches what we cached when we allocated the modifier.
+      if the Alloc function was called now. We return true if it does.
     */
-    
-    CLxUser_Item                        item(item_obj);
-    std::vector <ModoTools::UsrChnDef>  user_channels;
-    
+
+    CLxUser_Item             item(item_obj);
+    std::vector <ModoTools::UsrChnDef> tmp;
+
     if (item.test())
     {
-      ModoTools::usrChanCollect(item, user_channels);
-        
-      return (user_channels.size() == m_usrChan.size());
+      ModoTools::usrChanCollect(item, tmp);
+
+      if (tmp.size() == m_usrChan.size())
+      {
+        bool foundDifference = false;
+        for (int i = 0; i < tmp.size(); i++)
+          if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
+          {
+            foundDifference = true;
+            break;
+          }
+        return !foundDifference;
+      }
     }
-    
+
     return false;
   }
 

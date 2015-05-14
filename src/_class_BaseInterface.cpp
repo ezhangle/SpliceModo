@@ -1,7 +1,6 @@
 #include "plugin.h"
 
 #include "_class_BaseInterface.h"
-#include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
 
 FabricCore::Client BaseInterface::s_client;

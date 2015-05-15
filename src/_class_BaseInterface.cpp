@@ -14,7 +14,8 @@ std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
 
 BaseInterface::BaseInterface()
 {
-  m_id                     = s_maxId++;
+  //
+  m_id                        = s_maxId++;
   m_ILxUnknownID_dfgModoIM    = NULL;
   m_ILxUnknownID_dfgModoPI    = NULL;
   m_ILxUnknownID_dfgModoPIold = NULL;
@@ -32,9 +33,9 @@ BaseInterface::BaseInterface()
       s_client = FabricCore::Client(&logFunc, NULL, &options);
 
       // load basic extensions
-      s_client.loadExtension("Math",           "", false);
-      s_client.loadExtension("Geometry",       "", false);
-      s_client.loadExtension("FileIO",         "", false);
+      s_client.loadExtension("Math",     "", false);
+      s_client.loadExtension("Geometry", "", false);
+      s_client.loadExtension("FileIO",   "", false);
 
       // create a host for Canvas
       s_host = new FabricServices::DFGWrapper::Host(s_client);
@@ -49,7 +50,7 @@ BaseInterface::BaseInterface()
     }
   }
 
-  // instert in map.
+  // insert in map.
   s_instances.insert(std::pair<unsigned int, BaseInterface*>(m_id, this));
 
   //
@@ -317,7 +318,7 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     if (!in_portName || in_portName[0] == '\0')  return false;
     const FabricCore::DFGPortType portType = (testForInput ? FabricCore::DFGPortType_In : FabricCore::DFGPortType_Out);
 
-    // set the port name we will use for the search, i.e. check if the last two characters resemble
+    // set the port name that we will use for the search, i.e. check if the last two characters resemble
     // something like ".X", ".R", etc. meaning we are dealing with a scalar channel belonging to a vector/color channel.
     std::string portName = in_portName;
     if (portName.length() > 2)

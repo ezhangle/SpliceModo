@@ -13,6 +13,11 @@
 // includes.
 #include <string>
 
+// win32 stuff.
+#ifdef _WIN32
+  #define snprintf  _snprintf
+#endif
+
 // constants: Modo item/server names.
 #define SERVER_NAME_JSONValue     "dfgJSONValue"  // the JSON custom type (used by the channels "FabricJSON").
 #define SERVER_NAME_dfgModoIM     "dfgModoIM"     // dfgModo "item modifier".

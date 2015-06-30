@@ -9,7 +9,6 @@
 #include <QtGui/QDockWidget>
 #include <QtGui/QShowEvent>
 
-#include <DFGWrapper/DFGWrapper.h>
 #include <ASTWrapper/KLASTManager.h>
 #include <Commands/CommandStack.h>
 #include <map>
@@ -18,8 +17,9 @@
 #include <FabricUI/DFG/DFGLogWidget.h>
 #include <FabricUI/DFG/DFGCombinedWidget.h>
 #include <FabricUI/DFG/DFGValueEditor.h>
+//#include <FabricUI/DFG/Dialogs/DFGBaseDialog.h>
 
-#include <FabricSplice.h>
+//#include <FabricSplice.h>
 #include "_class_BaseInterface.h"
 #include "_class_FabricView.h"
 

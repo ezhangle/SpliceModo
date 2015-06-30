@@ -23,14 +23,14 @@ FabricDFGWidget::FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInter
       FabricUI::DFG::DFGConfig config;
       config.klEditorConfig.codeBackgroundColor = QColor(255, 0, 0);
 
-      init(m_baseInterface->getClient(),
-           m_baseInterface->getManager(),
-           m_baseInterface->getHost(),
-          *m_baseInterface->getBinding(),
-           m_baseInterface->getGraph(),
-           m_baseInterface->getStack(),
-           false,
-           config);
+      init(*m_baseInterface->getClient(),
+            m_baseInterface->getManager(),
+            m_baseInterface->getHost(),
+            m_baseInterface->getBinding(),
+            m_baseInterface->getBinding().getExec(),
+            m_baseInterface->getStack(),
+            false,
+            config);
     }
 
     QObject::connect(this, SIGNAL(valueChanged()), this, SLOT(onDefaultValueChanged()));
@@ -171,7 +171,7 @@ void FabricDFGWidget::refreshGraph(void)
   {
     if (!m_baseInterface)   return;
     if (!getDfgWidget())    return;
-    getDfgWidget()->setGraph(m_baseInterface->getHost(), *m_baseInterface->getBinding(), m_baseInterface->getGraph());
+    getDfgWidget()->setGraph(m_baseInterface->getHost(), m_baseInterface->getBinding(), m_baseInterface->getBinding().getExec());
   }
   catch (FabricCore::Exception e)
   {

@@ -111,22 +111,23 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
       feLogError(err);
       return;    }
 
+    // get graph.
+    FabricCore::DFGExec graph = b->getBinding().getExec();
+    if (!graph.isValid())
+    { feLogError(err + "failed to get a valid graph.");
+      return; }
+
     // re-create all user channels.
-    FabricServices::DFGWrapper::PortList portlist = b->getGraph()->getPorts();
-    for (int fi = 0; fi < portlist.size(); fi++)
+    for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
     {
-      // get pointer at port.
-      if (portlist[fi].isNull())
-        continue;
-      FabricServices::DFGWrapper::PortPtr port = portlist[fi];
-
       // if the port has the wrong type then skip it.
-      if (   port->getPortType() != FabricCore::DFGPortType_In
-          && port->getPortType() != FabricCore::DFGPortType_Out)
+      if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_In
+          && graph.getExecPortType(fi) != FabricCore::DFGPortType_Out)
         continue;
 
-      if (!b->CreateModoUserChannelForPort(port))
-      { feLogError(err + "creating user channel for port \"" + port->getName() + "\" failed. Continuing anyway.");
+      // create a Modo user channel for this port.
+      if (!b->CreateModoUserChannelForPort(b->getBinding(), graph.getExecPortName(fi)))
+      { feLogError(err + "creating user channel for port \"" + graph.getExecPortName(fi) + "\" failed. Continuing anyway.");
         return; }
     }
 

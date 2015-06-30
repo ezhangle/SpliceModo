@@ -66,16 +66,8 @@ if FABRIC_BUILD_OS == 'Darwin':
 env.MergeFlags(modoFlags)
 
 # services flags
-if len(commandsFlags.keys()) > 0:
-  env.MergeFlags(commandsFlags)
-  env.MergeFlags(codeCompletionFlags)
-else:
-  if FABRIC_BUILD_OS == 'Windows':
-    env.Append(LIBS = ['FabricServices-MSVC-'+env['MSVC_VERSION']])
-  else:
-    env.Append(LIBS = ['FabricServices'])
-  env.Append(LIBS = ['FabricSplitSearch'])
-
+env.MergeFlags(commandsFlags)
+env.MergeFlags(codeCompletionFlags)
 
 # build the ui libraries for modo
 uiLibPrefix = 'uiModo'+str(MODO_VERSION)
@@ -153,14 +145,11 @@ if FABRIC_BUILD_OS == 'Darwin':
     ]))
   modoModule = env.LoadableModule(target = target, source = pluginSources)
 else:
-  libSuffix = '.so'
-  if FABRIC_BUILD_OS == 'Windows':
-    libSuffix = '.mll'
   if FABRIC_BUILD_OS == 'Linux':
     exportsFile = env.File('Linux.exports').srcnode()
     env.Append(SHLINKFLAGS = ['-Wl,--version-script='+str(exportsFile)])
     env[ '_LIBFLAGS' ] = '-Wl,--start-group ' + env['_LIBFLAGS'] + ' -Wl,--end-group'
-  modoModule = env.SharedLibrary(target = target, source = pluginSources, SHLIBSUFFIX=libSuffix, SHLIBPREFIX='')
+  modoModule = env.SharedLibrary(target = target, source = pluginSources)
 
 moduleFileModoVersion = MODO_VERSION
 
@@ -172,26 +161,6 @@ modoFiles.append(env.Install(STAGE_DIR, libFabricModo))
 #   modoFiles.append(env.Install(os.path.join(STAGE_DIR.abspath, 'ui'), os.path.join('Module', 'ui', xpm+'.xpm')))
 installedModule = env.Install(os.path.join(STAGE_DIR.abspath, 'plug-ins'), modoModule)
 modoFiles.append(installedModule)
-
-# # also install the FabricCore dynamic library
-# if FABRIC_BUILD_OS == 'Linux':
-#   env.Append(LINKFLAGS = [Literal('-Wl,-rpath,$ORIGIN/../../../lib/')])
-# if FABRIC_BUILD_OS == 'Darwin':
-#   env.Append(LINKFLAGS = [Literal('-Wl,-rpath,@loader_path/../../..')])
-# # if FABRIC_BUILD_OS == 'Windows':
-# #   FABRIC_CORE_VERSION = FABRIC_SPLICE_VERSION.rpartition('.')[0]
-# #   modoFiles.append(
-# #     env.Install(
-# #       os.path.join(STAGE_DIR.abspath, 'plug-ins'),
-# #       os.path.join(FABRIC_DIR, 'lib', 'FabricCore-' + FABRIC_CORE_VERSION + '.dll')
-# #       )
-# #     )
-# #   modoFiles.append(
-# #     env.Install(
-# #       os.path.join(STAGE_DIR.abspath, 'plug-ins'),
-# #       os.path.join(FABRIC_DIR, 'lib', 'FabricCore-' + FABRIC_CORE_VERSION + '.pdb')
-# #       )
-# #     )
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

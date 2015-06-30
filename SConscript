@@ -131,7 +131,7 @@ target = 'FabricModo'
 modoModule = None
 libSources = env.Glob(os.path.join(str(MODO_INCLUDE_DIR), 'common', '*.cpp'))
 libSources += env.Glob('src/*.cpp')
-libSources += env.QTMOC(env.File('lib/_class_FabricDFGWidget.h'))
+libSources += env.QTMOC(env.File('src/_class_FabricDFGWidget.h'))
 
 libFabricModo = env.StaticLibrary('libFabricModo', libSources)
 env.Append(LIBS = [libFabricModo])

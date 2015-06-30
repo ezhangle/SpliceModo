@@ -1442,11 +1442,11 @@ void BaseInterface::SetValueOfArgMat44(FabricCore::Client &client, FabricCore::D
   }
 }
 
-bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::PortPtr port)
+bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding &binding, char const *argName)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::CreateModoUserChannelForPort(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::CreateModoUserChannelForPort(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return false;
   }
@@ -1467,10 +1467,10 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Por
                             logErrorFunc(0, err.c_str(), err.length());
                             return false;    }
 
-    std::string resolvedType = port->getResolvedType();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
     std::string structType   = "";
 
-    if      (   resolvedType == "")         {   err = "port->getResolvedType() == \"\"";
+    if      (   resolvedType == "")         {   err = "resolvedType == \"\"";
                                                 logErrorFunc(0, err.c_str(), err.length());
                                                 return false;    }
 
@@ -1510,7 +1510,7 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricServices::DFGWrapper::Por
       return false;
     }
 
-    if (!ModoTools::CreateUserChannel(&item, port->getName(), resolvedType, structType, err))
+    if (!ModoTools::CreateUserChannel(&item, argName, resolvedType, structType, err))
       logErrorFunc(0, err.c_str(), err.length());
   }
   catch (FabricCore::Exception e)

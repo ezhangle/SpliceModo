@@ -3,14 +3,17 @@
 #include "_class_BaseInterface.h"
 #include "_class_ModoTools.h"
 
-FabricCore::Client BaseInterface::s_client;
-FabricServices::DFGWrapper::Host * BaseInterface::s_host = NULL;
-FabricServices::ASTWrapper::KLASTManager * BaseInterface::s_manager = NULL;
-FabricServices::Commands::CommandStack BaseInterface::s_stack;
-unsigned int BaseInterface::s_maxId = 0;
+#include <algorithm>
+#include <sstream>
+
+FabricCore::Client                        BaseInterface::s_client;
+FabricCore::DFGHost                       BaseInterface::s_host = NULL;
+FabricServices::ASTWrapper::KLASTManager *BaseInterface::s_manager = NULL;
+FabricServices::Commands::CommandStack    BaseInterface::s_stack;
+unsigned int                              BaseInterface::s_maxId = 0;
 void (*BaseInterface::s_logFunc)(void *, const char *, unsigned int) = NULL;
 void (*BaseInterface::s_logErrorFunc)(void *, const char *, unsigned int) = NULL;
-std::map<unsigned int, BaseInterface*> BaseInterface::s_instances;
+std::map <unsigned int, BaseInterface*>   BaseInterface::s_instances;
 
 BaseInterface::BaseInterface()
 {
@@ -38,7 +41,7 @@ BaseInterface::BaseInterface()
       s_client.loadExtension("FileIO",   "", false);
 
       // create a host for Canvas
-      s_host = new FabricServices::DFGWrapper::Host(s_client);
+      s_host = s_client.getDFGHost();
 
       // create KL AST manager
       s_manager = new FabricServices::ASTWrapper::KLASTManager(&s_client);
@@ -57,7 +60,7 @@ BaseInterface::BaseInterface()
   try
   {
     // create an empty binding
-    m_binding = s_host->createBindingToNewGraph();
+    m_binding = s_host.createBindingToNewGraph();
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
 
     // set the graph on the view
@@ -71,9 +74,15 @@ BaseInterface::BaseInterface()
 
 BaseInterface::~BaseInterface()
 {
+  std::string m;
+  std::stringstream ssId;
+  ssId << m_id;
+  m  = "calling ~BaseInterface(), m_id = " + ssId.str();
+  logFunc(NULL, m.c_str(), m.length());
+
   std::map<unsigned int, BaseInterface*>::iterator it = s_instances.find(m_id);
 
-  m_binding = FabricServices::DFGWrapper::Binding();
+  m_binding = FabricCore::DFGBinding();
 
   if (it != s_instances.end())
   {
@@ -85,7 +94,7 @@ BaseInterface::~BaseInterface()
         printf("Destructing client...\n");
         s_stack.clear();
         delete(s_manager);
-        delete(s_host);
+        s_host = FabricCore::DFGHost();
         s_client = FabricCore::Client();
       }
       catch (FabricCore::Exception e)
@@ -114,14 +123,14 @@ FabricCore::Client *BaseInterface::getClient()
   return &s_client;
 }
 
-FabricServices::DFGWrapper::Host *BaseInterface::getHost()
+FabricCore::DFGHost BaseInterface::getHost()
 {
   return s_host;
 }
 
-FabricServices::DFGWrapper::Binding *BaseInterface::getBinding()
+FabricCore::DFGBinding BaseInterface::getBinding()
 {
-  return &m_binding;
+  return m_binding;
 }
 
 FabricServices::ASTWrapper::KLASTManager *BaseInterface::getManager()
@@ -138,7 +147,7 @@ std::string BaseInterface::getJSON()
 {
   try
   {
-    return m_binding.exportJSON();
+    return m_binding.exportJSON().getCString();
   }
   catch (FabricCore::Exception e)
   {
@@ -151,7 +160,7 @@ void BaseInterface::setFromJSON(const std::string & json)
 {
   try
   {
-    m_binding = s_host->createBindingFromJSON(json.c_str());
+    m_binding = s_host.createBindingFromJSON(json.c_str());
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
     FabricServices::DFGWrapper::View::setGraph(FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
@@ -181,9 +190,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
   try
   {
     // get the base interface, its graph and the notification variant.
-    BaseInterface                                  &b            = *(BaseInterface *)userData;
-    FabricServices::DFGWrapper::GraphExecutablePtr  graph        = FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(b.getBinding()->getExecutable());
-    FabricCore::Variant                             notification = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
+    BaseInterface        &b             = *(BaseInterface *)userData;
+    FabricCore::DFGExec   graph         = b.getBinding().getExec();
+    FabricCore::Variant   notification  = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
 
     // get the notification's description and possibly the value of name.
     const FabricCore::Variant *vDesc = notification.getDictValue("desc");
@@ -227,8 +236,8 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
           }
 
           // create new channel
-          if (!graph.isNull() && graph->getPort(name.c_str())->getResolvedType() != std::string("PolygonMesh"))
-            b.CreateModoUserChannelForPort(graph->getPort(name.c_str()));
+          if (graph.isValid() && graph.getExecPortResolvedType(name.c_str()) != std::string("PolygonMesh"))
+            b.CreateModoUserChannelForPort(b.getBinding(), name.c_str());
         }
       }
 
@@ -330,21 +339,16 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     }
 
     // get the graph.
-    FabricServices::DFGWrapper::GraphExecutablePtr graph = FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable());
-    if (graph.isNull())
+    FabricCore::DFGExec graph = m_binding.getExec();
+    if (!graph.isValid())
     {
-      std::string s = "BaseInterface::HasPort(): m_binding.getExecutable() returned NULL pointer.";
+      std::string s = "BaseInterface::HasPort(): failed to get graph!";
       logErrorFunc(NULL, s.c_str(), s.length());
       return false;
     }
 
-    // get the port.
-    FabricServices::DFGWrapper::PortPtr port = graph->getPort(portName.c_str());
-
     // return result.
-    return (   !port.isNull()
-            &&  port->isValid()
-            &&  port->getPortType() == portType);
+    return (graph.haveExecPort(portName.c_str()) && graph.getExecPortType(portName.c_str()) == portType);
   }
   catch (FabricCore::Exception e)
   {
@@ -374,7 +378,7 @@ bool BaseInterface::HasOutputPort(const std::string &portName)
   return HasPort(portName.c_str(), false);
 }
 
-int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::PortPtr port, bool &out, bool strict)
+int BaseInterface::GetArgValueBoolean(FabricCore::DFGBinding &binding, char const * argName, bool &out, bool strict)
 {
   // init output.
   out = false;
@@ -383,11 +387,11 @@ int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::PortPtr port,
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)    return -1;
 
@@ -422,7 +426,7 @@ int BaseInterface::GetPortValueBoolean(FabricServices::DFGWrapper::PortPtr port,
   return 0;
 }
 
-int BaseInterface::GetPortValueInteger(FabricServices::DFGWrapper::PortPtr port, int &out, bool strict)
+int BaseInterface::GetArgValueInteger(FabricCore::DFGBinding &binding, char const * argName, int &out, bool strict)
 {
   // init output.
   out = 0;
@@ -431,11 +435,11 @@ int BaseInterface::GetPortValueInteger(FabricServices::DFGWrapper::PortPtr port,
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)    return -1;
 
@@ -470,7 +474,7 @@ int BaseInterface::GetPortValueInteger(FabricServices::DFGWrapper::PortPtr port,
   return 0;
 }
 
-int BaseInterface::GetPortValueFloat(FabricServices::DFGWrapper::PortPtr port, double &out, bool strict)
+int BaseInterface::GetArgValueFloat(FabricCore::DFGBinding &binding, char const * argName, double &out, bool strict)
 {
   // init output.
   out = 0;
@@ -479,11 +483,11 @@ int BaseInterface::GetPortValueFloat(FabricServices::DFGWrapper::PortPtr port, d
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)    return -1;
 
@@ -518,7 +522,7 @@ int BaseInterface::GetPortValueFloat(FabricServices::DFGWrapper::PortPtr port, d
   return 0;
 }
 
-int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::PortPtr port, std::string &out, bool strict)
+int BaseInterface::GetArgValueString(FabricCore::DFGBinding &binding, char const * argName, std::string &out, bool strict)
 {
   // init output.
   out = "";
@@ -527,11 +531,11 @@ int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::PortPtr port, 
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)    return -1;
 
@@ -544,22 +548,30 @@ int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::PortPtr port, 
       int     i;
       double  f;
 
-      if (GetPortValueBoolean(port, b, true) == 0)
+      if (GetArgValueBoolean(binding, argName, b, true) == 0)
       {
         out = (b ? "true" : "false");
         return 0;
       }
 
-      if (GetPortValueInteger(port, i, true) == 0)
+      if (GetArgValueInteger(binding, argName, i, true) == 0)
       {
-        snprintf(s, sizeof(s), "%ld", i);
+        #ifdef _WIN32
+          sprintf_s(s, sizeof(s), "%ld", i);
+        #else
+          snprintf(s, sizeof(s), "%ld", i);
+        #endif
         out = s;
         return 0;
       }
 
-      if (GetPortValueFloat(port, f, true) == 0)
+      if (GetArgValueFloat(binding, argName, f, true) == 0)
       {
-        snprintf(s, sizeof(s), "%f", f);
+        #ifdef _WIN32
+          sprintf_s(s, sizeof(s), "%f", f);
+        #else
+          snprintf(s, sizeof(s), "%f", f);
+        #endif
         out = s;
         return 0;
       }
@@ -579,7 +591,7 @@ int BaseInterface::GetPortValueString(FabricServices::DFGWrapper::PortPtr port, 
   return 0;
 }
 
-int BaseInterface::GetPortValueVec2(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueVec2(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -588,11 +600,11 @@ int BaseInterface::GetPortValueVec2(FabricServices::DFGWrapper::PortPtr port, st
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)      return -1;
 
@@ -613,7 +625,7 @@ int BaseInterface::GetPortValueVec2(FabricServices::DFGWrapper::PortPtr port, st
   return 0;
 }
 
-int BaseInterface::GetPortValueVec3(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueVec3(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -622,11 +634,11 @@ int BaseInterface::GetPortValueVec3(FabricServices::DFGWrapper::PortPtr port, st
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)      return -1;
 
@@ -661,7 +673,7 @@ int BaseInterface::GetPortValueVec3(FabricServices::DFGWrapper::PortPtr port, st
   return 0;
 }
 
-int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueVec4(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -670,11 +682,11 @@ int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::PortPtr port, st
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)      return -1;
 
@@ -706,7 +718,7 @@ int BaseInterface::GetPortValueVec4(FabricServices::DFGWrapper::PortPtr port, st
   return 0;
 }
 
-int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueColor(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -715,11 +727,11 @@ int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::PortPtr port, s
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)      return -1;
 
@@ -763,7 +775,7 @@ int BaseInterface::GetPortValueColor(FabricServices::DFGWrapper::PortPtr port, s
   return 0;
 }
 
-int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueRGB(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -772,11 +784,11 @@ int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::PortPtr port, std
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)    return -1;
 
@@ -811,7 +823,7 @@ int BaseInterface::GetPortValueRGB(FabricServices::DFGWrapper::PortPtr port, std
   return 0;
 }
 
-int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueRGBA(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -820,11 +832,11 @@ int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::PortPtr port, st
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-      std::string resolvedType = port->getResolvedType();
-      FabricCore::RTVal rtval  = port->getArgValue();
+      std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+      FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
       if      (resolvedType.length() == 0)      return -1;
 
@@ -862,7 +874,7 @@ int BaseInterface::GetPortValueRGBA(FabricServices::DFGWrapper::PortPtr port, st
   return 0;
 }
 
-int BaseInterface::GetPortValueQuat(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueQuat(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -871,11 +883,11 @@ int BaseInterface::GetPortValueQuat(FabricServices::DFGWrapper::PortPtr port, st
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)      return -1;
 
@@ -900,7 +912,7 @@ int BaseInterface::GetPortValueQuat(FabricServices::DFGWrapper::PortPtr port, st
   return 0;
 }
 
-int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict)
+int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const * argName, std::vector <double> &out, bool strict)
 {
   // init output.
   out.clear();
@@ -909,11 +921,11 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::PortPtr port, s
   try
   {
     // invalid port?
-    if (port.isNull() || !port->isValid())
+    if (!binding.getExec().haveExecPort(argName))
       return -2;
 
-    std::string resolvedType = port->getResolvedType();
-    FabricCore::RTVal rtval  = port->getArgValue();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    FabricCore::RTVal rtval  = binding.getArgValue(argName);
 
     if      (resolvedType.length() == 0)      return -1;
 
@@ -922,7 +934,11 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::PortPtr port, s
                                               FabricCore::RTVal rtRow;
                                               for (int i = 0; i < 4; i++)
                                               {
-                                                snprintf(member, sizeof(member), "row%ld", i);
+                                                #ifdef _WIN32
+                                                  sprintf_s(member, sizeof(member), "row%ld", i);
+                                                #else
+                                                  snprintf(member, sizeof(member), "row%ld", i);
+                                                #endif
                                                 rtRow = rtval.maybeGetMember(member);
                                                 out.push_back(rtRow.maybeGetMember("x").getFloat32());
                                                 out.push_back(rtRow.maybeGetMember("y").getFloat32());
@@ -943,15 +959,16 @@ int BaseInterface::GetPortValueMat44(FabricServices::DFGWrapper::PortPtr port, s
   return 0;
 }
 
-int BaseInterface::GetPortValuePolygonMesh(FabricServices::DFGWrapper::PortPtr  port,
-                                           unsigned int                        &out_numVertices,
-                                           unsigned int                        &out_numPolygons,
-                                           unsigned int                        &out_numSamples,
-                                           std::vector <float>                 *out_positions,
-                                           std::vector <uint32_t>              *out_polygonNumVertices,
-                                           std::vector <uint32_t>              *out_polygonVertices,
-                                           std::vector <float>                 *out_polygonNodeNormals,
-                                           bool                                 strict)
+int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
+                                           char const * argName,
+                                           unsigned int                            &out_numVertices,
+                                           unsigned int                            &out_numPolygons,
+                                           unsigned int                            &out_numSamples,
+                                           std::vector <float>                     *out_positions,
+                                           std::vector <uint32_t>                  *out_polygonNumVertices,
+                                           std::vector <uint32_t>                  *out_polygonVertices,
+                                           std::vector <float>                     *out_polygonNodeNormals,
+                                           bool                                     strict)
 {
   // init output.
   out_numVertices = 0;
@@ -966,18 +983,18 @@ int BaseInterface::GetPortValuePolygonMesh(FabricServices::DFGWrapper::PortPtr  
   int errID = 0;
   try
   {
-    // invalid port?
-    if (port.isNull() || !port->isValid())
-        return -2;
+    // port doesn't exist?
+    if(!binding.getExec().haveExecPort(argName))
+      return -2;
 
     // check type.
-    std::string resolvedType = port->getResolvedType();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
     if (   resolvedType.length() == 0
         || resolvedType != "PolygonMesh")
       return -1;
 
     // RTVal of the polygon mesh.
-    FabricCore::RTVal rtMesh = port->getArgValue();
+    FabricCore::RTVal rtMesh = binding.getArgValue(argName);
 
     // get amount of points, polys, etc.
     out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
@@ -1088,11 +1105,11 @@ int BaseInterface::GetPortValuePolygonMesh(FabricServices::DFGWrapper::PortPtr  
   return errID;
 }
 
-void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const bool val)
+void BaseInterface::SetValueOfArgBoolean(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const bool val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortBoolean(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgBoolean(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1101,7 +1118,7 @@ void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServ
   {
     FabricCore::RTVal rtval;
     rtval = FabricCore::RTVal::ConstructBoolean(client, val);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1109,11 +1126,11 @@ void BaseInterface::SetValueOfPortBoolean(FabricCore::Client &client, FabricServ
   }
 }
 
-void BaseInterface::SetValueOfPortSInt(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const int32_t val)
+void BaseInterface::SetValueOfArgSInt(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const int32_t val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortSInt(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgSInt(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1121,12 +1138,12 @@ void BaseInterface::SetValueOfPortSInt(FabricCore::Client &client, FabricService
   try
   {
     FabricCore::RTVal rtval;
-    std::string resolvedType = port->getResolvedType();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
     if      (resolvedType == "SInt8")   rtval = FabricCore::RTVal::ConstructSInt8 (client, val);
     else if (resolvedType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
     else if (resolvedType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
     else if (resolvedType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1134,11 +1151,11 @@ void BaseInterface::SetValueOfPortSInt(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortUInt(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const uint32_t val)
+void BaseInterface::SetValueOfArgUInt(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const uint32_t val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortUInt(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgUInt(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1146,12 +1163,12 @@ void BaseInterface::SetValueOfPortUInt(FabricCore::Client &client, FabricService
   try
   {
     FabricCore::RTVal rtval;
-    std::string resolvedType = port->getResolvedType();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
     if      (resolvedType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
     else if (resolvedType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
     else if (resolvedType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
     else if (resolvedType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1159,11 +1176,11 @@ void BaseInterface::SetValueOfPortUInt(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortFloat(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const double val)
+void BaseInterface::SetValueOfArgFloat(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const double val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortFloat(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgFloat(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1171,10 +1188,10 @@ void BaseInterface::SetValueOfPortFloat(FabricCore::Client &client, FabricServic
   try
   {
     FabricCore::RTVal rtval;
-    std::string resolvedType = port->getResolvedType();
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
     if      (resolvedType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
     else if (resolvedType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1182,11 +1199,11 @@ void BaseInterface::SetValueOfPortFloat(FabricCore::Client &client, FabricServic
   }
 }
 
-void BaseInterface::SetValueOfPortString(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::string &val)
+void BaseInterface::SetValueOfArgString(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::string &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortString(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgString(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1195,7 +1212,7 @@ void BaseInterface::SetValueOfPortString(FabricCore::Client &client, FabricServi
   {
     FabricCore::RTVal rtval;
     rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1203,11 +1220,11 @@ void BaseInterface::SetValueOfPortString(FabricCore::Client &client, FabricServi
   }
 }
 
-void BaseInterface::SetValueOfPortVec2(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgVec2(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortVec2(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgVec2(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1222,7 +1239,7 @@ void BaseInterface::SetValueOfPortVec2(FabricCore::Client &client, FabricService
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1230,11 +1247,11 @@ void BaseInterface::SetValueOfPortVec2(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortVec3(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgVec3(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortVec3(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgVec3(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1249,7 +1266,7 @@ void BaseInterface::SetValueOfPortVec3(FabricCore::Client &client, FabricService
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1257,11 +1274,11 @@ void BaseInterface::SetValueOfPortVec3(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortVec4(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgVec4(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortVec4(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgVec4(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1276,7 +1293,7 @@ void BaseInterface::SetValueOfPortVec4(FabricCore::Client &client, FabricService
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1284,11 +1301,11 @@ void BaseInterface::SetValueOfPortVec4(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortColor(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgColor(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortColor(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgColor(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1303,7 +1320,7 @@ void BaseInterface::SetValueOfPortColor(FabricCore::Client &client, FabricServic
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1311,11 +1328,11 @@ void BaseInterface::SetValueOfPortColor(FabricCore::Client &client, FabricServic
   }
 }
 
-void BaseInterface::SetValueOfPortRGB(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgRGB(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortRGB(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgRGB(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1328,9 +1345,9 @@ void BaseInterface::SetValueOfPortRGB(FabricCore::Client &client, FabricServices
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
     for (int i = 0; i < N; i++)
-      v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)__max(0.0, __min(255.0, 255.0 * val[i])) : 0);
+      v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1338,11 +1355,11 @@ void BaseInterface::SetValueOfPortRGB(FabricCore::Client &client, FabricServices
   }
 }
 
-void BaseInterface::SetValueOfPortRGBA(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgRGBA(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortRGBA(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgRGBA(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1355,9 +1372,9 @@ void BaseInterface::SetValueOfPortRGBA(FabricCore::Client &client, FabricService
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
     for (int i = 0; i < N; i++)
-      v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)__max(0.0, __min(255.0, 255.0 * val[i])) : 0);
+      v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1365,11 +1382,11 @@ void BaseInterface::SetValueOfPortRGBA(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortQuat(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgQuat(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortQuat(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgQuat(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1385,7 +1402,7 @@ void BaseInterface::SetValueOfPortQuat(FabricCore::Client &client, FabricService
     v[0]   = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
     v[1]   = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[3] : 0);
     rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {
@@ -1393,11 +1410,11 @@ void BaseInterface::SetValueOfPortQuat(FabricCore::Client &client, FabricService
   }
 }
 
-void BaseInterface::SetValueOfPortMat44(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val)
+void BaseInterface::SetValueOfArgMat44(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
-  if (port.isNull() || !port->isValid())
+  if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::SetValueOfPortMat44(): port no good (either NULL or invalid).";
+    std::string s = "BaseInterface::SetValueOfArgMat44(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
     return;
   }
@@ -1417,7 +1434,7 @@ void BaseInterface::SetValueOfPortMat44(FabricCore::Client &client, FabricServic
       v[i]    = FabricCore::RTVal::Construct(client, "Vec4", 4, xyzt);
     }
     rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
-    binding.setArgValue(port->getName(), rtval);
+    binding.setArgValue(argName, rtval);
   }
   catch (FabricCore::Exception e)
   {

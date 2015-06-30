@@ -7,21 +7,20 @@
 #pragma warning(disable : 4806)  // unsafe operation: no value of type 'bool' promoted to type ...etc.
 
 // includes.
-#include <DFGWrapper/DFGWrapper.h>
 #include <ASTWrapper/KLASTManager.h>
 #include <Commands/CommandStack.h>
 #include <map>
 
 // a management class for client and host
-class BaseInterface : public FabricServices::DFGWrapper::View
+class BaseInterface
 {
  public:
 
   BaseInterface();
   ~BaseInterface();
 
-  void *m_ILxUnknownID_dfgModoIM;     // ILxUnknownID of the Modo item modifier node   "dfgModoIM"). Cast this to ILxUnknownID.
-  void *m_ILxUnknownID_dfgModoPI;     // ILxUnknownID of the Modo procedural item node "dfgModoPI"). Cast this to ILxUnknownID.
+  void *m_ILxUnknownID_dfgModoIM;     // ILxUnknownID of the Modo item modifier node   "dfgModoIM").    Cast this to ILxUnknownID.
+  void *m_ILxUnknownID_dfgModoPI;     // ILxUnknownID of the Modo procedural item node "dfgModoPI").    Cast this to ILxUnknownID.
   void *m_ILxUnknownID_dfgModoPIold;  // ILxUnknownID of the Modo procedural item node "dfgModoPIold"). Cast this to ILxUnknownID.
 
   // instance management
@@ -33,8 +32,8 @@ class BaseInterface : public FabricServices::DFGWrapper::View
 
   // accessors
   static FabricCore::Client                       *getClient();
-  static FabricServices::DFGWrapper::Host         *getHost();
-  FabricServices::DFGWrapper::Binding             *getBinding();
+  static FabricCore::DFGHost                       getHost();
+  FabricCore::DFGBinding                           getBinding();
   static FabricServices::ASTWrapper::KLASTManager *getManager();
   static FabricServices::Commands::CommandStack   *getStack();
 
@@ -45,31 +44,6 @@ class BaseInterface : public FabricServices::DFGWrapper::View
   // logging.
   static void setLogFunc(void (*in_logFunc)(void *, const char *, unsigned int));
   static void setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *, unsigned int));
-
-  // notifications
-  virtual void onNotification(char const * json)                                                                                  {}
-  virtual void onNodeInserted(FabricServices::DFGWrapper::NodePtr node)                                                           {}
-  virtual void onNodeRemoved(FabricServices::DFGWrapper::NodePtr node)                                                            {}
-  virtual void onPinInserted(FabricServices::DFGWrapper::PinPtr pin)                                                              {}
-  virtual void onPinRemoved(FabricServices::DFGWrapper::PinPtr pin)                                                               {}
-  virtual void onPortInserted(FabricServices::DFGWrapper::PortPtr port)                                                           {}
-  virtual void onPortRemoved(FabricServices::DFGWrapper::PortPtr port)                                                            {}
-  virtual void onEndPointsConnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst)     {}
-  virtual void onEndPointsDisconnected(FabricServices::DFGWrapper::EndPointPtr src, FabricServices::DFGWrapper::EndPointPtr dst)  {}
-  virtual void onNodeMetadataChanged(FabricServices::DFGWrapper::NodePtr node, const char * key, const char * metadata)           {}
-  virtual void onNodeTitleChanged(FabricServices::DFGWrapper::NodePtr node, const char * title)                                   {}
-  virtual void onPortRenamed(FabricServices::DFGWrapper::PortPtr port, const char * oldName)                                      {}
-  virtual void onPinRenamed(FabricServices::DFGWrapper::PinPtr pin, const char * oldName)                                         {}
-  virtual void onExecMetadataChanged(FabricServices::DFGWrapper::ExecutablePtr exec, const char * key, const char * metadata)     {}
-  virtual void onExtDepAdded(const char * extension, const char * version)                                                        {}
-  virtual void onExtDepRemoved(const char * extension, const char * version)                                                      {}
-  virtual void onNodeCacheRuleChanged(const char * path, const char * rule)                                                       {}
-  virtual void onExecCacheRuleChanged(const char * path, const char * rule)                                                       {}
-  virtual void onPortResolvedTypeChanged(FabricServices::DFGWrapper::PortPtr port, const char * resolvedType)                     {}
-  virtual void onPortTypeSpecChanged(FabricServices::DFGWrapper::PortPtr port, const char * typeSpec)                             {}
-  virtual void onPinResolvedTypeChanged(FabricServices::DFGWrapper::PinPtr pin, const char * resolvedType)                        {}
-  virtual void onPortMetadataChanged(FabricServices::DFGWrapper::PortPtr port, const char * key, const char * metadata)           {}
-  virtual void onPinMetadataChanged(FabricServices::DFGWrapper::PinPtr pin, const char * key, const char * metadata)              {}
 
   // binding notifications.
   static void bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength);
@@ -86,10 +60,10 @@ class BaseInterface : public FabricServices::DFGWrapper::View
   unsigned int        m_id;
   static unsigned int s_maxId;
   static FabricCore::Client                        s_client;
-  static FabricServices::DFGWrapper::Host         *s_host;
+  static FabricCore::DFGHost                       s_host;
   static FabricServices::ASTWrapper::KLASTManager *s_manager;
   static FabricServices::Commands::CommandStack    s_stack;
-  FabricServices::DFGWrapper::Binding              m_binding;
+  FabricCore::DFGBinding                           m_binding;
   static std::map<unsigned int, BaseInterface*>    s_instances;
 
   // returns true if the binding's executable has a port called portName that matches the port type (input/output).
@@ -99,6 +73,9 @@ class BaseInterface : public FabricServices::DFGWrapper::View
 
  public:
 
+  // returns the amount of base interfaces.
+  static int GetNumBaseInterfaces(void)  {  return s_instances.size();  }
+
   // returns true if the binding's executable has an input port called portName.
   bool HasInputPort(const char *portName);
   bool HasInputPort(const std::string &portName);
@@ -107,57 +84,61 @@ class BaseInterface : public FabricServices::DFGWrapper::View
   bool HasOutputPort(const char *portName);
   bool HasOutputPort(const std::string &portName);
 
-  // gets the value of a port.
-  // params:  port        the port.
+  // gets the value of an argument (= port).
+  // params:  binding     ref at binding.
+  //          argName     name of the argument (= port).
   //          out         will contain the result.
   //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
   // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 unknown, -4 Fabric exception.
-  static int GetPortValueBoolean(FabricServices::DFGWrapper::PortPtr port, bool                 &out, bool strict = false);
-  static int GetPortValueInteger(FabricServices::DFGWrapper::PortPtr port, int                  &out, bool strict = false);
-  static int GetPortValueFloat  (FabricServices::DFGWrapper::PortPtr port, double               &out, bool strict = false);
-  static int GetPortValueString (FabricServices::DFGWrapper::PortPtr port, std::string          &out, bool strict = false);
-  static int GetPortValueVec2   (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueVec3   (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueVec4   (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueColor  (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueRGB    (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueRGBA   (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueQuat   (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
-  static int GetPortValueMat44  (FabricServices::DFGWrapper::PortPtr port, std::vector <double> &out, bool strict = false);
+  static int GetArgValueBoolean(FabricCore::DFGBinding &binding, char const *argName, bool                 &out, bool strict = false);
+  static int GetArgValueInteger(FabricCore::DFGBinding &binding, char const *argName, int                  &out, bool strict = false);
+  static int GetArgValueFloat  (FabricCore::DFGBinding &binding, char const *argName, double               &out, bool strict = false);
+  static int GetArgValueString (FabricCore::DFGBinding &binding, char const *argName, std::string          &out, bool strict = false);
+  static int GetArgValueVec2   (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueVec3   (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueVec4   (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueColor  (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueRGB    (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueRGBA   (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueQuat   (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
+  static int GetArgValueMat44  (FabricCore::DFGBinding &binding, char const *argName, std::vector <double> &out, bool strict = false);
 
-  // gets the value of a "PolygonMesh" port.
-  // params:  port        the port.
+  // gets the value of a "PolygonMesh" argument (= port).
+  // params:  binding     ref at binding.
+  //          argName     name of the argument (= port).
   //          out_*       will contain the result. These may be NULL. See parameters for more information.
   //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
   // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
-  static int GetPortValuePolygonMesh(FabricServices::DFGWrapper::PortPtr  port,
-                                     unsigned int                        &out_numVertices,                       // amount of vertices.
-                                     unsigned int                        &out_numPolygons,                       // amount of polygons.
-                                     unsigned int                        &out_numSamples,                        // amount of samples.
-                                     std::vector <float>                 *out_positions              = NULL,     // vertex positions (as a flat array).
-                                     std::vector <uint32_t>              *out_polygonNumVertices     = NULL,     // polygon vertex counts.
-                                     std::vector <uint32_t>              *out_polygonVertices        = NULL,     // polygon vertex indices.
-                                     std::vector <float>                 *out_polygonNodeNormals     = NULL,     // polygon node normals.
-                                     bool                                 strict                     = false);
+  static int GetArgValuePolygonMesh(FabricCore::DFGBinding    &binding,
+                                     char const               *argName,
+                                     unsigned int             &out_numVertices,                       // amount of vertices.
+                                     unsigned int             &out_numPolygons,                       // amount of polygons.
+                                     unsigned int             &out_numSamples,                        // amount of samples.
+                                     std::vector <float>      *out_positions              = NULL,     // vertex positions (as a flat array).
+                                     std::vector <uint32_t>   *out_polygonNumVertices     = NULL,     // polygon vertex counts.
+                                     std::vector <uint32_t>   *out_polygonVertices        = NULL,     // polygon vertex indices.
+                                     std::vector <float>      *out_polygonNodeNormals     = NULL,     // polygon node normals.
+                                     bool                      strict                     = false);
 
-  // sets the value of a port.
-  static void SetValueOfPortBoolean(FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const bool                  val);
-  static void SetValueOfPortSInt   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const int32_t               val);
-  static void SetValueOfPortUInt   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const uint32_t              val);
-  static void SetValueOfPortFloat  (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const double                val);
-  static void SetValueOfPortString (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::string          &val);
-  static void SetValueOfPortVec2   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortVec3   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortVec4   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortColor  (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortRGB    (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortRGBA   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortQuat   (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
-  static void SetValueOfPortMat44  (FabricCore::Client &client, FabricServices::DFGWrapper::Binding &binding, FabricServices::DFGWrapper::PortPtr port, const std::vector <double> &val);
 
-  // creates a Modo matching (i.e. same name, type, data type) user channel for a Fabric port.
+  // sets the value of an argument (= port).
+  static void SetValueOfArgBoolean      (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const bool                  val);
+  static void SetValueOfArgSInt         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const int32_t               val);
+  static void SetValueOfArgUInt         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const uint32_t              val);
+  static void SetValueOfArgFloat        (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const double                val);
+  static void SetValueOfArgString       (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::string          &val);
+  static void SetValueOfArgVec2         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgVec3         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgVec4         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgColor        (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgRGB          (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgRGBA         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgQuat         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgMat44        (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+
+  // creates a Modo matching (i.e. same name, type, data type) user channel for a Fabric argument (= port).
   // returns: true on success, false otherwise.
-  bool CreateModoUserChannelForPort(FabricServices::DFGWrapper::PortPtr port);
+  bool CreateModoUserChannelForPort(FabricCore::DFGBinding &binding, char const *argName);
 };
 
 #endif  // SRC__CLASS_BASEINTERFACE_H_

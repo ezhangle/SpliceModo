@@ -169,24 +169,25 @@ struct _polymesh
 
     // set from DFG port.
     // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
-    int setFromDFGPort(FabricServices::DFGWrapper::PortPtr &port)
+    int setFromDFGPort(FabricCore::DFGBinding &binding, char const *argName)
     {
       // clear current.
       clear();
 
       // get RTVal.
-      FabricCore::RTVal rtMesh = port->getArgValue();
+      //FabricCore::RTVal rtMesh = port->getArgValue();
 
       // get the mesh data (except for the vertex normals).
-      int retGet = BaseInterface::GetPortValuePolygonMesh(  port,
-                                                            numVertices,
-                                                            numPolygons,
-                                                            numSamples,
-                                                            &vertPositions,
-                                                            &polyNumVertices,
-                                                            &polyVertices,
-                                                            &polyNodeNormals
-                                                          );
+      int retGet = BaseInterface::GetArgValuePolygonMesh( binding,
+                                                          argName,
+                                                          numVertices,
+                                                          numPolygons,
+                                                          numSamples,
+                                                         &vertPositions,
+                                                         &polyNumVertices,
+                                                         &polyVertices,
+                                                         &polyNodeNormals
+                                                        );
       // error?
       if (retGet)
       { clear();
@@ -1102,36 +1103,25 @@ bool CReadItemInstance::Read(bakedChannels &baked)
       if (changeInGeoRelevantChannel || !ud.polymesh.isValid())
       {
         BaseInterface *b = ud.baseInterface;
-        if (!b || !b->isValid())
+        if (!b)
           return false;
 
         // make ud.polymesh a valid, empty mesh.
         ud.polymesh.setEmptyMesh();
 
-        // pointers at DFG wrapper members.
-        FabricCore::Client                            *client;
-        FabricServices::DFGWrapper::Binding           *binding;
-        FabricServices::DFGWrapper::GraphExecutablePtr graph;
-        try
-        {
-          client = b->getClient();
-          if (!client)
-          {   feLogError("CReadItemInstance::Read(): getClient() returned NULL");
-              return false;     }
-          binding = b->getBinding();
-          if (!binding)
-          {   feLogError("CReadItemInstance::Read(): getBinding() returned NULL");
-              return false;     }
-          graph = DFGWrapper::GraphExecutablePtr::StaticCast(binding->getExecutable());
-          if (graph.isNull())
-          {   feLogError("CReadItemInstance::Read(): getExecutable() returned NULL");
-              return false;     }
-        }
-        catch (FabricCore::Exception e)
-        {
-          feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-          return false;
-        }
+        // refs 'n pointers.
+        FabricCore::Client *client  = b->getClient();
+        if (!client)
+        { feLogError("Element::Eval(): getClient() returned NULL");
+          return false; }
+        FabricCore::DFGBinding binding = b->getBinding();
+        if (!binding.isValid())
+        { feLogError("Element::Eval(): invalid binding");
+          return false; }
+        FabricCore::DFGExec graph = binding.getExec();
+        if (!graph.isValid())
+        { feLogError("Element::Eval(): invalid graph");
+          return false; }
 
         // Fabric Engine (step 1): WIP set the DFG ports (if available) from the fixed "Time" and "Frame" channels.
         if (ret)
@@ -1140,60 +1130,56 @@ bool CReadItemInstance::Read(bakedChannels &baked)
           {
             char        serr[256];
             std::string err = "";
-            FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
 
-            for (int fi = 0; fi < portlist.size(); fi++)
+            for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
             {
-              // get port.
-              FabricServices::DFGWrapper::PortPtr port = portlist[fi];
-              if (port.isNull())  continue;
-
               // if the port has the wrong type then skip it.
-              if (port->getPortType() != FabricCore::DFGPortType_In)
+              if (graph.getExecPortType(fi) != FabricCore::DFGPortType_In)
                 continue;
 
               // set item_user_channel and continue if port is not called "time" nor "frame" nor "matrix".
+              const char *portName = graph.getExecPortName(fi);
               double item_user_channel = 0;
-              if      (port->getName() == std::string(CHN_NAME_IO_time))    item_user_channel = ud.chn.time;
-              else if (port->getName() == std::string(CHN_NAME_IO_frame))   item_user_channel = ud.chn.frame;
-              else if (port->getName() == std::string(CHN_NAME_IO_matrix))  item_user_channel = 0;
-              else                                                continue;
+              if      (portName == std::string(CHN_NAME_IO_time))     item_user_channel = ud.chn.time;
+              else if (portName == std::string(CHN_NAME_IO_frame))    item_user_channel = ud.chn.frame;
+              else if (portName == std::string(CHN_NAME_IO_matrix))   item_user_channel = 0;
+              else                                                    continue;
 
               // "DFG port value = item user channel".
-              std::string port__resolvedType = port->getResolvedType();
+              std::string port__resolvedType = graph.getExecPortResolvedType(fi);
               if      (   port__resolvedType == "Boolean")    {
                                                                 bool val = (item_user_channel != 0);
-                                                                BaseInterface::SetValueOfPortBoolean(*client, *binding, port, val);
+                                                                BaseInterface::SetValueOfArgBoolean(*client, binding, portName, val);
                                                               }
               else if (   port__resolvedType == "SInt8"
                        || port__resolvedType == "SInt16"
                        || port__resolvedType == "SInt32"
                        || port__resolvedType == "SInt64" )    {
                                                                 int val = (int)item_user_channel;
-                                                                BaseInterface::SetValueOfPortSInt(*client, *binding, port, val);
+                                                                BaseInterface::SetValueOfArgSInt(*client, binding, portName, val);
                                                               }
               else if (   port__resolvedType == "UInt8"
                        || port__resolvedType == "UInt16"
                        || port__resolvedType == "UInt32"
                        || port__resolvedType == "UInt64" )    {
                                                                 unsigned int val = (unsigned int)item_user_channel;
-                                                                BaseInterface::SetValueOfPortUInt(*client, *binding, port, val);
+                                                                BaseInterface::SetValueOfArgUInt(*client, binding, portName, val);
                                                               }
               else if (   port__resolvedType == "Float32"
                        || port__resolvedType == "Float64" )   {
                                                                 double val = item_user_channel;
-                                                                BaseInterface::SetValueOfPortFloat(*client, *binding, port, val);
+                                                                BaseInterface::SetValueOfArgFloat(*client, binding, portName, val);
                                                               }
               else if (   port__resolvedType == "Mat44")      {
                                                                 std::vector <double> val;
                                                                 for (int j = 0; j < 4; j++)
                                                                   for (int i = 0; i < 4; i++)
                                                                     val.push_back(ud.chn.matrix[i][j]);
-                                                                BaseInterface::SetValueOfPortMat44(*client, *binding, port, val);
+                                                                BaseInterface::SetValueOfArgMat44(*client, binding, portName, val);
                                                               }
               else
               {
-                err = "the port \"" + std::string(port->getName()) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
+                err = "the port \"" + std::string(portName) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
                 break;
               }
             }
@@ -1224,7 +1210,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
           }
           try
           {
-            binding->execute();
+            binding.execute();
           }
           catch (FabricCore::Exception e)
           {
@@ -1240,26 +1226,22 @@ bool CReadItemInstance::Read(bakedChannels &baked)
             {
                 char        serr[256];
                 std::string err = "";
-                FabricServices::DFGWrapper::PortList portlist = graph->getPorts();
-                for (int fi=0;fi<portlist.size();fi++)
+                for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
                 {
-                    // get port.
-                    FabricServices::DFGWrapper::PortPtr port = portlist[fi];
-                    if (port.isNull())  continue;
-
-                    // wrong type of port?
-                    std::string resolvedType = port->getResolvedType();
-                    if (   port->getPortType() != FabricCore::DFGPortType_Out
-                        || resolvedType        != "PolygonMesh"  )
+                    // if the port has the wrong type then skip it.
+                    std::string resolvedType = graph.getExecPortResolvedType(fi);
+                    if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_Out
+                        || resolvedType              != "PolygonMesh"  )
                       continue;
 
                     // put the port's polygon mesh in tmpMesh.
+                    const char *portName = graph.getExecPortName(fi);
                     _polymesh tmpMesh;
-                    int retGet = tmpMesh.setFromDFGPort(port);
+                    int retGet = tmpMesh.setFromDFGPort(binding, portName);
                     if (retGet)
                     {
                       sprintf(serr, "%ld", retGet);
-                      err = "failed to get mesh from DFG port \"" + std::string(port->getName()) + "\" (returned " + serr + ")";
+                      err = "failed to get mesh from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
                       break;
                     }
 
@@ -1267,7 +1249,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                     if (!ud.polymesh.merge(tmpMesh))
                     {
                       sprintf(serr, "%ld", retGet);
-                      err = "failed to merge current mesh with mesh from DFG port \"" + std::string(port->getName()) + "\"";
+                      err = "failed to merge current mesh with mesh from DFG port \"" + std::string(portName) + "\"";
                       break;
                     }
                 }
@@ -1484,7 +1466,7 @@ LxResult CReadItemInstance::tsrc_Elements(ILxUnknownID tableau)
       return LXe_OK;
 
     // nothing to do?
-    if (!ret || !ud.chn.FabricActive || !ud.baseInterface || !ud.baseInterface->isValid())
+    if (!ret || !ud.chn.FabricActive || !ud.baseInterface)
         return LXe_OK;
 
     // go.
@@ -1609,7 +1591,7 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
     strokeDraw.set(viewStrokeDraw);
 
     // error?
-    if (!ret || !ud.baseInterface || !ud.baseInterface->isValid())
+    if (!ret || !ud.baseInterface)
     {
         // draw text.
         if (!ret)

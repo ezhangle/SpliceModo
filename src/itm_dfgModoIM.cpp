@@ -478,7 +478,7 @@ namespace dfgModoIM
     { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item_obj) returned NULL");
       return; }
 
-    // refs at DFG wrapper members.
+    // refs 'n pointers.
     FabricCore::Client *client  = b->getClient();
     if (!client)
     { feLogError("Element::Eval(): getClient() returned NULL");

@@ -116,24 +116,25 @@ namespace dfgModoPI
 
     // set from DFG port.
     // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
-    int setFromDFGPort(FabricServices::DFGWrapper::PortPtr &port)
+    int setFromDFGPort(FabricCore::DFGBinding &binding, char const *argName)
     {
       // clear current.
       clear();
 
       // get RTVal.
-      FabricCore::RTVal rtMesh = port->getArgValue();
+      //FabricCore::RTVal rtMesh = port->getArgValue();
 
       // get the mesh data (except for the vertex normals).
-      int retGet = BaseInterface::GetPortValuePolygonMesh( port,
-                                                           numVertices,
-                                                           numPolygons,
-                                                           numSamples,
-                                                          &vertPositions,
-                                                          &polyNumVertices,
-                                                          &polyVertices,
-                                                          &polyNodeNormals
-                                                         );
+      int retGet = BaseInterface::GetArgValuePolygonMesh( binding,
+                                                          argName,
+                                                          numVertices,
+                                                          numPolygons,
+                                                          numSamples,
+                                                         &vertPositions,
+                                                         &polyNumVertices,
+                                                         &polyVertices,
+                                                         &polyNodeNormals
+                                                        );
       // error?
       if (retGet)
       { clear();

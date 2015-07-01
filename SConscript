@@ -162,6 +162,7 @@ modoFiles.append(installedModule)
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('index.cfg'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgExportJSON.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgImportJSON.pl'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgOpenCanvas.pl'))
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

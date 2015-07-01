@@ -17,9 +17,6 @@ Import(
   'MODO_VERSION',
   'sharedCapiFlags',
   'ADDITIONAL_FLAGS',
-  'commandsFlags',
-  'astWrapperFlags',
-  'codeCompletionFlags'
   )
 
 env = parentEnv.Clone()
@@ -64,10 +61,6 @@ if FABRIC_BUILD_OS == 'Darwin':
     ])
 
 env.MergeFlags(modoFlags)
-
-# services flags
-env.MergeFlags(commandsFlags)
-env.MergeFlags(codeCompletionFlags)
 
 # build the ui libraries for modo
 uiLibPrefix = 'uiModo'+str(MODO_VERSION)
@@ -114,21 +107,24 @@ env.MergeFlags(locals()[uiLibPrefix + 'Flags'])
 
 env.MergeFlags(sharedCapiFlags)
 env.MergeFlags(ADDITIONAL_FLAGS)
-
-if FABRIC_BUILD_OS == 'Linux':
-  env.Append(LIBS=['boost_filesystem', 'boost_system'])
+env.Append(CCFLAGS = ['/wd4244'])
 
 target = 'FabricModo'
 
 modoModule = None
-libSources = env.Glob(os.path.join(str(MODO_INCLUDE_DIR), 'common', '*.cpp'))
-libSources += env.Glob('src/*.cpp')
-libSources += env.QTMOC(env.File('src/_class_FabricDFGWidget.h'))
 
-libFabricModo = env.StaticLibrary('libFabricModo', libSources)
-env.Append(LIBS = [libFabricModo])
+env.VariantDir(env.Dir('common'+MODO_VERSION), 
+  os.path.join(os.path.split(str(MODO_INCLUDE_DIR))[0], 'common')
+)
 
-pluginSources = env.Glob('plugin/*.cpp')
+pluginSources = env.Glob('src/*.cpp')
+pluginSources += env.QTMOC(env.File('src/_class_FabricDFGWidget.h'))
+commonSources = env.Glob(os.path.join(env.Dir('common'+MODO_VERSION).abspath, '*.cpp'))
+for commonSource in commonSources:
+  fileName = os.path.split(commonSource.abspath)[1]
+  if fileName == 'clean.cpp':
+    continue
+  pluginSources += [commonSource]
 
 if FABRIC_BUILD_OS == 'Darwin':
   # a loadable module will omit the 'lib' prefix name on Os X
@@ -143,24 +139,29 @@ if FABRIC_BUILD_OS == 'Darwin':
     '-install_name',
     '@rpath/Splice/Applications/'+spliceAppName+'/plugins/'+spliceAppName+".bundle"
     ]))
-  modoModule = env.LoadableModule(target = target, source = pluginSources)
+  modoModule = env.LoadableModule(target = target, source = pluginSources, SHLIBSUFFIX='.lx')
 else:
   if FABRIC_BUILD_OS == 'Linux':
     exportsFile = env.File('Linux.exports').srcnode()
     env.Append(SHLINKFLAGS = ['-Wl,--version-script='+str(exportsFile)])
     env[ '_LIBFLAGS' ] = '-Wl,--start-group ' + env['_LIBFLAGS'] + ' -Wl,--end-group'
-  modoModule = env.SharedLibrary(target = target, source = pluginSources)
+  modoModule = env.SharedLibrary(target = target, source = pluginSources, SHLIBSUFFIX='.lx')
 
-moduleFileModoVersion = MODO_VERSION
+installDir = None
+if FABRIC_BUILD_OS == 'Linux':
+  installDir = STAGE_DIR.Dir('linux64')
+elif FABRIC_BUILD_OS == 'Windows':
+  installDir = STAGE_DIR.Dir('win64')
+else:
+  installDir = STAGE_DIR.Dir('darwin')
+
+installedModule = env.Install(installDir, modoModule)
 
 modoFiles = []
-modoFiles.append(env.Install(STAGE_DIR, modoModule))
-modoFiles.append(env.Install(STAGE_DIR, libFabricModo))
-
-# for xpm in ['FE_tool']:
-#   modoFiles.append(env.Install(os.path.join(STAGE_DIR.abspath, 'ui'), os.path.join('Module', 'ui', xpm+'.xpm')))
-installedModule = env.Install(os.path.join(STAGE_DIR.abspath, 'plug-ins'), modoModule)
 modoFiles.append(installedModule)
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('index.cfg'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgExportJSON.pl'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgImportJSON.pl'))
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

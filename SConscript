@@ -157,12 +157,19 @@ else:
 
 installedModule = env.Install(installDir, modoModule)
 
+FABRIC_CORE_VERSION = '2.0'
+
 modoFiles = []
 modoFiles.append(installedModule)
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('index.cfg'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgExportJSON.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgImportJSON.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgOpenCanvas.pl'))
+modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.dll'))
+modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.pdb'))
+modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.dll'))
+modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.pdb'))
+modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbb.dll'))
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

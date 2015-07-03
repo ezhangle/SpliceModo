@@ -62,9 +62,6 @@ BaseInterface::BaseInterface()
     // create an empty binding
     m_binding = s_host.createBindingToNewGraph();
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
-
-    // set the graph on the view
-    //FabricServices::DFGWrapper::View::setGraph(FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
   catch (FabricCore::Exception e)
   {
@@ -162,7 +159,6 @@ void BaseInterface::setFromJSON(const std::string & json)
   {
     m_binding = s_host.createBindingFromJSON(json.c_str());
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
-    //FabricServices::DFGWrapper::View::setGraph(FabricServices::DFGWrapper::GraphExecutablePtr::StaticCast(m_binding.getExecutable()));
   }
   catch (FabricCore::Exception e)
   {

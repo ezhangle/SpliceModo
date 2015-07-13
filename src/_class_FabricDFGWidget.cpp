@@ -27,6 +27,7 @@ FabricDFGWidget::FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInter
             m_baseInterface->getManager(),
             m_baseInterface->getHost(),
             m_baseInterface->getBinding(),
+            FTL::StrRef(),
             m_baseInterface->getBinding().getExec(),
             m_baseInterface->getStack(),
             false,
@@ -171,7 +172,7 @@ void FabricDFGWidget::refreshGraph(void)
   {
     if (!m_baseInterface)   return;
     if (!getDfgWidget())    return;
-    getDfgWidget()->setGraph(m_baseInterface->getHost(), m_baseInterface->getBinding(), m_baseInterface->getBinding().getExec());
+    getDfgWidget()->getUIController()->setBindingExec(m_baseInterface->getBinding(), FTL::StrRef(), m_baseInterface->getBinding().getExec());
   }
   catch (FabricCore::Exception e)
   {

@@ -128,7 +128,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
       // create a Modo user channel for this port.
       if (!b->CreateModoUserChannelForPort(b->getBinding(), graph.getExecPortName(fi)))
       { feLogError(err + "creating user channel for port \"" + graph.getExecPortName(fi) + "\" failed. Continuing anyway.");
-        return; }
+        continue; }
     }
 
     // if we have an open DFG widget then refresh it.

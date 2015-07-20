@@ -120,9 +120,9 @@ void FabricDFGWidget::onRecompilation()
 {
   if (m_baseInterface)
   {
-    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPIold) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIold);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPIpilot) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIpilot);
   }
 }
 
@@ -137,9 +137,9 @@ void FabricDFGWidget::onDefaultValueChanged()
 {
   if (m_baseInterface)
   {
-    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)    ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPIold) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIold);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
+    if (m_baseInterface->m_ILxUnknownID_dfgModoPIpilot) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIpilot);
   }
 }
 

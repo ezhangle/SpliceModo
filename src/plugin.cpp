@@ -12,7 +12,7 @@
 #include "cmd_dfgOpenCanvas.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIold.h"
+#include "itm_dfgModoPIpilot.h"
 
 // log system.
 class CItemLog : public CLxLogMessage
@@ -78,7 +78,7 @@ void initialize()
     dfgOpenCanvas :: Command:: initialize();
     dfgModoIM     ::           initialize();
     dfgModoPI     ::           initialize();
-    dfgModoPIold  ::           initialize();
+    dfgModoPIpilot::           initialize();
     JSONValue     ::           initialize();
     FabricView    ::           initialize();
   }

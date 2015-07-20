@@ -6,7 +6,7 @@
 #include "cmd_dfgOpenCanvas.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIold.h"
+#include "itm_dfgModoPIpilot.h"
 
 // static tag description interface.
 LXtTagInfoDesc dfgOpenCanvas::Command::descInfo[] =
@@ -62,7 +62,7 @@ void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
   BaseInterface *b = NULL;
   if (!b) b = dfgModoIM::GetBaseInterface(item);
   if (!b) b = dfgModoPI::GetBaseInterface(item);
-  if (!b) b = dfgModoPIold::GetBaseInterface(item);
+  if (!b) b = dfgModoPIpilot::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);

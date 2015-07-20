@@ -19,10 +19,10 @@
 #endif
 
 // constants: Modo item/server names.
-#define SERVER_NAME_JSONValue     "dfgJSONValue"  // the JSON custom type (used by the channels "FabricJSON").
-#define SERVER_NAME_dfgModoIM     "dfgModoIM"     // dfgModo "item modifier".
-#define SERVER_NAME_dfgModoPI     "dfgModoPI"     // dfgModo "procedural item".
-#define SERVER_NAME_dfgModoPIold  "dfgModoPIold"  // dfgModo "procedural item" (old version based on emReader).
+#define SERVER_NAME_JSONValue       "dfgJSONValue"    // the JSON custom type (used by the channels "FabricJSON").
+#define SERVER_NAME_dfgModoIM       "dfgModoIM"       // dfgModo "item modifier".
+#define SERVER_NAME_dfgModoPI       "dfgModoPI"       // dfgModo "procedural item".
+#define SERVER_NAME_dfgModoPIpilot  "dfgModoPIpilot"  // dfgModo "procedural item" (old version based on emReader).
 
 // constants: fixed channel names.
 #define CHN_NAME_INSTOBJ          "instObj"       // out: (dfgModoPI only) objref channel.

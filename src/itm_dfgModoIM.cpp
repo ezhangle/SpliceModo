@@ -526,7 +526,8 @@ namespace dfgModoIM
                                                             retGet = ModoTools::GetChannelValueAsBoolean(attr, cd->eval_index, val);
                                                             if (retGet == 0)    BaseInterface::SetValueOfArgBoolean(*client, binding, portName, val);
                                                           }
-          else if (   port__resolvedType == "SInt8"
+          else if (   port__resolvedType == "Integer"
+                   || port__resolvedType == "SInt8"
                    || port__resolvedType == "SInt16"
                    || port__resolvedType == "SInt32"
                    || port__resolvedType == "SInt64" )    {
@@ -542,7 +543,8 @@ namespace dfgModoIM
                                                             retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, *(int *)val);
                                                             if (retGet == 0)    BaseInterface::SetValueOfArgUInt(*client, binding, portName, val);
                                                           }
-          else if (   port__resolvedType == "Float32"
+          else if (   port__resolvedType == "Scalar"
+                   || port__resolvedType == "Float32"
                    || port__resolvedType == "Float64" )   {
                                                             double val = 0;
                                                             retGet = ModoTools::GetChannelValueAsFloat(attr, cd->eval_index, val);

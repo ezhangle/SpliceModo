@@ -1151,7 +1151,8 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                                                                 bool val = (item_user_channel != 0);
                                                                 BaseInterface::SetValueOfArgBoolean(*client, binding, portName, val);
                                                               }
-              else if (   port__resolvedType == "SInt8"
+              else if (   port__resolvedType == "Integer"
+                       || port__resolvedType == "SInt8"
                        || port__resolvedType == "SInt16"
                        || port__resolvedType == "SInt32"
                        || port__resolvedType == "SInt64" )    {
@@ -1165,7 +1166,8 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                                                                 unsigned int val = (unsigned int)item_user_channel;
                                                                 BaseInterface::SetValueOfArgUInt(*client, binding, portName, val);
                                                               }
-              else if (   port__resolvedType == "Float32"
+              else if (   port__resolvedType == "Scalar"
+                       || port__resolvedType == "Float32"
                        || port__resolvedType == "Float64" )   {
                                                                 double val = item_user_channel;
                                                                 BaseInterface::SetValueOfArgFloat(*client, binding, portName, val);

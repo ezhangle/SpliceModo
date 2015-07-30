@@ -108,6 +108,7 @@ env.MergeFlags(locals()[uiLibPrefix + 'Flags'])
 env.MergeFlags(sharedCapiFlags)
 env.MergeFlags(ADDITIONAL_FLAGS)
 env.Append(CCFLAGS = ['/wd4244'])
+env.Append(CCFLAGS = ['/wd4700'])
 
 target = 'FabricModo'
 

@@ -49,7 +49,7 @@ class JSONValue : public CLxImpl_Value,
   
   struct _JSONValue
   {
-    std::string   s;
+    std::string    s;
     BaseInterface *baseInterface;
     void zero()
     {

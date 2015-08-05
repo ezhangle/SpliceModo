@@ -61,6 +61,10 @@ class ModoTools
 
  public:
 
+  // checks if the Fabric environment variables are set and outputs errors in the event log if one or more env. variables are missing.
+  // params:  showMsgbox    true: display a message box informing the user about the missing env. variables.
+   static void checkFabricEnvVariables(bool showMsgbox);
+
   // executes a command string.
   // params:  command                 command to execute, e.g. "channel.create bla item:myItem username:blabla".
   //          out_err                 contains an error description if the function returns false.

@@ -17,6 +17,53 @@ LXtTextValueHint hint_FabricOpacity[] =
   -1,         NULL
 };
 
+void ModoTools::checkFabricEnvVariables(bool showMsgbox)
+{
+  static bool _showMsgbox = true;
+
+  const int numEnvVars = 3;
+  std::string envVarNames   [numEnvVars];
+  std::string envVarExamples[numEnvVars];
+  envVarNames   [0] = "FABRIC_DIR";
+  envVarNames   [1] = "FABRIC_DFG_PATH";
+  envVarNames   [2] = "FABRIC_EXTS_PATH";
+  #ifdef _WIN32
+    envVarExamples[0] = "<Fabric-Installation-Path>";
+    envVarExamples[1] = "<Fabric-Installation-Path>\\Presets\\DFG";
+    envVarExamples[2] = "<Fabric-Installation-Path>\\Exts";
+  #else
+    envVarExamples[0] = "<Fabric-Installation-Path>";
+    envVarExamples[1] = "<Fabric-Installation-Path>/Presets/DFG";
+    envVarExamples[2] = "<Fabric-Installation-Path>/Exts";
+  #endif
+  for (int i=0;i<numEnvVars;i++)
+  {
+    // get the environment variable's value.
+    char *envVarValue  = getenv(envVarNames[i].c_str());
+
+    // no value found?
+    if (!envVarValue || envVarValue[0] == '\0')
+    {
+      // display message box.
+      if (_showMsgbox && showMsgbox)
+      {
+        _showMsgbox = false;
+        ExecuteCommand("dialog.setup {warning}", std::string());
+        ExecuteCommand("dialog.title {Fabric}", std::string());
+        ExecuteCommand("dialog.msg {One or more Fabric environment variables have not been set.}", std::string());
+        ExecuteCommand("dialog.open", std::string());
+        ExecuteCommand("dialog.setup {info}", std::string());
+        ExecuteCommand("dialog.msg {Please check the Event Log for more details.}", std::string());
+        ExecuteCommand("dialog.open", std::string());
+      }
+
+      // log error.
+      feLogError("The environment variable " + envVarNames[i] + " is not set.");
+      feLogError("Please make sure that " + envVarNames[i] + " is set and points to \"" + envVarExamples[i] + "\".");
+    }
+  }
+}
+
 bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
 {
   // init.

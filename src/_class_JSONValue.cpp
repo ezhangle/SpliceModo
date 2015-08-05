@@ -129,14 +129,10 @@ bool CLxUser_BlockRead::mzdRead(std::string &result)
   result = "";
 
   // go.
-  char  buf[128];
-  int   count = 0;
-  int   got;
+  char buf[128];
+  int  got;
   while (true)
   {
-    memset(buf, '\0', sizeof(buf));
-
-    got = 0;
     LxResult rc = ReadString(buf, sizeof(buf), LXfREADSTRING_PARTIAL | LXfREADSTRING_FORCE, &got);
     if (LXx_FAIL(rc))
       break;

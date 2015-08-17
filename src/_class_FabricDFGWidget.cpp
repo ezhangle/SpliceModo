@@ -7,6 +7,7 @@
 #include "plugin.h"
 
 #include "_class_FabricDFGWidget.h"
+#include "_class_DFGUICmdHandlerModo.h"
 #include "_class_ModoTools.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
@@ -21,15 +22,15 @@ FabricDFGWidget::FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInter
     if (m_baseInterface)
     {
       FabricUI::DFG::DFGConfig config;
-      config.klEditorConfig.codeBackgroundColor = QColor(255, 0, 0);
+      config.graphConfig.useOpenGL = false;
 
       init(*m_baseInterface->getClient(),
             m_baseInterface->getManager(),
             m_baseInterface->getHost(),
             m_baseInterface->getBinding(),
-            FTL::StrRef(),
+            "",
             m_baseInterface->getBinding().getExec(),
-            m_baseInterface->getStack(),
+            m_baseInterface->getCmdHandler(),
             false,
             config);
     }

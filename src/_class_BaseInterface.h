@@ -9,6 +9,7 @@
 // includes.
 #include <ASTWrapper/KLASTManager.h>
 #include <Commands/CommandStack.h>
+#include "_class_DFGUICmdHandlerModo.h"
 #include <map>
 
 // a management class for client and host
@@ -36,6 +37,7 @@ class BaseInterface
   FabricCore::DFGBinding                           getBinding();
   static FabricServices::ASTWrapper::KLASTManager *getManager();
   static FabricServices::Commands::CommandStack   *getStack();
+  DFGUICmdHandlerModo                             *getCmdHandler();
 
   // persistence
   std::string getJSON();
@@ -64,6 +66,7 @@ class BaseInterface
   static FabricServices::ASTWrapper::KLASTManager *s_manager;
   static FabricServices::Commands::CommandStack    s_stack;
   FabricCore::DFGBinding                           m_binding;
+  DFGUICmdHandlerModo                             *m_cmdHandler;
   static std::map<unsigned int, BaseInterface*>    s_instances;
 
   // returns true if the binding's executable has a port called portName that matches the port type (input/output).

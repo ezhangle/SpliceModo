@@ -171,6 +171,7 @@ modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore
 modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.dll'))
 modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.pdb'))
 modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbb.dll'))
+modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbbmalloc.dll'))
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

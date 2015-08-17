@@ -33,7 +33,7 @@ BaseInterface::BaseInterface()
       memset(&options, 0, sizeof(options));
       options.guarded = 1;
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
-      s_client = FabricCore::Client(&logFunc, NULL, &options);
+      s_client = FabricCore::Client(NULL, NULL, &options);  ///WIP s_client = FabricCore::Client(&logFunc, NULL, &options);
 
       // load basic extensions
       s_client.loadExtension("Math",     "", false);
@@ -62,6 +62,9 @@ BaseInterface::BaseInterface()
     // create an empty binding
     m_binding = s_host.createBindingToNewGraph();
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
+
+    // command handler.
+    m_cmdHandler = new DFGUICmdHandlerModo(this);
   }
   catch (FabricCore::Exception e)
   {
@@ -80,6 +83,8 @@ BaseInterface::~BaseInterface()
   std::map<unsigned int, BaseInterface*>::iterator it = s_instances.find(m_id);
 
   m_binding = FabricCore::DFGBinding();
+
+  delete m_cmdHandler;
 
   if (it != s_instances.end())
   {
@@ -138,6 +143,11 @@ FabricServices::ASTWrapper::KLASTManager *BaseInterface::getManager()
 FabricServices::Commands::CommandStack *BaseInterface::getStack()
 {
   return &s_stack;
+}
+
+DFGUICmdHandlerModo *BaseInterface::getCmdHandler()
+{
+  return m_cmdHandler;
 }
 
 std::string BaseInterface::getJSON()

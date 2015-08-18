@@ -11,8 +11,6 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     the object to our internal structure and then copy the data.
   */
 
-  if (!other)     return LXe_FAILED;
-
   _JSONValue *otherData = (_JSONValue *)((void *)other);
   if (!otherData) return LXe_FAILED;
   
@@ -49,7 +47,7 @@ LxResult JSONValue::val_SetString(const char *val)
     Similar to the get string function, this function sets the string.
   */
 
-  if (!val)   m_data.s = val;
+  if (val)    m_data.s = val;
   else        m_data.s.clear();
     
   return LXe_OK;

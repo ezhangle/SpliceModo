@@ -33,7 +33,7 @@ BaseInterface::BaseInterface()
       memset(&options, 0, sizeof(options));
       options.guarded = 1;
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
-      s_client = FabricCore::Client(NULL, NULL, &options);  ///WIP s_client = FabricCore::Client(&logFunc, NULL, &options);
+      s_client = FabricCore::Client(reportFunc, NULL, &options);
 
       // load basic extensions
       s_client.loadExtension("Math",     "", false);
@@ -316,6 +316,40 @@ void BaseInterface::logErrorFunc(void *userData, const char *message, unsigned i
   else
   {
     printf("BaseInterface: error: %s\n", message ? message : "");
+  }
+}
+
+void BaseInterface::reportFunc(void *reportUserdata, FEC_ReportSource source, FEC_ReportLevel level, char const *lineCStr, uint32_t lineSize)
+{
+  if (!lineCStr || lineSize <= 0)
+    return;
+
+  switch (source)
+  {
+    case FEC_ReportSource_NONE:
+      break;
+    case FEC_ReportSource_System:
+      break;
+    case FEC_ReportSource_User:
+      break;
+    case FEC_ReportSource_ALL:
+      break;
+    default:
+      break;
+  }
+
+  switch (source)
+  {
+    case FEC_ReportLevel_Error:
+      logErrorFunc(NULL, lineCStr, lineSize);
+      break;
+    case FEC_ReportLevel_Warning:
+    case FEC_ReportLevel_Info:
+    case FEC_ReportLevel_Debug:
+      logFunc(NULL, lineCStr, lineSize);
+      break;
+    default:
+      break;
   }
 }
 

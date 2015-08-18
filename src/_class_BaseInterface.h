@@ -55,6 +55,7 @@ class BaseInterface
   // logging.
   static void logFunc(void *userData, const char *message, unsigned int length);
   static void logErrorFunc(void * userData, const char * message, unsigned int length);
+  static void reportFunc(void *reportUserdata, FEC_ReportSource source, FEC_ReportLevel level, char const *lineCStr, uint32_t lineSize);
   static void (*s_logFunc)(void *, const char *, unsigned int);
   static void (*s_logErrorFunc)(void *, const char *, unsigned int);
 

@@ -1,6 +1,7 @@
 #include "plugin.h"
 
 #include "_class_BaseInterface.h"
+#include "_class_DFGUICmdHandlerModo.h"
 #include "_class_ModoTools.h"
 
 #include <algorithm>
@@ -9,7 +10,6 @@
 FabricCore::Client                        BaseInterface::s_client;
 FabricCore::DFGHost                       BaseInterface::s_host = NULL;
 FabricServices::ASTWrapper::KLASTManager *BaseInterface::s_manager = NULL;
-FabricServices::Commands::CommandStack    BaseInterface::s_stack;
 unsigned int                              BaseInterface::s_maxId = 0;
 void (*BaseInterface::s_logFunc)(void *, const char *, unsigned int) = NULL;
 void (*BaseInterface::s_logErrorFunc)(void *, const char *, unsigned int) = NULL;
@@ -94,7 +94,6 @@ BaseInterface::~BaseInterface()
       try
       {
         printf("Destructing client...\n");
-        s_stack.clear();
         delete(s_manager);
         s_host = FabricCore::DFGHost();
         s_client = FabricCore::Client();
@@ -138,11 +137,6 @@ FabricCore::DFGBinding BaseInterface::getBinding()
 FabricServices::ASTWrapper::KLASTManager *BaseInterface::getManager()
 {
   return s_manager;
-}
-
-FabricServices::Commands::CommandStack *BaseInterface::getStack()
-{
-  return &s_stack;
 }
 
 DFGUICmdHandlerModo *BaseInterface::getCmdHandler()

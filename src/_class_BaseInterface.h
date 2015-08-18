@@ -8,9 +8,10 @@
 
 // includes.
 #include <ASTWrapper/KLASTManager.h>
-#include <Commands/CommandStack.h>
-#include "_class_DFGUICmdHandlerModo.h"
 #include <map>
+
+struct _polymesh;
+class DFGUICmdHandlerModo;
 
 // a management class for client and host
 class BaseInterface
@@ -36,7 +37,6 @@ class BaseInterface
   static FabricCore::DFGHost                       getHost();
   FabricCore::DFGBinding                           getBinding();
   static FabricServices::ASTWrapper::KLASTManager *getManager();
-  static FabricServices::Commands::CommandStack   *getStack();
   DFGUICmdHandlerModo                             *getCmdHandler();
 
   // persistence
@@ -64,7 +64,6 @@ class BaseInterface
   static FabricCore::Client                        s_client;
   static FabricCore::DFGHost                       s_host;
   static FabricServices::ASTWrapper::KLASTManager *s_manager;
-  static FabricServices::Commands::CommandStack    s_stack;
   FabricCore::DFGBinding                           m_binding;
   DFGUICmdHandlerModo                             *m_cmdHandler;
   static std::map<unsigned int, BaseInterface*>    s_instances;
@@ -122,7 +121,6 @@ class BaseInterface
                                      std::vector <uint32_t>   *out_polygonVertices        = NULL,     // polygon vertex indices.
                                      std::vector <float>      *out_polygonNodeNormals     = NULL,     // polygon node normals.
                                      bool                      strict                     = false);
-
 
   // sets the value of an argument (= port).
   static void SetValueOfArgBoolean      (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const bool                  val);

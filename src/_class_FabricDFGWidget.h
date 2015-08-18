@@ -10,7 +10,6 @@
 #include <QtGui/QShowEvent>
 
 #include <ASTWrapper/KLASTManager.h>
-#include <Commands/CommandStack.h>
 #include <map>
 
 #include <FabricUI/DFG/DFGUI.h>

@@ -7,7 +7,7 @@
 #include "plugin.h"
 
 #include "_class_FabricDFGWidget.h"
-#include "_class_DFGUICmdHandlerModo.h"
+#include "_class_DFGUICmdHandlerDCC.h"
 #include "_class_ModoTools.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"

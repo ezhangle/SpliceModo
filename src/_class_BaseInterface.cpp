@@ -1,7 +1,7 @@
 #include "plugin.h"
 
 #include "_class_BaseInterface.h"
-#include "_class_DFGUICmdHandlerModo.h"
+#include "_class_DFGUICmdHandlerDCC.h"
 #include "_class_ModoTools.h"
 
 #include <algorithm>
@@ -64,7 +64,7 @@ BaseInterface::BaseInterface()
     m_binding.setNotificationCallback(bindingNotificationCallback, this);
 
     // command handler.
-    m_cmdHandler = new DFGUICmdHandlerModo(this);
+    m_cmdHandler = new DFGUICmdHandlerDCC(this);
   }
   catch (FabricCore::Exception e)
   {
@@ -139,7 +139,7 @@ FabricServices::ASTWrapper::KLASTManager *BaseInterface::getManager()
   return s_manager;
 }
 
-DFGUICmdHandlerModo *BaseInterface::getCmdHandler()
+DFGUICmdHandlerDCC *BaseInterface::getCmdHandler()
 {
   return m_cmdHandler;
 }
@@ -390,6 +390,20 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     //logErrorFunc(NULL, s.c_str(), s.length());
     return false;
   }
+}
+
+std::string BaseInterface::GetItemName(void)
+{
+  CLxUser_Item item;
+
+  if      (m_ILxUnknownID_dfgModoIM)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
+  else if (m_ILxUnknownID_dfgModoPI)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
+  else if (m_ILxUnknownID_dfgModoPIpilot) item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPIpilot);
+  else                                    return "";
+
+  if (!item.test())                       return "";
+
+  return item.IdentPtr();
 }
 
 bool BaseInterface::HasInputPort(const char *portName)

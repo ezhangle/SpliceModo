@@ -20,6 +20,7 @@
 #include "lx_plugin.hpp"
 #include <lx_surface.hpp>
 #include <lx_tableau.hpp>
+#include <lx_undo.hpp>
 #include "lx_value.hpp"
 #include <lx_vertex.hpp>
 #include <lx_vmodel.hpp>
@@ -35,10 +36,10 @@
 
 #include "lxlog.h"
 #include <lxvmath.h>
-#include "lx_wrap.hpp"
 
 #include "lxw_command.hpp"
 #include "lxw_customview.hpp"
+#include "lxw_undo.hpp"
 
 class ModoTools
 {

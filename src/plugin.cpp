@@ -1,5 +1,6 @@
 #include "plugin.h"
 
+#include "_class_DFGUICmdHandlerDCC.h"
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_FabricView.h"
@@ -76,11 +77,39 @@ void initialize()
     dfgIncEval    :: Command:: initialize();
     dfgLogVersion :: Command:: initialize();
     dfgOpenCanvas :: Command:: initialize();
-    dfgModoIM     ::           initialize();
-    dfgModoPI     ::           initialize();
-    dfgModoPIpilot::           initialize();
-    JSONValue     ::           initialize();
-    FabricView    ::           initialize();
+    //
+    dfgModoIM               :: initialize();
+    dfgModoPI               :: initialize();
+    dfgModoPIpilot          :: initialize();
+    //
+    JSONValue               :: initialize();
+    FabricView              :: initialize();
+    //
+    dfgRemoveNodes          :: initialize();
+    dfgConnect              :: initialize();
+    dfgDisconnect           :: initialize();
+    dfgAddGraph             :: initialize();
+    dfgAddFunc              :: initialize();
+    dfgInstPreset           :: initialize();
+    dfgAddVar               :: initialize();
+    dfgAddGet               :: initialize();
+    dfgAddSet               :: initialize();
+    dfgAddPort              :: initialize();
+    dfgRemovePort           :: initialize();
+    dfgMoveNodes            :: initialize();
+    dfgResizeBackDrop       :: initialize();
+    dfgImplodeNodes         :: initialize();
+    dfgExplodeNode          :: initialize();
+    dfgAddBackDrop          :: initialize();
+    dfgSetNodeTitle         :: initialize();
+    dfgSetNodeComment       :: initialize();
+    dfgSetCode              :: initialize();
+    dfgRenamePort           :: initialize();
+    dfgPaste                :: initialize();
+    dfgSetArgType           :: initialize();
+    dfgSetArgValue          :: initialize();
+    dfgSetPortDefaultValue  :: initialize();
+    dfgSetRefVarPath        :: initialize();
   }
 }
 

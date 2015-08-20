@@ -28,7 +28,7 @@ namespace dfgIncEval
     };
 
     // command service.
-    int     basic_CmdFlags  (void)                      LXx_OVERRIDE    { return LXfCMD_MODEL | LXfCMD_UNDO; }
+    int     basic_CmdFlags  (void)                      LXx_OVERRIDE    { return 0; /*no undo*/ }
     bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    { return true;          }
     void    cmd_Execute     (unsigned flags)            LXx_OVERRIDE;
   };

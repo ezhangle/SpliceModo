@@ -7,12 +7,11 @@
 #include <FabricUI/DFG/DFGUICmd/DFGUICmds.h>
 
 #include "lxu_command.hpp"
-
 #include "lxw_command.hpp"
 #include "lxw_undo.hpp"
 
 #define DFGUICmdHandlerLOG        false  // FOR DEBUGGING: log some info (class DFGUICmdHandler).
-#define UndoDFGUICmdLOG           true  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
+#define UndoDFGUICmdLOG           false  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
 #define DFGUICmdHandlerByPassDCC  true  // FOR DEBUGGING: execute the dfg commands directly instead of using the DCC's commands.
 
 class BaseInterface;
@@ -543,6 +542,8 @@ public:
                             int     basic_CmdFlags  (void)                      LXx_OVERRIDE    { return LXfCMD_UNDO; }   \
                             bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    { return true;        }   \
                             void    cmd_Execute     (unsigned flags)            LXx_OVERRIDE;                             \
+                          private:                                                                                        \
+                            void addArgStr(char *argName)  { dyna_Add(argName, LXsTYPE_STRING); }                         \
                           };
 
 #define __dfgModoCmdClass__   dfgRemoveNodes

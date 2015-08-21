@@ -41,7 +41,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   {
     if (DFGUICmdHandlerByPassDCC)
     {
-      // execute the dfg command directly.
+      // execute the dfg command directly via the createAndExecuteDFGCommand() function.
       void *cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(in_cmdName, in_args);
       if (cmd)
       {
@@ -51,7 +51,13 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
     }
     else
     {
-      ///WIP
+      // execute the Modo command that will execute the dfg command via the createAndExecuteDFGCommand() function.
+      std::string err;
+      std::string command = in_cmdName;
+      for (int i=0;i<in_args.size();i++)
+        command += " {" + in_args[i] + "}";
+      ret = ModoTools::ExecuteCommand(command, err);
+      if (!ret) feLogError(err);
     }
   }
 
@@ -819,6 +825,7 @@ void *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::string &in_cmdName, st
 FabricUI::DFG::DFGUICmd_RemoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_RemoveNodes(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_RemoveNodes *cmd = NULL;
+  if (args.size() == 3)
   {
     unsigned int ai = 0;
 
@@ -852,6 +859,7 @@ FabricUI::DFG::DFGUICmd_RemoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGComm
 FabricUI::DFG::DFGUICmd_Connect *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Connect(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_Connect *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -889,6 +897,7 @@ FabricUI::DFG::DFGUICmd_Connect *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
 FabricUI::DFG::DFGUICmd_Disconnect *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Disconnect(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_Disconnect *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -926,6 +935,7 @@ FabricUI::DFG::DFGUICmd_Disconnect *DFGUICmdHandlerDCC::createAndExecuteDFGComma
 FabricUI::DFG::DFGUICmd_AddGraph *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddGraph(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddGraph *cmd = NULL;
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
@@ -964,6 +974,7 @@ FabricUI::DFG::DFGUICmd_AddGraph *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
 FabricUI::DFG::DFGUICmd_AddFunc *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddFunc(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddFunc *cmd = NULL;
+  if (args.size() == 6)
   {
     unsigned int ai = 0;
 
@@ -1006,6 +1017,7 @@ FabricUI::DFG::DFGUICmd_AddFunc *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
 FabricUI::DFG::DFGUICmd_InstPreset *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_InstPreset(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_InstPreset *cmd = NULL;
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
@@ -1044,6 +1056,7 @@ FabricUI::DFG::DFGUICmd_InstPreset *DFGUICmdHandlerDCC::createAndExecuteDFGComma
 FabricUI::DFG::DFGUICmd_AddVar *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddVar(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddVar *cmd = NULL;
+  if (args.size() == 7)
   {
     unsigned int ai = 0;
 
@@ -1092,6 +1105,7 @@ FabricUI::DFG::DFGUICmd_AddVar *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
 FabricUI::DFG::DFGUICmd_AddGet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddGet(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddGet *cmd = NULL;
+  if (args.size() == 6)
   {
     unsigned int ai = 0;
 
@@ -1135,6 +1149,7 @@ FabricUI::DFG::DFGUICmd_AddGet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
 FabricUI::DFG::DFGUICmd_AddSet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddSet(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddSet *cmd = NULL;
+  if (args.size() == 6)
   {
     unsigned int ai = 0;
 
@@ -1178,6 +1193,7 @@ FabricUI::DFG::DFGUICmd_AddSet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
 FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddPort(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddPort *cmd = NULL;
+  if (args.size() == 6)
   {
     unsigned int ai = 0;
 
@@ -1239,6 +1255,7 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
 FabricUI::DFG::DFGUICmd_RemovePort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_RemovePort(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_RemovePort *cmd = NULL;
+  if (args.size() == 3)
   {
     unsigned int ai = 0;
 
@@ -1272,6 +1289,7 @@ FabricUI::DFG::DFGUICmd_RemovePort *DFGUICmdHandlerDCC::createAndExecuteDFGComma
 FabricUI::DFG::DFGUICmd_MoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_MoveNodes(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_MoveNodes *cmd = NULL;
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
@@ -1326,6 +1344,7 @@ FabricUI::DFG::DFGUICmd_MoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGComman
 FabricUI::DFG::DFGUICmd_ResizeBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_ResizeBackDrop(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_ResizeBackDrop *cmd = NULL;
+  if (args.size() == 7)
   {
     unsigned int ai = 0;
 
@@ -1369,6 +1388,7 @@ FabricUI::DFG::DFGUICmd_ResizeBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGC
 FabricUI::DFG::DFGUICmd_ImplodeNodes *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_ImplodeNodes(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_ImplodeNodes *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -1408,6 +1428,7 @@ FabricUI::DFG::DFGUICmd_ImplodeNodes *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 FabricUI::DFG::DFGUICmd_ExplodeNode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_ExplodeNode(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_ExplodeNode *cmd = NULL;
+  if (args.size() == 3)
   {
     unsigned int ai = 0;
 
@@ -1441,6 +1462,7 @@ FabricUI::DFG::DFGUICmd_ExplodeNode *DFGUICmdHandlerDCC::createAndExecuteDFGComm
 FabricUI::DFG::DFGUICmd_AddBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddBackDrop(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_AddBackDrop *cmd = NULL;
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
@@ -1479,6 +1501,7 @@ FabricUI::DFG::DFGUICmd_AddBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGComm
 FabricUI::DFG::DFGUICmd_SetNodeTitle *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetNodeTitle(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetNodeTitle *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -1517,6 +1540,7 @@ FabricUI::DFG::DFGUICmd_SetNodeTitle *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 FabricUI::DFG::DFGUICmd_SetNodeComment *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetNodeComment(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetNodeComment *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -1555,6 +1579,7 @@ FabricUI::DFG::DFGUICmd_SetNodeComment *DFGUICmdHandlerDCC::createAndExecuteDFGC
 FabricUI::DFG::DFGUICmd_SetCode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetCode(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetCode *cmd = NULL;
+  if (args.size() == 3)
   {
     unsigned int ai = 0;
 
@@ -1588,6 +1613,7 @@ FabricUI::DFG::DFGUICmd_SetCode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
 FabricUI::DFG::DFGUICmd_RenamePort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_RenamePort(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_RenamePort *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -1626,6 +1652,7 @@ FabricUI::DFG::DFGUICmd_RenamePort *DFGUICmdHandlerDCC::createAndExecuteDFGComma
 FabricUI::DFG::DFGUICmd_Paste *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Paste(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_Paste *cmd = NULL;
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
@@ -1664,6 +1691,7 @@ FabricUI::DFG::DFGUICmd_Paste *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Pa
 FabricUI::DFG::DFGUICmd_SetArgType *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetArgType(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetArgType *cmd = NULL;
+  if (args.size() == 3)
   {
     unsigned int ai = 0;
 
@@ -1698,6 +1726,7 @@ FabricUI::DFG::DFGUICmd_SetArgType *DFGUICmdHandlerDCC::createAndExecuteDFGComma
 FabricUI::DFG::DFGUICmd_SetArgValue *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetArgValue(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetArgValue *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -1740,6 +1769,7 @@ FabricUI::DFG::DFGUICmd_SetArgValue *DFGUICmdHandlerDCC::createAndExecuteDFGComm
 FabricUI::DFG::DFGUICmd_SetPortDefaultValue *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetPortDefaultValue(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetPortDefaultValue *cmd = NULL;
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
@@ -1786,6 +1816,7 @@ FabricUI::DFG::DFGUICmd_SetPortDefaultValue *DFGUICmdHandlerDCC::createAndExecut
 FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetRefVarPath(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetRefVarPath *cmd = NULL;
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -1840,527 +1871,438 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
 #define __dfgModoCmd_constructor_finish__     }
 
 // execute.
-#define __dfgModoCmd_execute_begin__          void __dfgModoCmdClass__::cmd_Execute(unsigned flags)                   \
-                                              {                                                                       \
-                                                CLxUser_UndoService undoSvc;                                          \
-                                                UndoDFGUICmd       *undo;                                             \
-                                                ILxUnknownID        obj;                                              \
-	                                              CLxSpawnerCreate<UndoDFGUICmd> sp("UndoDFGUICmd" __dfgModoCmdName__); \
-                                                if (sp.created) sp.AddInterface(new CLxIfc_Undo<UndoDFGUICmd>);       \
-                                                undo = sp.Alloc(obj);                                                 \
-                                                undo->init();
-
-#define __dfgModoCmd_execute_finish__           undoSvc.Record(obj);                                                  \
-                                                lx::ObjRelease(obj);                                                  \
+#define __dfgModoCmd_execute__                void __dfgModoCmdClass__::cmd_Execute(unsigned flags)                               \
+                                              {                                                                                   \
+                                                CLxUser_UndoService undoSvc;                                                      \
+                                                UndoDFGUICmd       *undo;                                                         \
+                                                ILxUnknownID        obj;                                                          \
+	                                              CLxSpawnerCreate<UndoDFGUICmd> sp("UndoDFGUICmd" __dfgModoCmdName__);             \
+                                                if (sp.created) sp.AddInterface(new CLxIfc_Undo<UndoDFGUICmd>);                   \
+                                                undo = sp.Alloc(obj);                                                             \
+                                                undo->init();                                                                     \
+                                                std::vector<std::string> args(__dfgModoCmdNumArgs__);                             \
+                                                for (int i=0;i<args.size();i++)                                                   \
+                                                  dyna_String(i, args[i]);                                                        \
+                                                undo->cmdName = __dfgModoCmdName__;                                               \
+                                                undo->cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(undo->cmdName, args);  \
+                                                undoSvc.Record(obj);                                                              \
+                                                lx::ObjRelease(obj);                                                              \
                                               }
 
 
-// WIP / TEST
-#define text_code_constructor dyna_Add("cmdPtr", LXsTYPE_INTEGER);
-#define text_code_execute int i = dyna_Int(0);  std::stringstream s;  s << "cmd_Execute() cmdPtr = "; s << i; feLog(s.str()); { std::stringstream s;  s << "le command name ";  s << i; undo->cmdName = s.str();  }
 
-
-
-//.......................... dfgRemoveNodes ..........................
+#define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  dfgRemoveNodes
 #define __dfgModoCmdName__  "dfgRemoveNodes"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeNames");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgConnect ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgConnect
 #define __dfgModoCmdName__  "dfgConnect"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("srcPort");
+    addArgStr("dstPort");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgDisconnect ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgDisconnect
 #define __dfgModoCmdName__  "dfgDisconnect"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("srcPort");
+    addArgStr("dstPort");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddGraph ..........................
+#define __dfgModoCmdNumArgs__     5
 #define __dfgModoCmdClass__  dfgAddGraph
 #define __dfgModoCmdName__  "dfgAddGraph"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("title");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddFunc ..........................
+#define __dfgModoCmdNumArgs__     6
 #define __dfgModoCmdClass__  dfgAddFunc
 #define __dfgModoCmdName__  "dfgAddFunc"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("title");
+    addArgStr("initialCode");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgInstPreset ..........................
+#define __dfgModoCmdNumArgs__     5
 #define __dfgModoCmdClass__  dfgInstPreset
 #define __dfgModoCmdName__  "dfgInstPreset"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("presetPath");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddVar ..........................
+#define __dfgModoCmdNumArgs__     7
 #define __dfgModoCmdClass__  dfgAddVar
 #define __dfgModoCmdName__  "dfgAddVar"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("desiredNodeName");
+    addArgStr("dataType");
+    addArgStr("extDep");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddGet ..........................
+#define __dfgModoCmdNumArgs__     6
 #define __dfgModoCmdClass__  dfgAddGet
 #define __dfgModoCmdName__  "dfgAddGet"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("desiredNodeName");
+    addArgStr("varPath");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddSet ..........................
+#define __dfgModoCmdNumArgs__     6
 #define __dfgModoCmdClass__  dfgAddSet
 #define __dfgModoCmdName__  "dfgAddSet"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("desiredNodeName");
+    addArgStr("varPath");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddPort ..........................
+#define __dfgModoCmdNumArgs__     6
 #define __dfgModoCmdClass__  dfgAddPort
 #define __dfgModoCmdName__  "dfgAddPort"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("desiredPortName");
+    addArgStr("portTypeStr");
+    addArgStr("typeSpec");
+    addArgStr("portToConnect");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgRemovePort ..........................
+#define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  dfgRemovePort
 #define __dfgModoCmdName__  "dfgRemovePort"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("portName");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgMoveNodes ..........................
+#define __dfgModoCmdNumArgs__     5
 #define __dfgModoCmdClass__  dfgMoveNodes
 #define __dfgModoCmdName__  "dfgMoveNodes"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeNames");
+    addArgStr("xPoss");
+    addArgStr("yPoss");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-
-    std::vector<std::string> args;
-
-    undo->cmdName = __dfgModoCmdName__;
-    undo->cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(undo->cmdName, args);
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgResizeBackDrop ..........................
+#define __dfgModoCmdNumArgs__     7
 #define __dfgModoCmdClass__  dfgResizeBackDrop
 #define __dfgModoCmdName__  "dfgResizeBackDrop"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("backDropName");
+    addArgStr("xPos");
+    addArgStr("yPos");
+    addArgStr("Width");
+    addArgStr("Height");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgImplodeNodes ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgImplodeNodes
 #define __dfgModoCmdName__  "dfgImplodeNodes"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeNames");
+    addArgStr("desiredNodeName");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgExplodeNode ..........................
+#define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  dfgExplodeNode
 #define __dfgModoCmdName__  "dfgExplodeNode"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeName");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgAddBackDrop ..........................
+#define __dfgModoCmdNumArgs__     5
 #define __dfgModoCmdClass__  dfgAddBackDrop
 #define __dfgModoCmdName__  "dfgAddBackDrop"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("title");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetNodeTitle ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgSetNodeTitle
 #define __dfgModoCmdName__  "dfgSetNodeTitle"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeName");
+    addArgStr("title");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetNodeComment ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgSetNodeComment
 #define __dfgModoCmdName__  "dfgSetNodeComment"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeName");
+    addArgStr("comment");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetCode ..........................
+#define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  dfgSetCode
 #define __dfgModoCmdName__  "dfgSetCode"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("code");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgRenamePort ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgRenamePort
 #define __dfgModoCmdName__  "dfgRenamePort"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("oldPortName");
+    addArgStr("desiredNewPortName");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgPaste ..........................
+#define __dfgModoCmdNumArgs__     5
 #define __dfgModoCmdClass__  dfgPaste
 #define __dfgModoCmdName__  "dfgPaste"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("text");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetArgType ..........................
+#define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  dfgSetArgType
 #define __dfgModoCmdName__  "dfgSetArgType"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("argName");
+    addArgStr("typeName");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetArgValue ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgSetArgValue
 #define __dfgModoCmdName__  "dfgSetArgValue"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("argName");
+    addArgStr("typeName");
+    addArgStr("valueJSON");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetPortDefaultValue ..........................
+#define __dfgModoCmdNumArgs__     5
 #define __dfgModoCmdClass__  dfgSetPortDefaultValue
 #define __dfgModoCmdName__  "dfgSetPortDefaultValue"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("portPath");
+    addArgStr("typeName");
+    addArgStr("valueJSON");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-//.......................... dfgSetRefVarPath ..........................
+#define __dfgModoCmdNumArgs__     4
 #define __dfgModoCmdClass__  dfgSetRefVarPath
 #define __dfgModoCmdName__  "dfgSetRefVarPath"
 __dfgModoCmd_constructor_begin__
   {
-
-    text_code_constructor
-    
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("refName");
+    addArgStr("varPath");
   }
 __dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute_begin__
-  {
-    
-    text_code_execute
-
-  }
-__dfgModoCmd_execute_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 

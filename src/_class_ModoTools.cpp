@@ -72,7 +72,7 @@ bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
   { out_err = "empty command string";
     return false; }
 
-  // execute command
+  // create and execute command.
   CLxUser_CommandService  cmd_srv;
   CLxUser_Command         cmd;
   int                     queryArgIndex;
@@ -82,6 +82,42 @@ bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
     out_err = "cmd_srv.NewCommandFromString() failed for \"" + command + "\"";
     return false;
   }
+  cmd.Execute(execFlags);
+
+  // done.
+  return true;
+}
+
+bool ModoTools::ExecuteCommand(const std::string &cmdName, const std::vector<std::string> &args, std::string &out_err)
+{
+  // init.
+  out_err = "";
+  if (cmdName.length() <= 0)
+  { out_err = "empty command name";
+    return false; }
+
+  // create command.
+  CLxUser_CommandService  cmd_srv;
+  CLxUser_Command         cmd;
+  unsigned int            execFlags = LXfCMD_EXEC_DEFAULT;
+  if (!cmd_srv.NewCommand(cmd, cmdName.c_str()))
+  {
+    out_err = "cmd_srv.NewCommand() failed for \"" + cmdName + "\"";
+    return false;
+  }
+
+  // set arguments.
+  CLxUser_Attributes attr;
+  attr.set(cmd);
+  for (unsigned int i=0;i<args.size();i++)
+    if (i < attr.Count())
+      if (!attr.Set(i, args[i].c_str()))
+      {
+        out_err = "attr.Set() failed";
+        return false;
+      }
+
+  // execute the command.
   cmd.Execute(execFlags);
 
   // done.

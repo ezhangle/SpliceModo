@@ -12,7 +12,7 @@
 
 #define DFGUICmdHandlerLOG        false  // FOR DEBUGGING: log some info (class DFGUICmdHandler).
 #define UndoDFGUICmdLOG           false  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
-#define DFGUICmdHandlerByPassDCC  true  // FOR DEBUGGING: execute the dfg commands directly instead of using the DCC's commands.
+#define DFGUICmdHandlerByPassDCC  false  // FOR DEBUGGING: execute the dfg commands directly instead of using the DCC's commands.
 
 class BaseInterface;
 

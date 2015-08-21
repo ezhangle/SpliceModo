@@ -72,6 +72,13 @@ class ModoTools
   // returns: true on success, false otherwise.
   static bool ExecuteCommand(const std::string &command, std::string &out_err);
 
+  // executes a command.
+  // params:  cmdName                 the command name, e.g. "dfgConnect".
+  //          args                    the arguments.
+  //          out_err                 contains an error description if the function returns false.
+  // returns: true on success, false otherwise.
+  static bool ExecuteCommand(const std::string &cmdName, const std::vector<std::string> &args, std::string &out_err);
+
   // fills the array io_usrChan with all usable user channels of the input item.
   // note: all members of UsrChnDef are set except for eval_index which is set to -1.
   static void usrChanCollect(CLxUser_Item &item, std::vector <UsrChnDef> &io_usrChan);

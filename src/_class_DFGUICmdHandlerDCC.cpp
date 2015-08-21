@@ -53,13 +53,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
     {
       // execute the Modo command that will execute the dfg command via the createAndExecuteDFGCommand() function.
       std::string err;
-      //std::string command = in_cmdName;
-      //for (int i=0;i<in_args.size();i++)
-      //  command += " {" + in_args[i] + "}";
-      //ret = ModoTools::ExecuteCommand(command, err);
-
       ret = ModoTools::ExecuteCommand(in_cmdName, in_args, err);
-
       if (!ret) feLogError(err);
     }
   }

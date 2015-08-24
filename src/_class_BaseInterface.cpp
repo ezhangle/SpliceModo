@@ -1172,7 +1172,7 @@ void BaseInterface::SetValueOfArgBoolean(FabricCore::Client &client, FabricCore:
   {
     FabricCore::RTVal rtval;
     rtval = FabricCore::RTVal::ConstructBoolean(client, val);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1198,7 +1198,7 @@ void BaseInterface::SetValueOfArgSInt(FabricCore::Client &client, FabricCore::DF
     else if (resolvedType == "SInt16")  rtval = FabricCore::RTVal::ConstructSInt16(client, val);
     else if (resolvedType == "SInt32")  rtval = FabricCore::RTVal::ConstructSInt32(client, val);
     else if (resolvedType == "SInt64")  rtval = FabricCore::RTVal::ConstructSInt64(client, val);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1223,7 +1223,7 @@ void BaseInterface::SetValueOfArgUInt(FabricCore::Client &client, FabricCore::DF
     else if (resolvedType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
     else if (resolvedType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
     else if (resolvedType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1247,7 +1247,7 @@ void BaseInterface::SetValueOfArgFloat(FabricCore::Client &client, FabricCore::D
     if      (resolvedType == "Scalar")  rtval = FabricCore::RTVal::ConstructFloat32(client, val);
     else if (resolvedType == "Float32") rtval = FabricCore::RTVal::ConstructFloat32(client, val);
     else if (resolvedType == "Float64") rtval = FabricCore::RTVal::ConstructFloat64(client, val);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1268,7 +1268,7 @@ void BaseInterface::SetValueOfArgString(FabricCore::Client &client, FabricCore::
   {
     FabricCore::RTVal rtval;
     rtval = FabricCore::RTVal::ConstructString(client, val.c_str());
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1295,7 +1295,7 @@ void BaseInterface::SetValueOfArgVec2(FabricCore::Client &client, FabricCore::DF
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1322,7 +1322,7 @@ void BaseInterface::SetValueOfArgVec3(FabricCore::Client &client, FabricCore::DF
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1349,7 +1349,7 @@ void BaseInterface::SetValueOfArgVec4(FabricCore::Client &client, FabricCore::DF
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1376,7 +1376,7 @@ void BaseInterface::SetValueOfArgColor(FabricCore::Client &client, FabricCore::D
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1403,7 +1403,7 @@ void BaseInterface::SetValueOfArgRGB(FabricCore::Client &client, FabricCore::DFG
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1430,7 +1430,7 @@ void BaseInterface::SetValueOfArgRGBA(FabricCore::Client &client, FabricCore::DF
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1458,7 +1458,7 @@ void BaseInterface::SetValueOfArgQuat(FabricCore::Client &client, FabricCore::DF
     v[0]   = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
     v[1]   = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[3] : 0);
     rtval  = FabricCore::RTVal::Construct(client, "Quat", 2, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
@@ -1490,7 +1490,7 @@ void BaseInterface::SetValueOfArgMat44(FabricCore::Client &client, FabricCore::D
       v[i]    = FabricCore::RTVal::Construct(client, "Vec4", 4, xyzt);
     }
     rtval = FabricCore::RTVal::Construct(client, "Mat44", 4, v);
-    binding.setArgValue(argName, rtval);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {

@@ -1,10 +1,12 @@
 #ifndef SRC__CLASS_BASEINTERFACE_H_
 #define SRC__CLASS_BASEINTERFACE_H_
 
-// disable some annoying VS warnings.
-#pragma warning(disable : 4530)  // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
-#pragma warning(disable : 4800)  // forcing value to bool 'true' or 'false'.
-#pragma warning(disable : 4806)  // unsafe operation: no value of type 'bool' promoted to type ...etc.
+#ifdef _WIN32
+  // disable some annoying VS warnings.
+  #pragma warning(disable : 4530)  // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
+  #pragma warning(disable : 4800)  // forcing value to bool 'true' or 'false'.
+  #pragma warning(disable : 4806)  // unsafe operation: no value of type 'bool' promoted to type ...etc.
+#endif
 
 // includes.
 #include <ASTWrapper/KLASTManager.h>
@@ -143,7 +145,7 @@ class BaseInterface
 
   // creates a Modo matching (i.e. same name, type, data type) user channel for a Fabric argument (= port).
   // returns: true on success, false otherwise.
-  bool CreateModoUserChannelForPort(FabricCore::DFGBinding &binding, char const *argName);
+  bool CreateModoUserChannelForPort(FabricCore::DFGBinding const &binding, char const *argName);
 };
 
 #endif  // SRC__CLASS_BASEINTERFACE_H_

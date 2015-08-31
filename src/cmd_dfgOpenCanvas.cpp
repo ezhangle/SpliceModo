@@ -71,7 +71,7 @@ void dfgOpenCanvas::Command::cmd_Execute(unsigned flags)
   // get/display DFG widget.
   try
   {
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
+    FabricDFGWidget::getWidgetforBaseInterface(b);
   }
   catch (FabricCore::Exception e)
   {

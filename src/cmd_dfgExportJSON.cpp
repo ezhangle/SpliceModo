@@ -86,7 +86,7 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   }
 
   // write JSON file.
-  std::ofstream t(filePath, std::ios::binary);
+  std::ofstream t(filePath.c_str(), std::ios::binary);
   if (!t.good())
   { err += "unable to open \"" + filePath + "\"";
     feLogError(err);

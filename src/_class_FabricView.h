@@ -24,7 +24,7 @@ class FabricView : public CLxImpl_CustomView
   ~FabricView()
   {
     // remove pointer from static std::vector.
-    for (int i = 0; i < s_FabricViews.size(); i++)
+    for (size_t i = 0; i < s_FabricViews.size(); i++)
       if (s_FabricViews[i] == this)
       {
         s_FabricViews.erase(s_FabricViews.begin() + i);

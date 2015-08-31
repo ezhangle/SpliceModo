@@ -366,8 +366,12 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     std::string portName = in_portName;
     if (portName.length() > 2)
     {
-      char lastChar       = portName.back();   portName.pop_back();
-      char beforeLastChar = portName.back();   portName.pop_back();
+      // erase last char
+      portName.erase(portName.end());
+      std::string::iterator beforeLastCharIter = portName.end();
+      char beforeLastChar = *beforeLastCharIter;
+      portName.erase(beforeLastCharIter);
+
       if (beforeLastChar  != '.')
         portName = in_portName;
     }
@@ -613,7 +617,7 @@ int BaseInterface::GetArgValueString(FabricCore::DFGBinding &binding, char const
         #ifdef _WIN32
           sprintf_s(s, sizeof(s), "%ld", i);
         #else
-          snprintf(s, sizeof(s), "%ld", i);
+          snprintf(s, sizeof(s), "%d", i);
         #endif
         out = s;
         return 0;
@@ -991,7 +995,7 @@ int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const 
                                                 #ifdef _WIN32
                                                   sprintf_s(member, sizeof(member), "row%ld", i);
                                                 #else
-                                                  snprintf(member, sizeof(member), "row%ld", i);
+                                                  snprintf(member, sizeof(member), "row%d", i);
                                                 #endif
                                                 rtRow = rtval.maybeGetMember(member);
                                                 out.push_back(rtRow.maybeGetMember("x").getFloat32());
@@ -1287,12 +1291,12 @@ void BaseInterface::SetValueOfArgVec2(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const int  N        =     2;
+    const size_t N      =     2;
     const char name[16] = "Vec2";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1314,12 +1318,12 @@ void BaseInterface::SetValueOfArgVec3(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const int  N        =     3;
+    const size_t N      =     3;
     const char name[16] = "Vec3";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1341,12 +1345,12 @@ void BaseInterface::SetValueOfArgVec4(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const int  N        =     4;
+    const size_t N      =     4;
     const char name[16] = "Vec4";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1368,12 +1372,12 @@ void BaseInterface::SetValueOfArgColor(FabricCore::Client &client, FabricCore::D
 
   try
   {
-    const int  N        =      4;
+    const size_t N      =      4;
     const char name[16] = "Color";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1395,12 +1399,12 @@ void BaseInterface::SetValueOfArgRGB(FabricCore::Client &client, FabricCore::DFG
 
   try
   {
-    const int  N        =    3;
+    const size_t N      =    3;
     const char name[16] = "RGB";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1422,12 +1426,12 @@ void BaseInterface::SetValueOfArgRGBA(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const int  N        =     4;
+    const size_t N      =     4;
     const char name[16] = "RGBA";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1498,7 +1502,7 @@ void BaseInterface::SetValueOfArgMat44(FabricCore::Client &client, FabricCore::D
   }
 }
 
-bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding &binding, char const *argName)
+bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &binding, char const *argName)
 {
   if (!binding.getExec().haveExecPort(argName))
   {
@@ -1515,11 +1519,11 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding &binding
     if      (m_ILxUnknownID_dfgModoIM)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
     else if (m_ILxUnknownID_dfgModoPI)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
     else if (m_ILxUnknownID_dfgModoPIpilot) item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPIpilot);
-    else                        {   err = "m_ILxUnknownID_dfgModo??? == NULL";
+    else                        {   err = "m_ILxUnknownID_dfgModo? == NULL";
                                     logErrorFunc(0, err.c_str(), err.length());
                                     return false;   }
 
-    if (!item.test())   {   err = "item((ILxUnknownID)m_ILxUnknownID_dfgModo???) failed";
+    if (!item.test())   {   err = "item((ILxUnknownID)m_ILxUnknownID_dfgModo?) failed";
                             logErrorFunc(0, err.c_str(), err.length());
                             return false;    }
 

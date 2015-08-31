@@ -6,9 +6,11 @@
 #define FABRICMODO_PLUGIN_VERSION   0.110   // note: version 0.021 was "FMX Demo", i.e. the last version before using Matt Cox' surfaceItem sample instead of my own emReader code.
 
 // disable some annoying VS warnings.
-#pragma warning(disable : 4530)   // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
-#pragma warning(disable : 4800)   // forcing value to bool 'true' or 'false'.
-#pragma warning(disable : 4806)   // unsafe operation: no value of type 'bool' promoted to type ...etc.
+#ifdef _WIN32
+  #pragma warning(disable : 4530)   // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
+  #pragma warning(disable : 4800)   // forcing value to bool 'true' or 'false'.
+  #pragma warning(disable : 4806)   // unsafe operation: no value of type 'bool' promoted to type ...etc.
+#endif
 
 // includes.
 #include <string>

@@ -157,12 +157,12 @@ struct _polymesh
         bbox[5] = pv[2];
         for (unsigned int i=0;i<numVertices;i++,pv+=3)
         {
-          bbox[0] = __min(bbox[0], pv[0]);
-          bbox[1] = __min(bbox[1], pv[1]);
-          bbox[2] = __min(bbox[2], pv[2]);
-          bbox[3] = __max(bbox[3], pv[0]);
-          bbox[4] = __max(bbox[4], pv[1]);
-          bbox[5] = __max(bbox[5], pv[2]);
+          bbox[0] = std::min(bbox[0], pv[0]);
+          bbox[1] = std::min(bbox[1], pv[1]);
+          bbox[2] = std::min(bbox[2], pv[2]);
+          bbox[3] = std::max(bbox[3], pv[0]);
+          bbox[4] = std::max(bbox[4], pv[1]);
+          bbox[5] = std::max(bbox[5], pv[2]);
         }
       }
     }
@@ -273,7 +273,7 @@ struct _polymesh
 
       // fix vertex indices.
       uint32_t *pi = polyVertices.data() + numSamples;
-      for (int i = 0; i < inMesh.numSamples; i++,pi++)
+      for (size_t i = 0; i < inMesh.numSamples; i++,pi++)
         *pi += numVertices;
 
       // fix amounts.
@@ -282,12 +282,12 @@ struct _polymesh
       numSamples  += inMesh.numSamples;
 
       // re-calc bbox.
-      bbox[0] = __min(bbox[0], inMesh.bbox[0]);
-      bbox[1] = __min(bbox[1], inMesh.bbox[1]);
-      bbox[2] = __min(bbox[2], inMesh.bbox[2]);
-      bbox[3] = __max(bbox[3], inMesh.bbox[3]);
-      bbox[4] = __max(bbox[4], inMesh.bbox[4]);
-      bbox[5] = __max(bbox[5], inMesh.bbox[5]);
+      bbox[0] = std::min(bbox[0], inMesh.bbox[0]);
+      bbox[1] = std::min(bbox[1], inMesh.bbox[1]);
+      bbox[2] = std::min(bbox[2], inMesh.bbox[2]);
+      bbox[3] = std::max(bbox[3], inMesh.bbox[3]);
+      bbox[4] = std::max(bbox[4], inMesh.bbox[4]);
+      bbox[5] = std::max(bbox[5], inMesh.bbox[5]);
 
       // done.
       return isValid();
@@ -1038,7 +1038,7 @@ LxResult CReadItemSurface::surf_TagByIndex(LXtID4 type, unsigned int index, cons
 bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
 {
     // init.
-    emUserData &ud = m_userData;
+    // emUserData &ud = m_userData;
 
     //
     CLxUser_Item item(m_item_obj);
@@ -1128,7 +1128,6 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         {
           try
           {
-            char        serr[256];
             std::string err = "";
 
             for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
@@ -1207,7 +1206,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
           {
             static int i = 0;
             char s[256];
-            sprintf(s, "binding->execute(); (%ld)", i++);
+            sprintf(s, "binding->execute(); (%d)", i++);
             feLog(s);
           }
           try
@@ -1242,7 +1241,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                     int retGet = tmpMesh.setFromDFGPort(binding, portName);
                     if (retGet)
                     {
-                      sprintf(serr, "%ld", retGet);
+                      sprintf(serr, "%d", retGet);
                       err = "failed to get mesh from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
                       break;
                     }
@@ -1250,7 +1249,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
                     // merge tmpMesh with ud.polymesh.
                     if (!ud.polymesh.merge(tmpMesh))
                     {
-                      sprintf(serr, "%ld", retGet);
+                      sprintf(serr, "%d", retGet);
                       err = "failed to merge current mesh with mesh from DFG port \"" + std::string(portName) + "\"";
                       break;
                     }
@@ -1279,7 +1278,6 @@ bool CReadItemInstance::Read(bakedChannels &baked)
     }
 
     // done.
-_done:
     if (!ret)   ud.polymesh.clear();
     return ret;
 }
@@ -1618,7 +1616,7 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
         strokeDraw.Begin(LXiSTROKE_POINTS, itemColor, ud.chn.FabricOpacity);
         LXtVector vert;
         float *vp = ud.polymesh.vertPositions.data();
-        for (int i=0;i<ud.polymesh.numVertices;i++,vp+=3)
+        for (size_t i=0;i<ud.polymesh.numVertices;i++,vp+=3)
         {
             vert[0] = vp[0];
             vert[1] = vp[1];
@@ -1632,10 +1630,10 @@ LxResult CReadItemInstance::vitm_Draw(ILxUnknownID itemChanRead, ILxUnknownID vi
         uint32_t *pi = ud.polymesh.polyVertices.data();
         float    *vp;
         LXtVector vert;
-        for (int i=0;i<ud.polymesh.numPolygons;i++)
+        for (size_t i=0;i<ud.polymesh.numPolygons;i++)
         {
           strokeDraw.BeginW(LXiSTROKE_LINE_LOOP, itemColor, ud.chn.FabricOpacity, 1);
-          for (int j=0;j<*pn;j++)
+          for (size_t j=0;j<*pn;j++)
           {
             vp = ud.polymesh.vertPositions.data() + 3 * pi[j];
             vert[0] = vp[0];
@@ -1730,11 +1728,11 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
 
     // declare and init the baked channels.
     bakedChannels baked;
-    memset(&baked, NULL, sizeof(bakedChannels));
+    memset(&baked, 0, sizeof(bakedChannels));
 
     // fill baked with the attributes so that Modo correctly updates the OpenGL stuff.
     CLxUser_Matrix  tmpMatrix;
-    int             tmpFormat;
+    // int             tmpFormat;
     std::string     tmpPath;
     std::string     tmpName;
     std::string     tmpGroupNames;

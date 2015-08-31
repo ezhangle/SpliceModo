@@ -48,13 +48,14 @@ void ModoTools::checkFabricEnvVariables(bool showMsgbox)
       if (_showMsgbox && showMsgbox)
       {
         _showMsgbox = false;
-        ExecuteCommand("dialog.setup {warning}", std::string());
-        ExecuteCommand("dialog.title {Fabric}", std::string());
-        ExecuteCommand("dialog.msg {One or more Fabric environment variables have not been set.}", std::string());
-        ExecuteCommand("dialog.open", std::string());
-        ExecuteCommand("dialog.setup {info}", std::string());
-        ExecuteCommand("dialog.msg {Please check the Event Log for more details.}", std::string());
-        ExecuteCommand("dialog.open", std::string());
+        std::string out_err;
+        ExecuteCommand("dialog.setup {warning}", out_err);
+        ExecuteCommand("dialog.title {Fabric}", out_err);
+        ExecuteCommand("dialog.msg {One or more Fabric environment variables have not been set.}", out_err);
+        ExecuteCommand("dialog.open", out_err);
+        ExecuteCommand("dialog.setup {info}", out_err);
+        ExecuteCommand("dialog.msg {Please check the Event Log for more details.}", out_err);
+        ExecuteCommand("dialog.open", out_err);
       }
 
       // log error.
@@ -168,13 +169,13 @@ void ModoTools::usrChanCollect(CLxUser_Item &item, std::vector <ModoTools::UsrCh
   }
 
   // go through io_usrChan and set the isVec2, isVec3, etc. flags.
-  for (int i = 0; i < io_usrChan.size(); i++)
+  for (size_t i = 0; i < io_usrChan.size(); i++)
   {
     UsrChnDef           &c    = io_usrChan[i];
-    const std::string   &name = c.chan_name;
+    // const std::string   &name = c.chan_name;
 
     //
-    int idx = i;
+    size_t idx = i;
 
     // check if we have a 2D or 3D vector.
     if (idx < io_usrChan.size() && io_usrChan[idx].chan_name.rfind(".X") != std::string::npos)
@@ -215,7 +216,7 @@ void ModoTools::usrChanCollect(CLxUser_Item &item, std::vector <ModoTools::UsrCh
 ModoTools::UsrChnDef *ModoTools::usrChanGetFromName(std::string channelName, std::vector <ModoTools::UsrChnDef> &usrChan)
 {
   // "normal" channel?
-  for (int i = 0; i < usrChan.size(); i++)
+  for (size_t i = 0; i < usrChan.size(); i++)
   {
     UsrChnDef *c = &usrChan[i];
     if (channelName == c->chan_name)
@@ -223,7 +224,7 @@ ModoTools::UsrChnDef *ModoTools::usrChanGetFromName(std::string channelName, std
   }
 
   // vector/color/etc. channel?
-  for (int i = 0; i < usrChan.size(); i++)
+  for (size_t i = 0; i < usrChan.size(); i++)
   {
     UsrChnDef *c = &usrChan[i];
     if (channelName + ".X" == c->chan_name)   return c;
@@ -507,7 +508,7 @@ bool ModoTools::DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_e
     return false;
 
   // select all user channels.
-  for (int i = 0; i < usrChannels.size(); i++)
+  for (size_t i = 0; i < usrChannels.size(); i++)
     if (!ExecuteCommand("select.channel {" + std::string(item.IdentPtr()) + ":" + usrChannels[i] + (i == 0 ? "} set" : "} add"), out_err))
       return false;
 
@@ -696,7 +697,7 @@ int ModoTools::GetChannelValueAsString(CLxUser_Attributes &attr, int eval_index,
       int i = 0;
       if (attr.GetInt(eval_index, &i) != LXe_OK)
         return -3;
-      sprintf(s, "%ld", i);
+      sprintf(s, "%d", i);
       out = s;
       return 0;
     }

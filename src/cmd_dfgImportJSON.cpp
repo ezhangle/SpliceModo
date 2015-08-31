@@ -86,7 +86,7 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
   }
 
   // read JSON file.
-  std::ifstream t(filePath, std::ios::binary);
+  std::ifstream t(filePath.c_str(), std::ios::binary);
   if (!t.good())
   { err += "unable to open \"" + filePath + "\"";
     feLogError(err);

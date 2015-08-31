@@ -104,12 +104,12 @@ namespace dfgModoPI
         bbox[5] = pv[2];
         for (unsigned int i=0;i<numVertices;i++,pv+=3)
         {
-          bbox[0] = __min(bbox[0], pv[0]);
-          bbox[1] = __min(bbox[1], pv[1]);
-          bbox[2] = __min(bbox[2], pv[2]);
-          bbox[3] = __max(bbox[3], pv[0]);
-          bbox[4] = __max(bbox[4], pv[1]);
-          bbox[5] = __max(bbox[5], pv[2]);
+          bbox[0] = std::min(bbox[0], pv[0]);
+          bbox[1] = std::min(bbox[1], pv[1]);
+          bbox[2] = std::min(bbox[2], pv[2]);
+          bbox[3] = std::max(bbox[3], pv[0]);
+          bbox[4] = std::max(bbox[4], pv[1]);
+          bbox[5] = std::max(bbox[5], pv[2]);
         }
       }
     }
@@ -220,7 +220,7 @@ namespace dfgModoPI
 
       // fix vertex indices.
       uint32_t *pi = polyVertices.data() + numSamples;
-      for (int i = 0; i < inMesh.numSamples; i++,pi++)
+      for (size_t i = 0; i < inMesh.numSamples; i++,pi++)
         *pi += numVertices;
 
       // fix amounts.
@@ -229,12 +229,12 @@ namespace dfgModoPI
       numSamples  += inMesh.numSamples;
 
       // re-calc bbox.
-      bbox[0] = __min(bbox[0], inMesh.bbox[0]);
-      bbox[1] = __min(bbox[1], inMesh.bbox[1]);
-      bbox[2] = __min(bbox[2], inMesh.bbox[2]);
-      bbox[3] = __max(bbox[3], inMesh.bbox[3]);
-      bbox[4] = __max(bbox[4], inMesh.bbox[4]);
-      bbox[5] = __max(bbox[5], inMesh.bbox[5]);
+      bbox[0] = std::min(bbox[0], inMesh.bbox[0]);
+      bbox[1] = std::min(bbox[1], inMesh.bbox[1]);
+      bbox[2] = std::min(bbox[2], inMesh.bbox[2]);
+      bbox[3] = std::max(bbox[3], inMesh.bbox[3]);
+      bbox[4] = std::max(bbox[4], inMesh.bbox[4]);
+      bbox[5] = std::max(bbox[5], inMesh.bbox[5]);
 
       // done.
       return isValid();
@@ -357,7 +357,7 @@ namespace dfgModoPI
       FETODO: Add support for the other channel types and do something with
       the channels.
     */
-    for (int i = 0; i < m_usrChan.size(); i++)
+    for (size_t i = 0; i < m_usrChan.size(); i++)
     {
       ModoTools::UsrChnDef *channel = &m_usrChan[i];
       unsigned              type    = 0;
@@ -401,7 +401,7 @@ namespace dfgModoPI
       FETODO: Add support for the other channel types and do something with
       the channels.
     */
-    for (int i = 0; i < m_usrChan.size(); i++)
+    for (size_t i = 0; i < m_usrChan.size(); i++)
     {
       ModoTools::UsrChnDef *channel = &m_usrChan[i];
       unsigned              type    = 0;
@@ -1473,7 +1473,7 @@ namespace dfgModoPI
       if (tmp.size() == m_usrChan.size())
       {
         bool foundDifference = false;
-        for (int i = 0; i < tmp.size(); i++)
+        for (size_t i = 0; i < tmp.size(); i++)
           if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
           {
             foundDifference = true;

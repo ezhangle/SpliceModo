@@ -32,7 +32,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   if (DFGUICmdHandlerLOG)
   {
     feLog("[DFGUICmd] about to execute \"" + in_cmdName + "\" with the following array of arguments:");
-    for (int i=0;i<in_args.size();i++)
+    for (size_t i=0;i<in_args.size();i++)
       feLog("[DFGUICmd]     \"" + in_args[i] + "\"");
   }
 
@@ -42,7 +42,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
     if (DFGUICmdHandlerByPassDCC)
     {
       // execute the dfg command directly via the createAndExecuteDFGCommand() function.
-      void *cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(in_cmdName, in_args);
+      FabricUI::DFG::DFGUICmd *cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(in_cmdName, in_args);
       if (cmd)
       {
         ret = true;
@@ -63,7 +63,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   {
     // log some info about this command.
     feLogError("failed to execute \"" + in_cmdName + "\" with the following array of arguments:");
-    for (int i=0;i<in_args.size();i++)
+    for (size_t i=0;i<in_args.size();i++)
       feLogError("    \"" + in_args[i] + "\"");
   }
 
@@ -240,7 +240,8 @@ void DFGUICmdHandlerDCC::dfgDoRemoveNodes(
   args.push_back(execPath);
   args.push_back(EncodeNames(nodeNames));
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoConnect(
@@ -259,7 +260,8 @@ void DFGUICmdHandlerDCC::dfgDoConnect(
   args.push_back(srcPort);
   args.push_back(dstPort);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoDisconnect(
@@ -278,7 +280,8 @@ void DFGUICmdHandlerDCC::dfgDoDisconnect(
   args.push_back(srcPort);
   args.push_back(dstPort);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 std::string DFGUICmdHandlerDCC::dfgDoAddGraph(
@@ -469,7 +472,8 @@ void DFGUICmdHandlerDCC::dfgDoRemovePort(
   args.push_back(execPath);
   args.push_back(portName);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoMoveNodes(
@@ -489,7 +493,8 @@ void DFGUICmdHandlerDCC::dfgDoMoveNodes(
   args.push_back(EncodeXPoss(poss));
   args.push_back(EncodeYPoss(poss));
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
@@ -510,7 +515,8 @@ void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
   EncodePosition(pos, args);
   EncodeSize(size, args);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 std::string DFGUICmdHandlerDCC::dfgDoImplodeNodes(
@@ -577,7 +583,8 @@ void DFGUICmdHandlerDCC::dfgDoAddBackDrop(
   args.push_back(title);
   EncodePosition(pos, args);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetNodeTitle(
@@ -596,7 +603,8 @@ void DFGUICmdHandlerDCC::dfgDoSetNodeTitle(
   args.push_back(nodeName);
   args.push_back(title);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetNodeComment(
@@ -615,7 +623,8 @@ void DFGUICmdHandlerDCC::dfgDoSetNodeComment(
   args.push_back(nodeName);
   args.push_back(comment);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetCode(
@@ -632,7 +641,8 @@ void DFGUICmdHandlerDCC::dfgDoSetCode(
   args.push_back(execPath);
   args.push_back(code);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 std::string DFGUICmdHandlerDCC::dfgDoRenamePort(
@@ -698,7 +708,8 @@ void DFGUICmdHandlerDCC::dfgDoSetArgType(
   args.push_back(argName);
   args.push_back(typeName);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetArgValue(
@@ -715,7 +726,8 @@ void DFGUICmdHandlerDCC::dfgDoSetArgValue(
   args.push_back(value.getTypeNameCStr());
   args.push_back(value.getJSON().getStringCString());
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
@@ -735,7 +747,8 @@ void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   args.push_back(value.getTypeNameCStr());
   args.push_back(value.getJSON().getStringCString());
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
@@ -754,7 +767,8 @@ void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
   args.push_back(refName);
   args.push_back(varPath);
 
-  execCmd(cmdName, args, std::string());
+  std::string output;
+  execCmd(cmdName, args, output);
 }
 
 std::string DFGUICmdHandlerDCC::getDCCObjectNameFromBinding(FabricCore::DFGBinding const &binding)
@@ -788,9 +802,9 @@ FabricCore::DFGBinding DFGUICmdHandlerDCC::getBindingFromDCCObjectName(std::stri
   return FabricCore::DFGBinding();
 }
 
-void *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args)
+FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args)
 {
-  void *cmd = NULL;
+  FabricUI::DFG::DFGUICmd *cmd = NULL;
   if      (in_cmdName == "dfgRemoveNodes")         cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
   else if (in_cmdName == "dfgConnect")             cmd = createAndExecuteDFGCommand_Connect            (in_args);
   else if (in_cmdName == "dfgDisconnect")          cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
@@ -1878,7 +1892,7 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
                                                 undo = sp.Alloc(obj);                                                             \
                                                 undo->init();                                                                     \
                                                 std::vector<std::string> args(__dfgModoCmdNumArgs__);                             \
-                                                for (int i=0;i<args.size();i++)                                                   \
+                                                for (size_t i=0;i<args.size();i++)                                                \
                                                   dyna_String(i, args[i]);                                                        \
                                                 undo->cmdName = __dfgModoCmdName__;                                               \
                                                 undo->cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(undo->cmdName, args);  \

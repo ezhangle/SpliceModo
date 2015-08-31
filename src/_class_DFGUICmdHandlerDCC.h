@@ -4,6 +4,7 @@
 #define _FabricDFGUICmdHandlerDCC_H_
 
 #include <FabricUI/DFG/DFGUICmdHandler.h>
+#include <FabricUI/DFG/DFGUICmd/DFGUICmd.h>
 #include <FabricUI/DFG/DFGUICmd/DFGUICmds.h>
 
 #include "lxu_command.hpp"
@@ -246,7 +247,7 @@ public:
 
 public:
 
-  static void *createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args);
+  static FabricUI::DFG::DFGUICmd *createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args);
   static FabricUI::DFG::DFGUICmd_RemoveNodes *createAndExecuteDFGCommand_RemoveNodes(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Connect *createAndExecuteDFGCommand_Connect(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Disconnect *createAndExecuteDFGCommand_Disconnect(std::vector<std::string> &args);
@@ -279,10 +280,10 @@ class UndoDFGUICmd : public CLxImpl_Undo
 public:
   enum doWhatIDs
   {
-    DOIT = 0, // cmd->doit();
-    UNDO,     // cmd->undo();
-    REDO,     // cmd->redo();
-    DELETE,   // delete cmd;
+    doWhatIDs_DOIT = 0, // cmd->doit();
+    doWhatIDs_UNDO,     // cmd->undo();
+    doWhatIDs_REDO,     // cmd->redo();
+    doWhatIDs_DELETE,   // delete cmd;
   };
 
   void       *cmd;      // pointer at dfg command.
@@ -292,21 +293,21 @@ public:
   {
     if (UndoDFGUICmdLOG)
       feLog("UndoDFGUICmd: deleting " + cmdName);
-    cmd_do(doWhatIDs::DELETE);
+    cmd_do(doWhatIDs_DELETE);
   }
 
   void undo_Reverse(void)   LXx_OVERRIDE
   {
     if (UndoDFGUICmdLOG)
       feLog("UndoDFGUICmd: undoing " + cmdName);
-    cmd_do(doWhatIDs::UNDO);
+    cmd_do(doWhatIDs_UNDO);
   }
 
   void undo_Forward(void)   LXx_OVERRIDE
   {
     if (UndoDFGUICmdLOG)
       feLog("UndoDFGUICmd: redoing " + cmdName);
-    cmd_do(doWhatIDs::REDO);
+    cmd_do(doWhatIDs_REDO);
   }
 
   void init(void)
@@ -323,202 +324,202 @@ public:
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_RemoveNodes T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Connect            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Connect T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Disconnect         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Disconnect T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddGraph           ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddGraph T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddFunc            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddFunc T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_InstPreset         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_InstPreset T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddVar             ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddVar T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddGet             ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddGet T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddSet             ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddSet T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddPort            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddPort T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_RemovePort         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_RemovePort T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_MoveNodes          ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_MoveNodes T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ResizeBackDrop     ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ResizeBackDrop T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ImplodeNodes       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ImplodeNodes T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ExplodeNode T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddBackDrop T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetNodeTitle       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetNodeTitle T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment     ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetNodeComment T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetCode            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetCode T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_RenamePort         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_RenamePort T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Paste              ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Paste T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetArgType         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetArgType T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetArgValue        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetArgValue T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetPortDefaultValue T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath      ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetRefVarPath T;
-      if      (doWhat == doWhatIDs::DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs::UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs::REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs::DELETE) { delete ((T *)cmd);
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
   }

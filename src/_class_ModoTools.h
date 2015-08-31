@@ -1,10 +1,12 @@
 #ifndef SRC__CLASS_MODOTOOLS_H_
 #define SRC__CLASS_MODOTOOLS_H_
 
-// disable some annoying VS warnings.
-#pragma warning(disable : 4530)    // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
-#pragma warning(disable : 4800)    // forcing value to bool 'true' or 'false'.
-#pragma warning(disable : 4806)    // unsafe operation: no value of type 'bool' promoted to type ...etc.
+#ifdef _WIN32
+  // disable some annoying VS warnings.
+  #pragma warning(disable : 4530)    // C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc.
+  #pragma warning(disable : 4800)    // forcing value to bool 'true' or 'false'.
+  #pragma warning(disable : 4806)    // unsafe operation: no value of type 'bool' promoted to type ...etc.
+#endif
 
 // includes (Modo).
 #include "lxidef.h"

@@ -456,7 +456,7 @@ namespace dfgModoIM
       if (tmp.size() == m_usrChan.size())
       {
         bool foundDifference = false;
-        for (int i = 0; i < tmp.size(); i++)
+        for (size_t i = 0; i < tmp.size(); i++)
           if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
           {
             foundDifference = true;
@@ -602,7 +602,7 @@ namespace dfgModoIM
           // error getting value from user channel?
           if (retGet != 0)
           {
-            snprintf(serr, sizeof(serr), "%ld", retGet);
+            snprintf(serr, sizeof(serr), "%d", retGet);
             err = "failed to get value from user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
             break;
           }
@@ -734,7 +734,7 @@ namespace dfgModoIM
           else
           {
             std::vector <double> val;
-            int N = 0;
+            size_t N = 0;
             if (dataType == LXi_TYPE_FLOAT)
             {
               if      (cd->isVec2x)     {   N = 2;  retGet = BaseInterface::GetArgValueVec2(binding, portName, val);   }
@@ -748,7 +748,7 @@ namespace dfgModoIM
               }
 
               if (retGet == 0 && val.size() == N)
-                for (int i = 0; i < N; i++)
+                for (size_t i = 0; i < N; i++)
                   if (retSet)     break;
                   else            retSet = attr.SetFlt(cd->eval_index + i, val[i]);
             }
@@ -757,7 +757,7 @@ namespace dfgModoIM
           // error getting value from DFG port?
           if (retGet != 0)
           {
-            snprintf(serr, sizeof(serr), "%ld", retGet);
+            snprintf(serr, sizeof(serr), "%d", retGet);
             err = "failed to get value from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
             break;
           }
@@ -765,7 +765,7 @@ namespace dfgModoIM
           // error setting value of user channel?
           if (retSet != 0)
           {
-            snprintf(serr, sizeof(serr), "%ld", retGet);
+            snprintf(serr, sizeof(serr), "%d", retGet);
             err = "failed to set value of user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
             break;
           }

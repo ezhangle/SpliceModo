@@ -107,8 +107,12 @@ env.MergeFlags(locals()[uiLibPrefix + 'Flags'])
 
 env.MergeFlags(sharedCapiFlags)
 env.MergeFlags(ADDITIONAL_FLAGS)
-env.Append(CCFLAGS = ['/wd4244'])
-env.Append(CCFLAGS = ['/wd4700'])
+
+if FABRIC_BUILD_OS == 'Windows':
+  env.Append(CCFLAGS = ['/wd4244'])
+  env.Append(CCFLAGS = ['/wd4700'])
+elif FABRIC_BUILD_OS == 'Linux':
+  env.Append(CCFLAGS = ['-Wno-missing-braces'])
 
 target = 'FabricModo'
 
@@ -120,12 +124,21 @@ env.VariantDir(env.Dir('common'+MODO_VERSION),
 
 pluginSources = env.Glob('src/*.cpp')
 pluginSources += env.QTMOC(env.File('src/_class_FabricDFGWidget.h'))
+
+# ignore all warnings from Modo code
+commonEnv = env.Clone()
+if FABRIC_BUILD_OS == 'Linux':
+  if '-Wall' in commonEnv['CCFLAGS']:
+    commonEnv['CCFLAGS'].remove('-Wall')
+  if '-Werror' in commonEnv['CCFLAGS']:
+    commonEnv['CCFLAGS'].remove('-Werror')
+
 commonSources = env.Glob(os.path.join(env.Dir('common'+MODO_VERSION).abspath, '*.cpp'))
 for commonSource in commonSources:
   fileName = os.path.split(commonSource.abspath)[1]
   if fileName == 'clean.cpp':
     continue
-  pluginSources += [commonSource]
+  pluginSources += commonEnv.SharedObject(commonSource)
 
 if FABRIC_BUILD_OS == 'Darwin':
   # a loadable module will omit the 'lib' prefix name on Os X
@@ -145,7 +158,8 @@ else:
   if FABRIC_BUILD_OS == 'Linux':
     exportsFile = env.File('Linux.exports').srcnode()
     env.Append(SHLINKFLAGS = ['-Wl,--version-script='+str(exportsFile)])
-    env[ '_LIBFLAGS' ] = '-Wl,--start-group ' + env['_LIBFLAGS'] + ' -Wl,--end-group'
+    env.Append(LINKFLAGS = [Literal('-Wl,-rpath,$ORIGIN/../../../lib/')])
+    # env[ '_LIBFLAGS' ] = '-Wl,--start-group ' + env['_LIBFLAGS'] + ' -Wl,--end-group'
   modoModule = env.SharedLibrary(target = target, source = pluginSources, SHLIBSUFFIX='.lx')
 
 installDir = None
@@ -166,12 +180,14 @@ modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('index.cfg'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgExportJSON.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgImportJSON.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgOpenCanvas.pl'))
-modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.dll'))
-modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.pdb'))
-modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.dll'))
-modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.pdb'))
-modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbb.dll'))
-modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbbmalloc.dll'))
+
+if FABRIC_BUILD_OS == 'Windows':
+  modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.dll'))
+  modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.pdb'))
+  modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.dll'))
+  modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.pdb'))
+  modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbb.dll'))
+  modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbbmalloc.dll'))
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

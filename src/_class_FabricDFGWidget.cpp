@@ -24,12 +24,16 @@ FabricDFGWidget::FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInter
       FabricUI::DFG::DFGConfig config;
       config.graphConfig.useOpenGL = false;
 
+      FabricCore::DFGHost host = m_baseInterface->getHost();
+      FabricCore::DFGBinding binding = m_baseInterface->getBinding();
+      FabricCore::DFGExec exec = binding.getExec();
+
       init(*m_baseInterface->getClient(),
             m_baseInterface->getManager(),
-            m_baseInterface->getHost(),
-            m_baseInterface->getBinding(),
+            host,
+            binding,
             "",
-            m_baseInterface->getBinding().getExec(),
+            exec,
             m_baseInterface->getCmdHandler(),
             false,
             config);
@@ -46,7 +50,7 @@ FabricDFGWidget::FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInter
 FabricDFGWidget::~FabricDFGWidget()
 {
   // remove this from all FabricViews::m_dfgWidget.
-  for (int i=0;i<FabricView::s_FabricViews.size();i++)
+  for (size_t i=0;i<FabricView::s_FabricViews.size();i++)
   {
     if (FabricView::s_FabricViews[i]->widget() == this)
       FabricView::s_FabricViews[i]->setWidgetNULL();
@@ -173,7 +177,10 @@ void FabricDFGWidget::refreshGraph(void)
   {
     if (!m_baseInterface)   return;
     if (!getDfgWidget())    return;
-    getDfgWidget()->getUIController()->setBindingExec(m_baseInterface->getBinding(), FTL::StrRef(), m_baseInterface->getBinding().getExec());
+
+    FabricCore::DFGBinding binding = m_baseInterface->getBinding();
+    FabricCore::DFGExec exec = binding.getExec();
+    getDfgWidget()->getUIController()->setBindingExec(binding, FTL::StrRef(), exec);
   }
   catch (FabricCore::Exception e)
   {

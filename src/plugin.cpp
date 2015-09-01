@@ -58,11 +58,16 @@ void feLogError(const std::string &s)
 
 // a global BaseInterface: its only purpose is to ensure
 // that Fabric is "up and running" when Modo is executed.
-BaseInterface gblBaseInterface_dummy;
+BaseInterface *gblBaseInterface_dummy;
 
 // plugin initialization.
 void initialize()
 {
+  // this can't be initialized outside as its constructor adds to
+  // an s_instances global and we can't guarantee the order of
+  // global initialization
+  gblBaseInterface_dummy = new BaseInterface;
+
   // Fabric.
   {
     // set log function pointers.
@@ -116,5 +121,6 @@ void initialize()
 // plugin clean up.
 void cleanup()
 {
+  delete gblBaseInterface_dummy;
 }
 

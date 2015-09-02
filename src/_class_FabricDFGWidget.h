@@ -33,6 +33,8 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
   static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound = true);
 
  public slots:
+  virtual void onUndo() { /* todo EricMootz: perform undo in modo */ }
+  virtual void onRedo() { /* todo EricMootz: perform redo in modo */ }
   virtual void onRecompilation();
   virtual void onPortRenamed(QString path, QString newName);
   void onDefaultValueChanged();

@@ -121,6 +121,16 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
   }
 }
 
+void FabricDFGWidget::onUndo()
+{
+  execCmd(std::string("app.undo"), std::vector<std::string>(), std::string());
+}
+
+void FabricDFGWidget::onRedo()
+{
+  execCmd(std::string("app.redo"), std::vector<std::string>(), std::string());
+}
+
 void FabricDFGWidget::onRecompilation()
 {
   if (m_baseInterface)

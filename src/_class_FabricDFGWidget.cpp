@@ -123,12 +123,14 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
 
 void FabricDFGWidget::onUndo()
 {
-  execCmd(std::string("app.undo"), std::vector<std::string>(), std::string());
+  std::string output;
+  execCmd(std::string("app.undo"), std::vector<std::string>(), output);
 }
 
 void FabricDFGWidget::onRedo()
 {
-  execCmd(std::string("app.redo"), std::vector<std::string>(), std::string());
+  std::string output;
+  execCmd(std::string("app.redo"), std::vector<std::string>(), output);
 }
 
 void FabricDFGWidget::onRecompilation()

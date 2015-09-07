@@ -114,7 +114,7 @@ if FABRIC_BUILD_OS == 'Windows':
 elif FABRIC_BUILD_OS == 'Linux':
   env.Append(CCFLAGS = ['-Wno-missing-braces'])
 
-target = 'FabricModo'
+target = 'FabricForModo'
 
 modoModule = None
 
@@ -142,7 +142,7 @@ for commonSource in commonSources:
 
 if FABRIC_BUILD_OS == 'Darwin':
   # a loadable module will omit the 'lib' prefix name on Os X
-  spliceAppName = 'FabricModo'+MODO_VERSION
+  spliceAppName = 'FabricForModo'+MODO_VERSION
   target += '.bundle'
   env.Append(SHLINKFLAGS = ','.join([
     '-Wl',

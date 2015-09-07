@@ -805,31 +805,31 @@ FabricCore::DFGBinding DFGUICmdHandlerDCC::getBindingFromDCCObjectName(std::stri
 FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args)
 {
   FabricUI::DFG::DFGUICmd *cmd = NULL;
-  if      (in_cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName())         cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_Connect::CmdName())             cmd = createAndExecuteDFGCommand_Connect            (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_Disconnect::CmdName())          cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGraph::CmdName())            cmd = createAndExecuteDFGCommand_AddGraph           (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddFunc::CmdName())             cmd = createAndExecuteDFGCommand_AddFunc            (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_InstPreset::CmdName())          cmd = createAndExecuteDFGCommand_InstPreset         (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddVar::CmdName())              cmd = createAndExecuteDFGCommand_AddVar             (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGet::CmdName())              cmd = createAndExecuteDFGCommand_AddGet             (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddSet::CmdName())              cmd = createAndExecuteDFGCommand_AddSet             (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddPort::CmdName())             cmd = createAndExecuteDFGCommand_AddPort            (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_RemovePort::CmdName())          cmd = createAndExecuteDFGCommand_RemovePort         (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_MoveNodes::CmdName())           cmd = createAndExecuteDFGCommand_MoveNodes          (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ResizeBackDrop::CmdName())      cmd = createAndExecuteDFGCommand_ResizeBackDrop     (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName())        cmd = createAndExecuteDFGCommand_ImplodeNodes       (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode::CmdName())         cmd = createAndExecuteDFGCommand_ExplodeNode        (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop::CmdName())         cmd = createAndExecuteDFGCommand_AddBackDrop        (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeTitle::CmdName())        cmd = createAndExecuteDFGCommand_SetNodeTitle       (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName())      cmd = createAndExecuteDFGCommand_SetNodeComment     (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetCode::CmdName())             cmd = createAndExecuteDFGCommand_SetCode            (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_RenamePort::CmdName())          cmd = createAndExecuteDFGCommand_RenamePort         (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_Paste::CmdName())               cmd = createAndExecuteDFGCommand_Paste              (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgType::CmdName())          cmd = createAndExecuteDFGCommand_SetArgType         (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgValue::CmdName())         cmd = createAndExecuteDFGCommand_SetArgValue        (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName()) cmd = createAndExecuteDFGCommand_SetPortDefaultValue(in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName())       cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
+  if      (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName())         cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_Connect::CmdName())             cmd = createAndExecuteDFGCommand_Connect            (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_Disconnect::CmdName())          cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddGraph::CmdName())            cmd = createAndExecuteDFGCommand_AddGraph           (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddFunc::CmdName())             cmd = createAndExecuteDFGCommand_AddFunc            (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_InstPreset::CmdName())          cmd = createAndExecuteDFGCommand_InstPreset         (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddVar::CmdName())              cmd = createAndExecuteDFGCommand_AddVar             (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddGet::CmdName())              cmd = createAndExecuteDFGCommand_AddGet             (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddSet::CmdName())              cmd = createAndExecuteDFGCommand_AddSet             (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddPort::CmdName())             cmd = createAndExecuteDFGCommand_AddPort            (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_RemovePort::CmdName())          cmd = createAndExecuteDFGCommand_RemovePort         (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_MoveNodes::CmdName())           cmd = createAndExecuteDFGCommand_MoveNodes          (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_ResizeBackDrop::CmdName())      cmd = createAndExecuteDFGCommand_ResizeBackDrop     (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName())        cmd = createAndExecuteDFGCommand_ImplodeNodes       (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_ExplodeNode::CmdName())         cmd = createAndExecuteDFGCommand_ExplodeNode        (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddBackDrop::CmdName())         cmd = createAndExecuteDFGCommand_AddBackDrop        (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetNodeTitle::CmdName())        cmd = createAndExecuteDFGCommand_SetNodeTitle       (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName())      cmd = createAndExecuteDFGCommand_SetNodeComment     (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetCode::CmdName())             cmd = createAndExecuteDFGCommand_SetCode            (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_RenamePort::CmdName())          cmd = createAndExecuteDFGCommand_RenamePort         (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_Paste::CmdName())               cmd = createAndExecuteDFGCommand_Paste              (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetArgType::CmdName())          cmd = createAndExecuteDFGCommand_SetArgType         (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetArgValue::CmdName())         cmd = createAndExecuteDFGCommand_SetArgValue        (in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName()) cmd = createAndExecuteDFGCommand_SetPortDefaultValue(in_args);
+  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName())       cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
   return cmd;
 }
 

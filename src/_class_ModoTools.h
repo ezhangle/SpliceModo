@@ -75,7 +75,7 @@ class ModoTools
   static bool ExecuteCommand(const std::string &command, std::string &out_err);
 
   // executes a command.
-  // params:  cmdName                 the command name, e.g. "dfgConnect".
+  // params:  cmdName                 the command name, e.g. "FabricCanvasConnect".
   //          args                    the arguments.
   //          out_err                 contains an error description if the function returns false.
   // returns: true on success, false otherwise.

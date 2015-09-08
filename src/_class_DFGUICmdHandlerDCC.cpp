@@ -8,6 +8,8 @@
 
 #include <sstream>
 
+#include <FTL/JSONValue.h>
+
 
 
 /*----------------
@@ -771,6 +773,35 @@ void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
   execCmd(cmdName, args, output);
 }
 
+void DFGUICmdHandlerDCC::dfgDoReorderPorts(
+  FabricCore::DFGBinding const &binding,
+  FTL::CStrRef execPath,
+  FabricCore::DFGExec const &exec,
+  const std::vector<unsigned int> &indices
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_ReorderPorts::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(execPath);
+
+  char n[64];
+  std::string indicesStr = "[";
+  for(size_t i=0;i<indices.size();i++)
+  {
+    if(i > 0)
+      indicesStr += ", ";
+    sprintf(n, "%d", indices[i]);
+    indicesStr += n;
+  }
+  indicesStr += "]";
+  args.push_back(indicesStr);
+
+  std::string output;
+  execCmd(cmdName, args, output);
+}
+
 std::string DFGUICmdHandlerDCC::getDCCObjectNameFromBinding(FabricCore::DFGBinding const &binding)
 {
   // try to get the item's name for this binding.
@@ -805,31 +836,32 @@ FabricCore::DFGBinding DFGUICmdHandlerDCC::getBindingFromDCCObjectName(std::stri
 FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args)
 {
   FabricUI::DFG::DFGUICmd *cmd = NULL;
-  if      (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName())         cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_Connect::CmdName())             cmd = createAndExecuteDFGCommand_Connect            (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_Disconnect::CmdName())          cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddGraph::CmdName())            cmd = createAndExecuteDFGCommand_AddGraph           (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddFunc::CmdName())             cmd = createAndExecuteDFGCommand_AddFunc            (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_InstPreset::CmdName())          cmd = createAndExecuteDFGCommand_InstPreset         (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddVar::CmdName())              cmd = createAndExecuteDFGCommand_AddVar             (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddGet::CmdName())              cmd = createAndExecuteDFGCommand_AddGet             (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddSet::CmdName())              cmd = createAndExecuteDFGCommand_AddSet             (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddPort::CmdName())             cmd = createAndExecuteDFGCommand_AddPort            (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_RemovePort::CmdName())          cmd = createAndExecuteDFGCommand_RemovePort         (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_MoveNodes::CmdName())           cmd = createAndExecuteDFGCommand_MoveNodes          (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_ResizeBackDrop::CmdName())      cmd = createAndExecuteDFGCommand_ResizeBackDrop     (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName())        cmd = createAndExecuteDFGCommand_ImplodeNodes       (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_ExplodeNode::CmdName())         cmd = createAndExecuteDFGCommand_ExplodeNode        (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_AddBackDrop::CmdName())         cmd = createAndExecuteDFGCommand_AddBackDrop        (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetNodeTitle::CmdName())        cmd = createAndExecuteDFGCommand_SetNodeTitle       (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName())      cmd = createAndExecuteDFGCommand_SetNodeComment     (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetCode::CmdName())             cmd = createAndExecuteDFGCommand_SetCode            (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_RenamePort::CmdName())          cmd = createAndExecuteDFGCommand_RenamePort         (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_Paste::CmdName())               cmd = createAndExecuteDFGCommand_Paste              (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetArgType::CmdName())          cmd = createAndExecuteDFGCommand_SetArgType         (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetArgValue::CmdName())         cmd = createAndExecuteDFGCommand_SetArgValue        (in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName()) cmd = createAndExecuteDFGCommand_SetPortDefaultValue(in_args);
-  else if (FTL::CStrRef(in_cmdName) == FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName())       cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
+  if      (in_cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_Connect::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_Connect            (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_Disconnect::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGraph::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddGraph           (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddFunc::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddFunc            (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_InstPreset::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_InstPreset         (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddVar::             CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddVar             (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGet::             CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddGet             (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddSet::             CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddSet             (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddPort::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddPort            (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_RemovePort::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_RemovePort         (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_MoveNodes::          CmdName().c_str())    cmd = createAndExecuteDFGCommand_MoveNodes          (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ResizeBackDrop::     CmdName().c_str())    cmd = createAndExecuteDFGCommand_ResizeBackDrop     (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ImplodeNodes::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_ImplodeNodes       (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_ExplodeNode        (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddBackDrop        (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeTitle::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetNodeTitle       (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment::     CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetNodeComment     (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetCode::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetCode            (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_RenamePort::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_RenamePort         (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_Paste::              CmdName().c_str())    cmd = createAndExecuteDFGCommand_Paste              (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgType::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetArgType         (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgValue::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetArgValue        (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetPortDefaultValue(in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath::      CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_ReorderPorts       (in_args);
   return cmd;
 }
 
@@ -1863,6 +1895,58 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
   return cmd;
 }
 
+FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args)
+{
+  FabricUI::DFG::DFGUICmd_ReorderPorts *cmd = NULL;
+  {
+    unsigned int ai = 0;
+
+    FabricCore::DFGBinding binding;
+    std::string execPath;
+    FabricCore::DFGExec exec;
+    if (!DecodeExec(args, ai, binding, execPath, exec))
+      return cmd;
+
+    std::string indicesStr;
+    if (!DecodeName(args, ai, indicesStr))
+      return cmd;
+
+    std::vector<unsigned int> indices;
+    try
+    {
+      FTL::JSONStrWithLoc jsonStrWithLoc( indicesStr.c_str() );
+      FTL::OwnedPtr<FTL::JSONArray> jsonArray(
+        FTL::JSONValue::Decode( jsonStrWithLoc )->cast<FTL::JSONArray>()
+        );
+      for( size_t i=0; i < jsonArray->size(); i++ )
+      {
+        indices.push_back ( jsonArray->get(i)->getSInt32Value() );
+      }
+    }
+    catch ( FabricCore::Exception e )
+    {
+      feLogError("indices argument not valid json.");
+      return cmd;
+    }
+
+    cmd = new FabricUI::DFG::DFGUICmd_ReorderPorts(binding,
+                                                    execPath.c_str(),
+                                                    exec,
+                                                    indices);
+    try
+    {
+      cmd->doit();
+    }
+    catch(FabricCore::Exception e)
+    {
+      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    }
+  }
+
+  return cmd;
+}
+
+
 
 
 /*-------------------------------------------------------------
@@ -1903,8 +1987,8 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
 
 
 #define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  dfgRemoveNodes
-#define __dfgModoCmdName__  "dfgRemoveNodes"
+#define __dfgModoCmdClass__  FabricCanvasRemoveNodes
+#define __dfgModoCmdName__  "FabricCanvasRemoveNodes"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -1918,8 +2002,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgConnect
-#define __dfgModoCmdName__  "dfgConnect"
+#define __dfgModoCmdClass__  FabricCanvasConnect
+#define __dfgModoCmdName__  "FabricCanvasConnect"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -1934,8 +2018,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgDisconnect
-#define __dfgModoCmdName__  "dfgDisconnect"
+#define __dfgModoCmdClass__  FabricCanvasDisconnect
+#define __dfgModoCmdName__  "FabricCanvasDisconnect"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -1950,8 +2034,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  dfgAddGraph
-#define __dfgModoCmdName__  "dfgAddGraph"
+#define __dfgModoCmdClass__  FabricCanvasAddGraph
+#define __dfgModoCmdName__  "FabricCanvasAddGraph"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -1967,8 +2051,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  dfgAddFunc
-#define __dfgModoCmdName__  "dfgAddFunc"
+#define __dfgModoCmdClass__  FabricCanvasAddFunc
+#define __dfgModoCmdName__  "FabricCanvasAddFunc"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -1985,8 +2069,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  dfgInstPreset
-#define __dfgModoCmdName__  "dfgInstPreset"
+#define __dfgModoCmdClass__  FabricCanvasInstPreset
+#define __dfgModoCmdName__  "FabricCanvasInstPreset"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2002,8 +2086,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     7
-#define __dfgModoCmdClass__  dfgAddVar
-#define __dfgModoCmdName__  "dfgAddVar"
+#define __dfgModoCmdClass__  FabricCanvasAddVar
+#define __dfgModoCmdName__  "FabricCanvasAddVar"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2021,8 +2105,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  dfgAddGet
-#define __dfgModoCmdName__  "dfgAddGet"
+#define __dfgModoCmdClass__  FabricCanvasAddGet
+#define __dfgModoCmdName__  "FabricCanvasAddGet"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2039,8 +2123,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  dfgAddSet
-#define __dfgModoCmdName__  "dfgAddSet"
+#define __dfgModoCmdClass__  FabricCanvasAddSet
+#define __dfgModoCmdName__  "FabricCanvasAddSet"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2057,8 +2141,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  dfgAddPort
-#define __dfgModoCmdName__  "dfgAddPort"
+#define __dfgModoCmdClass__  FabricCanvasAddPort
+#define __dfgModoCmdName__  "FabricCanvasAddPort"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2075,8 +2159,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  dfgRemovePort
-#define __dfgModoCmdName__  "dfgRemovePort"
+#define __dfgModoCmdClass__  FabricCanvasRemovePort
+#define __dfgModoCmdName__  "FabricCanvasRemovePort"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2090,8 +2174,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  dfgMoveNodes
-#define __dfgModoCmdName__  "dfgMoveNodes"
+#define __dfgModoCmdClass__  FabricCanvasMoveNodes
+#define __dfgModoCmdName__  "FabricCanvasMoveNodes"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2107,8 +2191,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     7
-#define __dfgModoCmdClass__  dfgResizeBackDrop
-#define __dfgModoCmdName__  "dfgResizeBackDrop"
+#define __dfgModoCmdClass__  FabricCanvasResizeBackDrop
+#define __dfgModoCmdName__  "FabricCanvasResizeBackDrop"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2126,8 +2210,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgImplodeNodes
-#define __dfgModoCmdName__  "dfgImplodeNodes"
+#define __dfgModoCmdClass__  FabricCanvasImplodeNodes
+#define __dfgModoCmdName__  "FabricCanvasImplodeNodes"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2142,8 +2226,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  dfgExplodeNode
-#define __dfgModoCmdName__  "dfgExplodeNode"
+#define __dfgModoCmdClass__  FabricCanvasExplodeNode
+#define __dfgModoCmdName__  "FabricCanvasExplodeNode"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2157,8 +2241,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  dfgAddBackDrop
-#define __dfgModoCmdName__  "dfgAddBackDrop"
+#define __dfgModoCmdClass__  FabricCanvasAddBackDrop
+#define __dfgModoCmdName__  "FabricCanvasAddBackDrop"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2174,8 +2258,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgSetNodeTitle
-#define __dfgModoCmdName__  "dfgSetNodeTitle"
+#define __dfgModoCmdClass__  FabricCanvasSetNodeTitle
+#define __dfgModoCmdName__  "FabricCanvasSetNodeTitle"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2190,8 +2274,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgSetNodeComment
-#define __dfgModoCmdName__  "dfgSetNodeComment"
+#define __dfgModoCmdClass__  FabricCanvasSetNodeComment
+#define __dfgModoCmdName__  "FabricCanvasSetNodeComment"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2206,8 +2290,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  dfgSetCode
-#define __dfgModoCmdName__  "dfgSetCode"
+#define __dfgModoCmdClass__  FabricCanvasSetCode
+#define __dfgModoCmdName__  "FabricCanvasSetCode"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2221,8 +2305,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgRenamePort
-#define __dfgModoCmdName__  "dfgRenamePort"
+#define __dfgModoCmdClass__  FabricCanvasRenamePort
+#define __dfgModoCmdName__  "FabricCanvasRenamePort"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2237,8 +2321,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  dfgPaste
-#define __dfgModoCmdName__  "dfgPaste"
+#define __dfgModoCmdClass__  FabricCanvasPaste
+#define __dfgModoCmdName__  "FabricCanvasPaste"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2254,8 +2338,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  dfgSetArgType
-#define __dfgModoCmdName__  "dfgSetArgType"
+#define __dfgModoCmdClass__  FabricCanvasSetArgType
+#define __dfgModoCmdName__  "FabricCanvasSetArgType"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2269,8 +2353,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgSetArgValue
-#define __dfgModoCmdName__  "dfgSetArgValue"
+#define __dfgModoCmdClass__  FabricCanvasSetArgValue
+#define __dfgModoCmdName__  "FabricCanvasSetArgValue"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2285,8 +2369,8 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  dfgSetPortDefaultValue
-#define __dfgModoCmdName__  "dfgSetPortDefaultValue"
+#define __dfgModoCmdClass__  FabricCanvasSetPortDefaultValue
+#define __dfgModoCmdName__  "FabricCanvasSetPortDefaultValue"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
@@ -2302,14 +2386,30 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdName__
 
 #define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  dfgSetRefVarPath
-#define __dfgModoCmdName__  "dfgSetRefVarPath"
+#define __dfgModoCmdClass__  FabricCanvasSetRefVarPath
+#define __dfgModoCmdName__  "FabricCanvasSetRefVarPath"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("refName");
     addArgStr("varPath");
+  }
+__dfgModoCmd_constructor_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
+#undef  __dfgModoCmdClass__
+#undef  __dfgModoCmdName__
+
+#define __dfgModoCmdNumArgs__     4
+#define __dfgModoCmdClass__  FabricCanvasReorderPorts
+#define __dfgModoCmdName__  "FabricCanvasReorderPorts"
+__dfgModoCmd_constructor_begin__
+  {
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("exec");
+    addArgStr("indices");
   }
 __dfgModoCmd_constructor_finish__
 __dfgModoCmd_execute__

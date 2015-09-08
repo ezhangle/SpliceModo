@@ -123,14 +123,18 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
 
 void FabricDFGWidget::onUndo()
 {
-  std::string output;
-  execCmd(std::string("app.undo"), std::vector<std::string>(), output);
+  std::string               name = "app.undo";
+  std::vector<std::string>  args;
+  std::string               output;
+  execCmd(name, args, output);
 }
 
 void FabricDFGWidget::onRedo()
 {
-  std::string output;
-  execCmd(std::string("app.redo"), std::vector<std::string>(), output);
+  std::string               name = "app.redo";
+  std::vector<std::string>  args;
+  std::string               output;
+  execCmd(name, args, output);
 }
 
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)

@@ -133,16 +133,6 @@ void FabricDFGWidget::onRedo()
   execCmd(std::string("app.redo"), std::vector<std::string>(), output);
 }
 
-void FabricDFGWidget::onRecompilation()
-{
-  if (m_baseInterface)
-  {
-    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPIpilot) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIpilot);
-  }
-}
-
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 {
   // ... rename the dynamic attribute also in modo

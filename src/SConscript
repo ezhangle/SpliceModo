@@ -13,16 +13,16 @@ headers = Flatten(Glob('*.h'))
 sources = Flatten(Glob('*.cpp'))
 sources += Flatten(env.GlobQObjectSources('*.h'))
 
-plugin = env.SharedLibrary('FabricForModo', sources, SHLIBSUFFIX='.lx')
+plugin = env.SharedLibrary('FabricModo', sources, SHLIBSUFFIX='.lx')
 Export('plugin')
 
 # todo: port for other operating systems
-installDir = STAGE_DIR.Dir('FabricForModo').Dir('win64')
+installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
 
 installedPlugin  = env.Install(installDir, plugin[0])
-installedPlugin += env.Install(STAGE_DIR.Dir('FabricForModo'), env.File('index.cfg'))
-installedPlugin += env.Install(STAGE_DIR.Dir('FabricForModo'), env.File('btn_dfgExportJSON.pl'))
-installedPlugin += env.Install(STAGE_DIR.Dir('FabricForModo'), env.File('btn_dfgImportJSON.pl'))
-installedPlugin += env.Install(STAGE_DIR.Dir('FabricForModo'), env.File('btn_dfgOpenCanvas.pl'))
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('index.cfg'))
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_dfgExportJSON.pl'))
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_dfgImportJSON.pl'))
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_dfgOpenCanvas.pl'))
 
 Return('installedPlugin')

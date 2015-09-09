@@ -367,9 +367,15 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     if (portName.length() > 2)
     {
       // erase last char
+#ifdef _WIN32
+      portName.pop_back();
+      char beforeLastChar = portName.back();
+      portName.pop_back();
+#else
       portName.erase(portName.size()-1);
       char beforeLastChar = portName[portName.size()-1];
       portName.erase(portName.size()-1);
+#endif
 
       if (beforeLastChar  != '.')
         portName = in_portName;

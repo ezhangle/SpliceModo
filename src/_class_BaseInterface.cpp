@@ -367,10 +367,9 @@ bool BaseInterface::HasPort(const char *in_portName, const bool testForInput)
     if (portName.length() > 2)
     {
       // erase last char
-      portName.erase(portName.end());
-      std::string::iterator beforeLastCharIter = portName.end();
-      char beforeLastChar = *beforeLastCharIter;
-      portName.erase(beforeLastCharIter);
+      portName.erase(portName.size()-1);
+      char beforeLastChar = portName[portName.size()-1];
+      portName.erase(portName.size()-1);
 
       if (beforeLastChar  != '.')
         portName = in_portName;

@@ -2401,14 +2401,13 @@ __dfgModoCmd_execute__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-#define __dfgModoCmdNumArgs__     4
+#define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  FabricCanvasReorderPorts
 #define __dfgModoCmdName__  "FabricCanvasReorderPorts"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
-    addArgStr("exec");
     addArgStr("indices");
   }
 __dfgModoCmd_constructor_finish__

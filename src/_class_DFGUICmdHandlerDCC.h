@@ -121,7 +121,8 @@ protected:
     FTL::CStrRef desiredPortName,
     FabricCore::DFGPortType portType,
     FTL::CStrRef typeSpec,
-    FTL::CStrRef portToConnect
+    FTL::CStrRef portToConnect,
+    FTL::CStrRef metaData
     );
 
   virtual void dfgDoRemovePort(

@@ -430,7 +430,8 @@ std::string DFGUICmdHandlerDCC::dfgDoAddPort(
   FabricCore::DFGPortType portType,
   FTL::CStrRef typeSpec,
   FTL::CStrRef portToConnect,
-  FTL::CStrRef metaData
+  FTl::CStrRef extDep,
+  FTL::CStrRef uiMetadata
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_AddPort::CmdName());
@@ -455,7 +456,35 @@ std::string DFGUICmdHandlerDCC::dfgDoAddPort(
   args.push_back(portTypeStr);
   args.push_back(typeSpec);
   args.push_back(portToConnect);
-  args.push_back(metaData);
+  args.push_back(extDep);
+  args.push_back(uiMetadata);
+
+  std::string result;
+  execCmd(cmdName, args, result);
+  return result;
+}
+
+std::string DFGUICmdHandlerDCC::dfgDoEditPort(
+  FabricCore::DFGBinding const &binding,
+  FTL::CStrRef execPath,
+  FabricCore::DFGExec const &exec,
+  FTL::StrRef oldPortName,
+  FTL::StrRef desiredNewPortName,
+  FTL::StrRef typeSpec,
+  FTL::StrRef extDep,
+  FTL::StrRef uiMetadata
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_EditPort::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(execPath);
+  args.push_back(oldPortName);
+  args.push_back(desiredNewPortName);
+  args.push_back(typeSpec);
+  args.push_back(extDep);
+  args.push_back(uiMetadata);
 
   std::string result;
   execCmd(cmdName, args, result);
@@ -1280,6 +1309,10 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
     if (!DecodeString(args, ai, portToConnectWith))
       return cmd;
 
+    std::string extDep;
+    if (!DecodeString(args, ai, extDep))
+      return cmd;
+
     std::string metaData;
     if (!DecodeString(args, ai, metaData))
       return cmd;
@@ -1291,6 +1324,7 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
                                               portType,
                                               typeSpec.c_str(),
                                               portToConnectWith.c_str(),
+                                              extDep.c_str(),
                                               metaData.c_str());
     try
     {

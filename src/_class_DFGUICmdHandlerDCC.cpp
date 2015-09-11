@@ -747,7 +747,10 @@ void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   args.push_back(execPath);
   args.push_back(portPath);
   args.push_back(value.getTypeNameCStr());
-  args.push_back(value.getJSON().getStringCString());
+
+  FabricCore::Context context = binding.getHost().getContext();
+  std::string json = encodeRTValToJSON(context, value);
+  args.push_back(json.c_str());
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -1836,7 +1839,7 @@ FabricUI::DFG::DFGUICmd_SetPortDefaultValue *DFGUICmdHandlerDCC::createAndExecut
     FabricCore::DFGHost host    = binding.getHost();
     FabricCore::Context context = host.getContext();
     FabricCore::RTVal value     = FabricCore::RTVal::Construct( context, typeName.c_str(), 0, NULL );
-    value.setJSON(valueJSON.c_str());
+    FabricUI::DFG::DFGUICmdHandler::decodeRTValFromJSON(context, value, valueJSON.c_str());
 
     cmd = new FabricUI::DFG::DFGUICmd_SetPortDefaultValue(binding,
                                                           execPath.c_str(),

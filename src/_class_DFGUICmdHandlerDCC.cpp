@@ -232,7 +232,7 @@ void DFGUICmdHandlerDCC::dfgDoRemoveNodes(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::ArrayRef<FTL::CStrRef> nodeNames
+  FTL::ArrayRef<FTL::StrRef> nodeNames
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName());
@@ -513,7 +513,7 @@ void DFGUICmdHandlerDCC::dfgDoMoveNodes(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::ArrayRef<FTL::CStrRef> nodeNames,
+  FTL::ArrayRef<FTL::StrRef> nodeNames,
   FTL::ArrayRef<QPointF> poss
   )
 {
@@ -556,7 +556,7 @@ std::string DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::ArrayRef<FTL::CStrRef> nodeNames,
+  FTL::ArrayRef<FTL::StrRef> nodeNames,
   FTL::CStrRef desiredNodeName
   )
 {

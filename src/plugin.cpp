@@ -102,6 +102,7 @@ void initialize()
     FabricCanvasAddGet               :: initialize();
     FabricCanvasAddSet               :: initialize();
     FabricCanvasAddPort              :: initialize();
+    FabricCanvasEditPort             :: initialize();
     FabricCanvasRemovePort           :: initialize();
     FabricCanvasMoveNodes            :: initialize();
     FabricCanvasResizeBackDrop       :: initialize();
@@ -115,6 +116,7 @@ void initialize()
     FabricCanvasPaste                :: initialize();
     FabricCanvasSetArgType           :: initialize();
     FabricCanvasSetArgValue          :: initialize();
+    FabricCanvasSetExtDeps           :: initialize();
     FabricCanvasSetPortDefaultValue  :: initialize();
     FabricCanvasSetRefVarPath        :: initialize();
     FabricCanvasReorderPorts         :: initialize();

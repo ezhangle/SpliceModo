@@ -235,6 +235,13 @@ protected:
     FabricCore::RTVal const &value
     );
 
+  virtual void dfgDoSetExtDeps(
+    FabricCore::DFGBinding const &binding,
+    FTL::CStrRef execPath,
+    FabricCore::DFGExec const &exec,
+    FTL::ArrayRef<FTL::StrRef> extDeps
+    );
+
   virtual void dfgDoSetPortDefaultValue(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
@@ -266,9 +273,8 @@ public:
     
   static FabricCore::DFGBinding getBindingFromDCCObjectName(std::string name);
 
-public:
-
   static FabricUI::DFG::DFGUICmd *createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args);
+
   static FabricUI::DFG::DFGUICmd_RemoveNodes *createAndExecuteDFGCommand_RemoveNodes(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Connect *createAndExecuteDFGCommand_Connect(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Disconnect *createAndExecuteDFGCommand_Disconnect(std::vector<std::string> &args);
@@ -279,6 +285,7 @@ public:
   static FabricUI::DFG::DFGUICmd_AddGet *createAndExecuteDFGCommand_AddGet(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddSet *createAndExecuteDFGCommand_AddSet(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddPort *createAndExecuteDFGCommand_AddPort(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_EditPort *createAndExecuteDFGCommand_EditPort(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_RemovePort *createAndExecuteDFGCommand_RemovePort(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_MoveNodes *createAndExecuteDFGCommand_MoveNodes(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_ResizeBackDrop *createAndExecuteDFGCommand_ResizeBackDrop(std::vector<std::string> &args);
@@ -292,6 +299,7 @@ public:
   static FabricUI::DFG::DFGUICmd_Paste *createAndExecuteDFGCommand_Paste(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetArgType *createAndExecuteDFGCommand_SetArgType(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetArgValue *createAndExecuteDFGCommand_SetArgValue(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetExtDeps *createAndExecuteDFGCommand_SetExtDeps(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetPortDefaultValue *createAndExecuteDFGCommand_SetPortDefaultValue(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetRefVarPath *createAndExecuteDFGCommand_SetRefVarPath(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_ReorderPorts *createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args);
@@ -424,6 +432,14 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
+    else if (cmdName == FabricUI::DFG::DFGUICmd_EditPort           ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_EditPort T;
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
+                                              cmd = NULL; }
+    }
     else if (cmdName == FabricUI::DFG::DFGUICmd_RemovePort         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_RemovePort T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
@@ -522,6 +538,14 @@ public:
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetArgValue        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetArgValue T;
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
+                                              cmd = NULL; }
+    }
+    else if (cmdName == FabricUI::DFG::DFGUICmd_SetExtDeps         ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_SetExtDeps T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
@@ -637,6 +661,12 @@ public:
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
+#define __dfgModoCmdClass__   FabricCanvasEditPort
+#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_EditPort::CmdName()
+        __dfgModoCmd__
+#undef  __dfgModoCmdClass__
+#undef  __dfgModoCmdName__
+
 #define __dfgModoCmdClass__   FabricCanvasRemovePort
 #define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_RemovePort::CmdName()
         __dfgModoCmd__
@@ -711,6 +741,12 @@ public:
 
 #define __dfgModoCmdClass__   FabricCanvasSetArgValue
 #define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetArgValue::CmdName()
+        __dfgModoCmd__
+#undef  __dfgModoCmdClass__
+#undef  __dfgModoCmdName__
+
+#define __dfgModoCmdClass__   FabricCanvasSetExtDeps
+#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetExtDeps::CmdName()
         __dfgModoCmd__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__

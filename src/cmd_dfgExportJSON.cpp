@@ -75,12 +75,12 @@ void dfgExportJSON::Command::cmd_Execute(unsigned flags)
   std::string filePath;
   {
     static QString last_fPath;
-    QString filter = "DFG Preset (*.dfg.json)";
+    QString filter = "DFG Preset (*.canvas)";
     QString fPath = QFileDialog::getSaveFileName(FabricDFGWidget::getPointerAtMainWindow(), "Save DFG Preset", last_fPath, filter, &filter);
     if (fPath.length() == 0)
       return;
-    if (fPath.toLower().endsWith(".dfg.json.dfg.json"))
-      fPath = fPath.left(fPath.length() - std::string(".dfg.json").length());
+    if (fPath.toLower().endsWith(".canvas.canvas"))
+      fPath = fPath.left(fPath.length() - std::string(".canvas").length());
     last_fPath = fPath;
     filePath   = fPath.toUtf8().constData();
   }

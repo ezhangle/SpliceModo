@@ -1989,7 +1989,11 @@ FabricUI::DFG::DFGUICmd_SetPortDefaultValue *DFGUICmdHandlerDCC::createAndExecut
     FabricCore::DFGHost host    = binding.getHost();
     FabricCore::Context context = host.getContext();
     FabricCore::RTVal value     = FabricCore::RTVal::Construct( context, typeName.c_str(), 0, NULL );
-    FabricUI::DFG::DFGUICmdHandler::decodeRTValFromJSON(context, value, valueJSON.c_str());
+    FabricUI::DFG::DFGUICmdHandler::decodeRTValFromJSON(
+      context,
+      value,
+      valueJSON.c_str()
+      );
 
     cmd = new FabricUI::DFG::DFGUICmd_SetPortDefaultValue(binding,
                                                           execPath.c_str(),

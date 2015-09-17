@@ -82,6 +82,9 @@ BaseInterface::~BaseInterface()
 
   std::map<unsigned int, BaseInterface*>::iterator it = s_instances.find(m_id);
 
+  if( m_binding )
+    m_binding.deallocValues();
+
   m_binding = FabricCore::DFGBinding();
 
   delete m_cmdHandler;

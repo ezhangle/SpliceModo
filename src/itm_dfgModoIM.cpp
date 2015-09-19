@@ -5,6 +5,7 @@
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
 #include "itm_dfgModoIM.h"
+#include <Persistence/RTValToJSONEncoder.hpp>
 
 static CLxItemType gItemType_dfgModoIM(SERVER_NAME_dfgModoIM);
 
@@ -516,6 +517,8 @@ namespace dfgModoIM
 
           // get pointer at matching channel definition.
           const char *portName = graph.getExecPortName(fi);
+          bool storable = true;
+
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_usrChan);
           if (!cd || cd->eval_index < 0)
           { err  = "unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
@@ -595,8 +598,18 @@ namespace dfgModoIM
                                                           }
           else
           {
+            storable = false;
             err = "the port \"" + std::string(portName) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
             break;
+          }
+
+          if( storable ) {
+            // Set ports added with a "storable type" as persistable so their values are 
+            // exported if saving the graph
+            // TODO: handle this in a "clean" way; here we are not in the context of an undo-able command.
+            //       We would need that the DFG knows which binding types are "stored" as attributes on the
+            //       DCC side and set these as persistable in the source "addPort" command.
+            graph.setExecPortMetadata( portName, DFG_METADATA_UIPERSISTVALUE, "true" );
           }
 
           // error getting value from user channel?

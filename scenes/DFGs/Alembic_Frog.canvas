@@ -230,7 +230,7 @@
       },
     {
       "name" : "String",
-      "executable" : "Fabric.Exts.FileIO.FilePath.String",
+      "executable" : "Fabric.Exts.FileIO.Func.String",
       "metadata" : {
         "uiGraphPos" : "{\"x\": -47.184, \"y\": 69.472}"
         },

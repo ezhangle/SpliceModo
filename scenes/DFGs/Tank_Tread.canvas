@@ -237,7 +237,7 @@
       },
     {
       "name" : "AddCube",
-      "executable" : "Fabric.Exts.Geometry.PolygonMesh.AddCube",
+      "executable" : "Fabric.Exts.Geometry.PolygonMesh.AddCuboid",
       "cacheRule" : "never",
       "metadata" : {
         "uiGraphPos" : "{\"x\": 566.253, \"y\": 25.6225}",

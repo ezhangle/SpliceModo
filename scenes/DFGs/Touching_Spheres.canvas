@@ -107,7 +107,7 @@
       },
     {
       "name" : "Length",
-      "executable" : "Fabric.Exts.Math.Vec3.Length",
+      "executable" : "Fabric.Exts.Math.Func.Length",
       "metadata" : {
         "uiGraphPos" : "{\"x\": 37.1651, \"y\": 358.472}"
         },

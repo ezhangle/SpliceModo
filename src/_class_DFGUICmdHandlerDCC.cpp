@@ -781,6 +781,22 @@ void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
   execCmd(cmdName, args, output);
 }
 
+void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
+    FabricCore::DFGBinding const &binding,
+    FTL::CStrRef execPath,
+    FabricCore::DFGExec const &exec
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_SplitFromPreset::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(execPath);
+
+  std::string output;
+  execCmd(cmdName, args, output);
+}
+
 void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
@@ -915,6 +931,7 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetExtDeps::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetExtDeps         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetPortDefaultValue(in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath::      CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset::    CmdName().c_str())    cmd = createAndExecuteDFGCommand_SplitFromPreset    (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_ReorderPorts       (in_args);
   return cmd;
 }
@@ -1524,6 +1541,35 @@ FabricUI::DFG::DFGUICmd_SetExtDeps *DFGUICmdHandlerDCC::createAndExecuteDFGComma
                                                  execPath,
                                                  exec,
                                                  extDeps);
+    try
+    {
+      cmd->doit();
+    }
+    catch(FabricCore::Exception e)
+    {
+      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    }
+  }
+
+  return cmd;
+}
+
+FabricUI::DFG::DFGUICmd_SplitFromPreset *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SplitFromPreset(std::vector<std::string> &args)
+{
+  FabricUI::DFG::DFGUICmd_SplitFromPreset *cmd = NULL;
+  if (args.size() == 2)
+  {
+    unsigned int ai = 0;
+
+    FabricCore::DFGBinding binding;
+    std::string execPath;
+    FabricCore::DFGExec exec;
+    if (!DecodeExec(args, ai, binding, execPath, exec))
+      return cmd;
+
+    cmd = new FabricUI::DFG::DFGUICmd_SplitFromPreset(binding,
+                                                 execPath,
+                                                 exec);
     try
     {
       cmd->doit();
@@ -2549,6 +2595,21 @@ __dfgModoCmd_execute__
 #define __dfgModoCmdNumArgs__     3
 #define __dfgModoCmdClass__  FabricCanvasSetExtDeps
 #define __dfgModoCmdName__  "FabricCanvasSetExtDeps"
+__dfgModoCmd_constructor_begin__
+  {
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("extDeps");
+  }
+__dfgModoCmd_constructor_finish__
+__dfgModoCmd_execute__
+#undef  __dfgModoCmdNumArgs__
+#undef  __dfgModoCmdClass__
+#undef  __dfgModoCmdName__
+
+#define __dfgModoCmdNumArgs__     2
+#define __dfgModoCmdClass__  FabricCanvasSplitFromPreset
+#define __dfgModoCmdName__  "FabricCanvasSplitFromPreset"
 __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");

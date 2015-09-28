@@ -119,6 +119,7 @@ void initialize()
     FabricCanvasSetExtDeps           :: initialize();
     FabricCanvasSetPortDefaultValue  :: initialize();
     FabricCanvasSetRefVarPath        :: initialize();
+    FabricCanvasSplitFromPreset      :: initialize();
     FabricCanvasReorderPorts         :: initialize();
   }
 }

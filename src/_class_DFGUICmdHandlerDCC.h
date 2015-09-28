@@ -242,6 +242,12 @@ protected:
     FTL::ArrayRef<FTL::StrRef> extDeps
     );
 
+  virtual void dfgDoSplitFromPreset(
+    FabricCore::DFGBinding const &binding,
+    FTL::CStrRef execPath,
+    FabricCore::DFGExec const &exec
+    );
+
   virtual void dfgDoSetPortDefaultValue(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
@@ -302,6 +308,7 @@ public:
   static FabricUI::DFG::DFGUICmd_SetExtDeps *createAndExecuteDFGCommand_SetExtDeps(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetPortDefaultValue *createAndExecuteDFGCommand_SetPortDefaultValue(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetRefVarPath *createAndExecuteDFGCommand_SetRefVarPath(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SplitFromPreset *createAndExecuteDFGCommand_SplitFromPreset(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_ReorderPorts *createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args);
 };
 
@@ -568,6 +575,14 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
+    else if (cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset         ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_SplitFromPreset T;
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
+                                              cmd = NULL; }
+    }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ReorderPorts T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
@@ -759,6 +774,12 @@ public:
 
 #define __dfgModoCmdClass__   FabricCanvasSetRefVarPath
 #define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName()
+        __dfgModoCmd__
+#undef  __dfgModoCmdClass__
+#undef  __dfgModoCmdName__
+
+#define __dfgModoCmdClass__   FabricCanvasSplitFromPreset
+#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SplitFromPreset::CmdName()
         __dfgModoCmd__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__

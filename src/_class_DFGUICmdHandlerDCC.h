@@ -12,7 +12,6 @@
 
 #define DFGUICmdHandlerLOG        false  // FOR DEBUGGING: log some info (class DFGUICmdHandler).
 #define UndoDFGUICmdLOG           false  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
-#define DFGUICmdHandlerByPassDCC  false  // FOR DEBUGGING: execute the dfg commands directly instead of using the DCC's commands.
 
 bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result);
 

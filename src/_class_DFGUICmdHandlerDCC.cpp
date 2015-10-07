@@ -23,7 +23,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   /*
     executes a DCC command.
 
-    return values: on success: true and io_result contains the command's return value (unless DFGUICmdHandlerByPassDCC == false).
+    return values: on success: true and io_result contains the command's return value.
                    on failure: false and io_result is empty.
   */
 
@@ -41,23 +41,10 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   // execute DCC command.
   bool ret = false;
   {
-    if (DFGUICmdHandlerByPassDCC)
-    {
-      // execute the dfg command directly via the createAndExecuteDFGCommand() function.
-      FabricUI::DFG::DFGUICmd *cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(in_cmdName, in_args);
-      if (cmd)
-      {
-        ret = true;
-        delete cmd;
-      }
-    }
-    else
-    {
-      // execute the Modo command that will execute the dfg command via the createAndExecuteDFGCommand() function.
-      std::string err;
-      ret = ModoTools::ExecuteCommand(in_cmdName, in_args, err);
-      if (!ret) feLogError(err);
-    }
+    // execute the dfg command by executing the corresponding DCC command.
+    std::string err;
+    ret = ModoTools::ExecuteCommand(in_cmdName, in_args, io_result, err);
+    if (!ret) feLogError(err);
   }
 
   // failed?
@@ -1568,8 +1555,8 @@ FabricUI::DFG::DFGUICmd_SplitFromPreset *DFGUICmdHandlerDCC::createAndExecuteDFG
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_SplitFromPreset(binding,
-                                                 execPath,
-                                                 exec);
+                                                      execPath,
+                                                      exec);
     try
     {
       cmd->doit();
@@ -2614,7 +2601,6 @@ __dfgModoCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
-    addArgStr("extDeps");
   }
 __dfgModoCmd_constructor_finish__
 __dfgModoCmd_execute__

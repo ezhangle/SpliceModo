@@ -70,16 +70,18 @@ class ModoTools
 
   // executes a command string.
   // params:  command                 command to execute, e.g. "channel.create bla item:myItem username:blabla".
+  //          io_result               the result/output of the command or "" if the command does not return a value.
   //          out_err                 contains an error description if the function returns false.
   // returns: true on success, false otherwise.
-  static bool ExecuteCommand(const std::string &command, std::string &out_err);
+  static bool ExecuteCommand(const std::string &command, std::string &io_result, std::string &out_err);
 
   // executes a command.
   // params:  cmdName                 the command name, e.g. "FabricCanvasConnect".
   //          args                    the arguments.
+  //          io_result               the result/output of the command or "" if the command does not return a value.
   //          out_err                 contains an error description if the function returns false.
   // returns: true on success, false otherwise.
-  static bool ExecuteCommand(const std::string &cmdName, const std::vector<std::string> &args, std::string &out_err);
+  static bool ExecuteCommand(const std::string &cmdName, const std::vector<std::string> &args, std::string &io_result, std::string &out_err);
 
   // fills the array io_usrChan with all usable user channels of the input item.
   // note: all members of UsrChnDef are set except for eval_index which is set to -1.

@@ -84,9 +84,10 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
       // if necessary create FabricView.
       if (FabricView::s_FabricViews.size() == 0)
       {
+        std::string res;
         std::string err;
-        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", err))
-          ModoTools::ExecuteCommand("customview.view FabricCanvas", err);
+        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", res, err))
+          ModoTools::ExecuteCommand("customview.view FabricCanvas", res, err);
       }
 
       // no FabricView?

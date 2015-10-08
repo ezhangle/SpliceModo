@@ -184,11 +184,10 @@ protected:
     QPointF pos
     );
 
-  virtual void dfgDoSetNodeTitle(
+  virtual void dfgDoSetTitle(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
-    FTL::CStrRef nodeName,
     FTL::CStrRef title
     );
 
@@ -205,6 +204,14 @@ protected:
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
     FTL::CStrRef code
+    );
+
+  virtual std::string dfgDoRenameNode(
+    FabricCore::DFGBinding const &binding,
+    FTL::CStrRef execPath,
+    FabricCore::DFGExec const &exec,
+    FTL::CStrRef oldNodeName,
+    FTL::CStrRef desiredNewNodeName
     );
 
   virtual std::string dfgDoRenamePort(
@@ -298,9 +305,10 @@ public:
   static FabricUI::DFG::DFGUICmd_ImplodeNodes *createAndExecuteDFGCommand_ImplodeNodes(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_ExplodeNode *createAndExecuteDFGCommand_ExplodeNode(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddBackDrop *createAndExecuteDFGCommand_AddBackDrop(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetNodeTitle *createAndExecuteDFGCommand_SetNodeTitle(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetTitle *createAndExecuteDFGCommand_SetTitle(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetNodeComment *createAndExecuteDFGCommand_SetNodeComment(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetCode *createAndExecuteDFGCommand_SetCode(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_RenameNode *createAndExecuteDFGCommand_RenameNode(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_RenamePort *createAndExecuteDFGCommand_RenamePort(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Paste *createAndExecuteDFGCommand_Paste(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetArgType *createAndExecuteDFGCommand_SetArgType(std::vector<std::string> &args);
@@ -495,8 +503,8 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_SetNodeTitle       ::CmdName().c_str())
-    { typedef           FabricUI::DFG::DFGUICmd_SetNodeTitle T;
+    else if (cmdName == FabricUI::DFG::DFGUICmd_SetTitle       ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_SetTitle T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
@@ -513,6 +521,14 @@ public:
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetCode            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetCode T;
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
+                                              cmd = NULL; }
+    }
+    else if (cmdName == FabricUI::DFG::DFGUICmd_RenameNode         ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_RenameNode T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
@@ -718,8 +734,8 @@ public:
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetNodeTitle
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetNodeTitle::CmdName()
+#define __dfgModoCmdClass__   FabricCanvasSetTitle
+#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetTitle::CmdName()
         __dfgModoCmd__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__
@@ -732,6 +748,12 @@ public:
 
 #define __dfgModoCmdClass__   FabricCanvasSetCode
 #define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetCode::CmdName()
+        __dfgModoCmd__
+#undef  __dfgModoCmdClass__
+#undef  __dfgModoCmdName__
+
+#define __dfgModoCmdClass__   FabricCanvasRenameNode
+#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_RenameNode::CmdName()
         __dfgModoCmd__
 #undef  __dfgModoCmdClass__
 #undef  __dfgModoCmdName__

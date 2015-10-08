@@ -109,9 +109,10 @@ void initialize()
     FabricCanvasImplodeNodes         :: initialize();
     FabricCanvasExplodeNode          :: initialize();
     FabricCanvasAddBackDrop          :: initialize();
-    FabricCanvasSetNodeTitle         :: initialize();
+    FabricCanvasSetTitle             :: initialize();
     FabricCanvasSetNodeComment       :: initialize();
     FabricCanvasSetCode              :: initialize();
+    FabricCanvasRenameNode           :: initialize();
     FabricCanvasRenamePort           :: initialize();
     FabricCanvasPaste                :: initialize();
     FabricCanvasSetArgType           :: initialize();

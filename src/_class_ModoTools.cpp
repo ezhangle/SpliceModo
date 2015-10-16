@@ -903,7 +903,7 @@ void ModoTools::InvalidateItem(ILxUnknownID item_obj)
       std::string cmd;
       std::string res;
       std::string err;
-      cmd = "dfgIncEval \"" + std::string(item.IdentPtr()) + "\"";
+      cmd = "FabricCanvasIncEval \"" + std::string(item.IdentPtr()) + "\"";
       ModoTools::ExecuteCommand(std::string(cmd), res, err);
     }
   }

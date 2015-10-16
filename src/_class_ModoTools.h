@@ -182,7 +182,7 @@ class ModoTools
   static int GetChannelValueAsMatrix44  (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
 
   // invalidates an item so that it gets re-evaluated:
-  // this is done by calling the command "dfgIncEval" which will increase
+  // this is done by calling the command "FabricCanvasIncEval" which will increase
   // the value of the internal integer channel called "FabricEval" by 1.
   static void InvalidateItem(ILxUnknownID item_obj);
 };

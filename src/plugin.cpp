@@ -8,7 +8,7 @@
 #include "_class_ModoTools.h"
 #include "cmd_FabricCanvasExportGraph.h"
 #include "cmd_FabricCanvasImportGraph.h"
-#include "cmd_dfgIncEval.h"
+#include "cmd_FabricCanvasIncEval.h"
 #include "cmd_FabricCanvasLogVersion.h"
 #include "cmd_FabricCanvasOpenCanvas.h"
 #include "itm_dfgModoIM.h"
@@ -81,9 +81,9 @@ void initialize()
   {
     FabricCanvasExportGraph :: Command:: initialize();
     FabricCanvasImportGraph :: Command:: initialize();
-    dfgIncEval    :: Command:: initialize();
-    FabricCanvasLogVersion :: Command:: initialize();
-    FabricCanvasOpenCanvas :: Command:: initialize();
+    FabricCanvasIncEval     :: Command:: initialize();
+    FabricCanvasLogVersion  :: Command:: initialize();
+    FabricCanvasOpenCanvas  :: Command:: initialize();
     //
     dfgModoIM               :: initialize();
     dfgModoPI               :: initialize();

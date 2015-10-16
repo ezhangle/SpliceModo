@@ -10,7 +10,7 @@
 #include "cmd_FabricCanvasImportGraph.h"
 #include "cmd_dfgIncEval.h"
 #include "cmd_FabricCanvasLogVersion.h"
-#include "cmd_dfgOpenCanvas.h"
+#include "cmd_FabricCanvasOpenCanvas.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 #include "itm_dfgModoPIpilot.h"
@@ -83,7 +83,7 @@ void initialize()
     FabricCanvasImportGraph :: Command:: initialize();
     dfgIncEval    :: Command:: initialize();
     FabricCanvasLogVersion :: Command:: initialize();
-    dfgOpenCanvas :: Command:: initialize();
+    FabricCanvasOpenCanvas :: Command:: initialize();
     //
     dfgModoIM               :: initialize();
     dfgModoPI               :: initialize();

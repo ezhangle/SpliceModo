@@ -1,5 +1,5 @@
 #perl
 
 my $itemName = lxq("item.name ?");
-lx("dfgOpenCanvas " . '"' . $itemName . '"');
+lx("FabricCanvasOpenCanvas " . '"' . $itemName . '"');
 lx("dfgIncEval " . '"' . $itemName . '"' . "onlyIfZero:true");

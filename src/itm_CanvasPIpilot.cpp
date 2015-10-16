@@ -4,14 +4,14 @@
 #include "_class_FabricDFGWidget.h"
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
-#include "itm_dfgModoPIpilot.h"
+#include "itm_CanvasPIpilot.h"
 
-static CLxItemType gItemType_dfgModoPIpilot(SERVER_NAME_dfgModoPIpilot);
+static CLxItemType gItemType_CanvasPIpilot(SERVER_NAME_CanvasPIpilot);
 
 extern LXtTextValueHint hint_FabricDisplay[];
 extern LXtTextValueHint hint_FabricOpacity[];
 
-namespace dfgModoPIpilot
+namespace CanvasPIpilot
 {
 
 // ___________________________________
@@ -315,10 +315,10 @@ struct emUserData
     }
     void clear(void)
     {
-      feLog("dfgModoPIpilot::emUserData::clear() called");
+      feLog("CanvasPIpilot::emUserData::clear() called");
       if (baseInterface)
       {
-        feLog("dfgModoPIpilot::emUserData() delete BaseInterface");
+        feLog("CanvasPIpilot::emUserData() delete BaseInterface");
         try
         {
           // delete widget and base interface.
@@ -474,7 +474,7 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
 
     CReadItemInstance()
     {
-      feLog("dfgModoPIpilot::CReadItemInstance::CReadItemInstance() new BaseInterface");
+      feLog("CanvasPIpilot::CReadItemInstance::CReadItemInstance() new BaseInterface");
       // init members and create base interface.
       m_userData.baseInterface = new BaseInterface();
     };
@@ -550,7 +550,7 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
       if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
         return NULL;
 
-      if (strcmp(typeName, SERVER_NAME_dfgModoPIpilot))
+      if (strcmp(typeName, SERVER_NAME_CanvasPIpilot))
         return NULL;
     }
 
@@ -558,7 +558,7 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
     CLxLoc_PackageInstance pkg_inst(item_obj);
     if (pkg_inst.test())
     {
-      CLxSpawner <CReadItemInstance> spawn(SERVER_NAME_dfgModoPIpilot);
+      CLxSpawner <CReadItemInstance> spawn(SERVER_NAME_CanvasPIpilot);
       return spawn.Cast(pkg_inst);
     }
     return NULL;
@@ -606,7 +606,7 @@ class CReadItemPackage :    public CLxImpl_Package,
 // ------- message table stuff -------
 // -----------------------------------
 
-const char       *READ_ITEM_MSG_TABLE        = SERVER_NAME_dfgModoPIpilot;
+const char       *READ_ITEM_MSG_TABLE        = SERVER_NAME_CanvasPIpilot;
 const unsigned    READ_ITEM_MSG_NAME        = 1;
 const unsigned    READ_ITEM_MSG_DISABLED    = 1001;
 
@@ -1291,7 +1291,7 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
     m_item_obj = item_obj;
 
     //
-    if (m_userData.baseInterface)   m_userData.baseInterface->m_ILxUnknownID_dfgModoPIpilot = item_obj;
+    if (m_userData.baseInterface)   m_userData.baseInterface->m_ILxUnknownID_CanvasPIpilot = item_obj;
     else                            feLogError("m_userData.baseInterface == NULL");
 
     // done.
@@ -1437,7 +1437,7 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
 
 LxResult CReadItemInstance::pins_SynthName(char *buf, unsigned len)
 {
-    std::string name(SERVER_NAME_dfgModoPIpilot);
+    std::string name(SERVER_NAME_CanvasPIpilot);
     lx::GetMessageText(name, READ_ITEM_MSG_TABLE, READ_ITEM_MSG_NAME);
     return lx::StringOut(name, buf, len);
 }
@@ -1886,10 +1886,10 @@ void CReadItemPackage::sil_ItemAddChannel(ILxUnknownID item_obj)
   CLxUser_Item    item(item_obj);
   CLxUser_Scene   scene;
 
-  if (item.test() && item.IsA(gItemType_dfgModoPIpilot.Type()))
+  if (item.test() && item.IsA(gItemType_CanvasPIpilot.Type()))
   {
     if (item.GetContext(scene))
-      scene.EvalModInvalidate(SERVER_NAME_dfgModoPIpilot ".mod");
+      scene.EvalModInvalidate(SERVER_NAME_CanvasPIpilot ".mod");
   }
 }
 
@@ -1903,10 +1903,10 @@ void CReadItemPackage::sil_ItemChannelName(ILxUnknownID item_obj, unsigned int i
   CLxUser_Item    item(item_obj);
   CLxUser_Scene   scene;
 
-  if (item.test() && item.IsA(gItemType_dfgModoPIpilot.Type()))
+  if (item.test() && item.IsA(gItemType_CanvasPIpilot.Type()))
   {
     if (item.GetContext(scene))
-      scene.EvalModInvalidate(SERVER_NAME_dfgModoPIpilot ".mod");
+      scene.EvalModInvalidate(SERVER_NAME_CanvasPIpilot ".mod");
   }
 }
 
@@ -1915,7 +1915,7 @@ LXtItemType CReadItemPackage::MyType()
     if (my_type != LXiTYPE_NONE)
         return my_type;
     CLxUser_SceneService svc;
-    my_type = svc.ItemType(SERVER_NAME_dfgModoPIpilot);
+    my_type = svc.ItemType(SERVER_NAME_CanvasPIpilot);
     return my_type;
 }
 
@@ -1930,13 +1930,13 @@ void initialize()
     srv->AddInterface(new CLxIfc_ChannelUI          <CReadItemPackage>);
     srv->AddInterface(new CLxIfc_SceneItemListener  <CReadItemPackage>);
 
-    thisModule.AddServer(SERVER_NAME_dfgModoPIpilot, srv);
+    thisModule.AddServer(SERVER_NAME_CanvasPIpilot, srv);
 
 #ifdef USE_MODIFIER
     Modifier :: initialize();
 #endif
 }
 
-};  // namespace dfgModoPIpilot
+};  // namespace CanvasPIpilot
 
 

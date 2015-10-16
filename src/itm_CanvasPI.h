@@ -1,7 +1,7 @@
-#ifndef SRC_ITM_DFGMODOPI_H_
-#define SRC_ITM_DFGMODOPI_H_
+#ifndef SRC_ITM_CANVASPI_H_
+#define SRC_ITM_CANVASPI_H_
 
-namespace dfgModoPI
+namespace CanvasPI
 {
   void initialize();
   class Instance;
@@ -9,5 +9,5 @@ namespace dfgModoPI
   BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
 };
 
-#endif  // SRC_ITM_DFGMODOPI_H_
+#endif  // SRC_ITM_CANVASPI_H_
 

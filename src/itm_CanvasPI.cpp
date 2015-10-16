@@ -4,11 +4,11 @@
 #include "_class_FabricDFGWidget.h"
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
-#include "itm_dfgModoPI.h"
+#include "itm_CanvasPI.h"
 
-static CLxItemType gItemType_dfgModoPI(SERVER_NAME_dfgModoPI);
+static CLxItemType gItemType_CanvasPI(SERVER_NAME_CanvasPI);
 
-namespace dfgModoPI
+namespace CanvasPI
 {
   // polymesh structure.
   struct _polymesh
@@ -254,10 +254,10 @@ namespace dfgModoPI
     }
     void clear(void)
     {
-      feLog("dfgModoPI::emUserData::clear() called");
+      feLog("CanvasPI::emUserData::clear() called");
       if (baseInterface)
       {
-        feLog("dfgModoPI::emUserData() delete BaseInterface");
+        feLog("CanvasPI::emUserData() delete BaseInterface");
         try
         {
           // delete widget and base interface.
@@ -479,7 +479,7 @@ namespace dfgModoPI
       srv = new CLxPolymorph                            <SurfElement>;
       srv->AddInterface       (new CLxIfc_TableauSurface<SurfElement>);
       srv->AddInterface       (new CLxIfc_StringTag     <SurfElement>);
-      lx::AddSpawner          (SERVER_NAME_dfgModoPI ".elmt", srv);
+      lx::AddSpawner          (SERVER_NAME_CanvasPI ".elmt", srv);
     }
     
     unsigned int  tsrf_FeatureCount   (LXtID4 type)                                                     LXx_OVERRIDE;
@@ -733,7 +733,7 @@ namespace dfgModoPI
       CLxGenericPolymorph *srv = NULL;
       srv = new CLxPolymorph                        <Surface>;
       srv->AddInterface       (new CLxIfc_Surface   <Surface>);
-      lx::AddSpawner          (SERVER_NAME_dfgModoPI ".surf", srv);
+      lx::AddSpawner          (SERVER_NAME_CanvasPI ".surf", srv);
     }
     
     LxResult  surf_GetBBox    (LXtBBox *bbox)                                           LXx_OVERRIDE;
@@ -811,7 +811,7 @@ namespace dfgModoPI
       code for allocating different bins.
     */
     
-    CLxSpawner<SurfElement> spawner(SERVER_NAME_dfgModoPI ".elmt");
+    CLxSpawner<SurfElement> spawner(SERVER_NAME_CanvasPI ".elmt");
     SurfElement            *element    = NULL;
     SurfDef                *definition = NULL;
     
@@ -912,7 +912,7 @@ namespace dfgModoPI
       CLxGenericPolymorph *srv = NULL;
       srv = new CLxPolymorph                            <SurfInst>;
       srv->AddInterface       (new CLxIfc_Instanceable  <SurfInst>);
-      lx::AddSpawner          (SERVER_NAME_dfgModoPI ".instObj", srv);
+      lx::AddSpawner          (SERVER_NAME_CanvasPI ".instObj", srv);
     }
     
     LxResult    instable_GetSurface (void **ppvObj)         LXx_OVERRIDE;
@@ -931,7 +931,7 @@ namespace dfgModoPI
       channels from the surface definition to the Surface.
     */
 
-    CLxSpawner<Surface> spawner(SERVER_NAME_dfgModoPI ".surf");
+    CLxSpawner<Surface> spawner(SERVER_NAME_CanvasPI ".surf");
     Surface            *surface    = NULL;
     SurfDef            *definition = NULL;
 
@@ -958,7 +958,7 @@ namespace dfgModoPI
       to indicate relative position.
     */
 
-    CLxSpawner<SurfInst>  spawner(SERVER_NAME_dfgModoPI ".instObj");
+    CLxSpawner<SurfInst>  spawner(SERVER_NAME_CanvasPI ".instObj");
     SurfInst             *other = NULL;
 
     other = spawner.Cast(other_obj);
@@ -994,12 +994,12 @@ namespace dfgModoPI
       srv->AddInterface       (new CLxIfc_PackageInstance <Instance>);
       srv->AddInterface       (new CLxIfc_SurfaceItem     <Instance>);
       srv->AddInterface       (new CLxIfc_ViewItem3D      <Instance>);
-      lx::AddSpawner          (SERVER_NAME_dfgModoPI ".inst", srv);
+      lx::AddSpawner          (SERVER_NAME_CanvasPI ".inst", srv);
     }
     
-    Instance() : m_surf_spawn(SERVER_NAME_dfgModoPI ".surf")
+    Instance() : m_surf_spawn(SERVER_NAME_CanvasPI ".surf")
     {
-      feLog("dfgModoPI::Instance::Instance() new BaseInterface");
+      feLog("CanvasPI::Instance::Instance() new BaseInterface");
       // init members and create base interface.
       m_userData.zero();
       m_userData.baseInterface = new BaseInterface();
@@ -1039,7 +1039,7 @@ namespace dfgModoPI
     m_item_obj = item_obj;
 
     //
-    if (m_userData.baseInterface)   m_userData.baseInterface->m_ILxUnknownID_dfgModoPI = item_obj;
+    if (m_userData.baseInterface)   m_userData.baseInterface->m_ILxUnknownID_CanvasPI = item_obj;
     else                            feLogError("m_userData.baseInterface == NULL");
 
     // done.
@@ -1277,10 +1277,10 @@ namespace dfgModoPI
       srv->AddInterface       (new CLxIfc_Package           <Package>);
       srv->AddInterface       (new CLxIfc_StaticDesc        <Package>);
       srv->AddInterface       (new CLxIfc_SceneItemListener <Package>);
-      lx::AddServer           (SERVER_NAME_dfgModoPI, srv);
+      lx::AddServer           (SERVER_NAME_CanvasPI, srv);
     }
 
-    Package () : m_inst_spawn(SERVER_NAME_dfgModoPI ".inst") {}
+    Package () : m_inst_spawn(SERVER_NAME_CanvasPI ".inst") {}
     
     LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)                          LXx_OVERRIDE;
     LxResult    pkg_Attach          (void **ppvObj)                                     LXx_OVERRIDE;
@@ -1363,10 +1363,10 @@ namespace dfgModoPI
     CLxUser_Item  item(item_obj);
     CLxUser_Scene scene;
     
-    if (item.test() && item.IsA(gItemType_dfgModoPI.Type()))
+    if (item.test() && item.IsA(gItemType_CanvasPI.Type()))
     {
       if (item.GetContext(scene))
-        scene.EvalModInvalidate(SERVER_NAME_dfgModoPI ".mod");
+        scene.EvalModInvalidate(SERVER_NAME_CanvasPI ".mod");
     }
   }
 
@@ -1380,10 +1380,10 @@ namespace dfgModoPI
     CLxUser_Item    item(item_obj);
     CLxUser_Scene   scene;
 
-    if (item.test() && item.IsA(gItemType_dfgModoPI.Type()))
+    if (item.test() && item.IsA(gItemType_CanvasPI.Type()))
     {
       if (item.GetContext(scene))
-        scene.EvalModInvalidate(SERVER_NAME_dfgModoPI ".mod");
+        scene.EvalModInvalidate(SERVER_NAME_CanvasPI ".mod");
     }
   }
 
@@ -1494,7 +1494,7 @@ namespace dfgModoPI
       surface definition to it - then we evaluate it's channels.
     */
 
-    CLxSpawner <SurfInst>     spawner (SERVER_NAME_dfgModoPI ".instObj");
+    CLxSpawner <SurfInst>     spawner (SERVER_NAME_CanvasPI ".instObj");
     CLxUser_ValueReference    val_ref;
     SurfInst                 *instObj         = NULL;
     SurfDef                  *definition      = NULL;
@@ -1542,7 +1542,7 @@ namespace dfgModoPI
    public:
     static void initialize()
     {
-      CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_dfgModoPI ".mod");
+      CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasPI ".mod");
     }
     
     const char              *ItemType()                                                 LXx_OVERRIDE;
@@ -1556,7 +1556,7 @@ namespace dfgModoPI
       The modifier should only associate itself with this item type.
     */
 
-    return SERVER_NAME_dfgModoPI;
+    return SERVER_NAME_CanvasPI;
   }
 
   CLxItemModifierElement *Modifier::Alloc(CLxUser_Evaluation &eval, ILxUnknownID item)
@@ -1581,7 +1581,7 @@ namespace dfgModoPI
       if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
         return NULL;
 
-      if (strcmp(typeName, SERVER_NAME_dfgModoPI))
+      if (strcmp(typeName, SERVER_NAME_CanvasPI))
         return NULL;
     }
 
@@ -1589,7 +1589,7 @@ namespace dfgModoPI
     CLxLoc_PackageInstance pkg_inst(item_obj);
     if (pkg_inst.test())
     {
-      CLxSpawner <Instance> spawn(SERVER_NAME_dfgModoPI ".inst");
+      CLxSpawner <Instance> spawn(SERVER_NAME_CanvasPI ".inst");
       return spawn.Cast(pkg_inst);
     }
     return NULL;
@@ -1612,7 +1612,7 @@ namespace dfgModoPI
     Surface     :: initialize();
     SurfElement :: initialize();
   }
-};  // namespace dfgModoPI
+};  // namespace CanvasPI
 
 
 

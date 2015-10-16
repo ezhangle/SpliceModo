@@ -11,9 +11,9 @@
 #include "cmd_FabricCanvasIncEval.h"
 #include "cmd_FabricCanvasLogVersion.h"
 #include "cmd_FabricCanvasOpenCanvas.h"
-#include "itm_dfgModoIM.h"
-#include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIpilot.h"
+#include "itm_CanvasIM.h"
+#include "itm_CanvasPI.h"
+#include "itm_CanvasPIpilot.h"
 
 // log system.
 class CItemLog : public CLxLogMessage
@@ -85,9 +85,9 @@ void initialize()
     FabricCanvasLogVersion  :: Command:: initialize();
     FabricCanvasOpenCanvas  :: Command:: initialize();
     //
-    dfgModoIM               :: initialize();
-    dfgModoPI               :: initialize();
-    dfgModoPIpilot          :: initialize();
+    CanvasIM                :: initialize();
+    CanvasPI                :: initialize();
+    CanvasPIpilot           :: initialize();
     //
     JSONValue               :: initialize();
     FabricView              :: initialize();

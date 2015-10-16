@@ -22,12 +22,12 @@
 
 // constants: Modo item/server names.
 #define SERVER_NAME_JSONValue       "dfgJSONValue"    // the JSON custom type (used by the channels "FabricJSON").
-#define SERVER_NAME_dfgModoIM       "dfgModoIM"       // dfgModo "item modifier".
-#define SERVER_NAME_dfgModoPI       "dfgModoPI"       // dfgModo "procedural item".
-#define SERVER_NAME_dfgModoPIpilot  "dfgModoPIpilot"  // dfgModo "procedural item" (old version based on emReader).
+#define SERVER_NAME_CanvasIM        "CanvasIM"        // Canvas "item modifier".
+#define SERVER_NAME_CanvasPI        "CanvasPI"        // Canvas "procedural item".
+#define SERVER_NAME_CanvasPIpilot   "CanvasPIpilot"   // Canvas "procedural item" (old version based on emReader).
 
 // constants: fixed channel names.
-#define CHN_NAME_INSTOBJ          "instObj"       // out: (dfgModoPI only) objref channel.
+#define CHN_NAME_INSTOBJ          "instObj"       // out: (CanvasPI only) objref channel.
 #define CHN_NAME_IO_FabricActive  "FabricActive"  // io:  enable/disable execution of DFG for this item.
 #define CHN_NAME_IO_FabricEval    "FabricEval"    // io:  internal counter used to re-evaluate the item.
 #define CHN_NAME_IO_FabricJSON    "FabricJSON"    // io:  custom value for persistence (read/write BaseInterface's JSON).

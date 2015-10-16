@@ -2,9 +2,9 @@
 #include "_class_DFGUICmdHandlerDCC.h"
 #include "_class_BaseInterface.h"
 #include "_class_ModoTools.h"
-#include "itm_dfgModoIM.h"
-#include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIpilot.h"
+#include "itm_CanvasIM.h"
+#include "itm_CanvasPI.h"
+#include "itm_CanvasPIpilot.h"
 
 #include <sstream>
 
@@ -877,9 +877,9 @@ FabricCore::DFGBinding DFGUICmdHandlerDCC::getBindingFromDCCObjectName(std::stri
     if (ModoTools::GetItem(name, item) && item.test())
     {
       BaseInterface *b = NULL;
-      if (!b) b = dfgModoIM::GetBaseInterface(item);
-      if (!b) b = dfgModoPI::GetBaseInterface(item);
-      if (!b) b = dfgModoPIpilot::GetBaseInterface(item);
+      if (!b) b = CanvasIM::GetBaseInterface(item);
+      if (!b) b = CanvasPI::GetBaseInterface(item);
+      if (!b) b = CanvasPIpilot::GetBaseInterface(item);
       if (b)   return b->getBinding();
     }
   }
@@ -2146,29 +2146,29 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 
 
 // constructor.
-#define __dfgModoCmd_constructor_begin__      LXtTagInfoDesc __dfgModoCmdClass__::descInfo[] = \
+#define __CanvasCmd_constructor_begin__       LXtTagInfoDesc __CanvasCmdClass__::descInfo[] =  \
                                               {                                                \
                                                 { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },      \
                                                 { 0 }                                          \
                                               };                                               \
-                                              __dfgModoCmdClass__::__dfgModoCmdClass__(void)   \
+                                              __CanvasCmdClass__::__CanvasCmdClass__(void)     \
                                               {
-#define __dfgModoCmd_constructor_finish__     }
+#define __CanvasCmd_constructor_finish__      }
 
 // execute.
-#define __dfgModoCmd_execute__                void __dfgModoCmdClass__::cmd_Execute(unsigned flags)                               \
+#define __CanvasCmd_execute__                 void __CanvasCmdClass__::cmd_Execute(unsigned flags)                                \
                                               {                                                                                   \
                                                 CLxUser_UndoService undoSvc;                                                      \
                                                 UndoDFGUICmd       *undo;                                                         \
                                                 ILxUnknownID        obj;                                                          \
-	                                              CLxSpawnerCreate<UndoDFGUICmd> sp("UndoDFGUICmd" __dfgModoCmdName__);             \
+	                                              CLxSpawnerCreate<UndoDFGUICmd> sp("UndoDFGUICmd" __CanvasCmdName__);              \
                                                 if (sp.created) sp.AddInterface(new CLxIfc_Undo<UndoDFGUICmd>);                   \
                                                 undo = sp.Alloc(obj);                                                             \
                                                 undo->init();                                                                     \
-                                                std::vector<std::string> args(__dfgModoCmdNumArgs__);                             \
+                                                std::vector<std::string> args(__CanvasCmdNumArgs__);                              \
                                                 for (size_t i=0;i<args.size();i++)                                                \
                                                   dyna_String(i, args[i]);                                                        \
-                                                undo->cmdName = __dfgModoCmdName__;                                               \
+                                                undo->cmdName = __CanvasCmdName__;                                                \
                                                 undo->cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(undo->cmdName, args);  \
                                                 undoSvc.Record(obj);                                                              \
                                                 lx::ObjRelease(obj);                                                              \
@@ -2176,57 +2176,57 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 
 
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasRemoveNodes
-#define __dfgModoCmdName__  "FabricCanvasRemoveNodes"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasRemoveNodes
+#define __CanvasCmdName__  "FabricCanvasRemoveNodes"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("nodeNames");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasConnect
-#define __dfgModoCmdName__  "FabricCanvasConnect"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasConnect
+#define __CanvasCmdName__  "FabricCanvasConnect"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("srcPort");
     addArgStr("dstPort");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasDisconnect
-#define __dfgModoCmdName__  "FabricCanvasDisconnect"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasDisconnect
+#define __CanvasCmdName__  "FabricCanvasDisconnect"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("srcPort");
     addArgStr("dstPort");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  FabricCanvasAddGraph
-#define __dfgModoCmdName__  "FabricCanvasAddGraph"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasAddGraph
+#define __CanvasCmdName__  "FabricCanvasAddGraph"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2234,16 +2234,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  FabricCanvasAddFunc
-#define __dfgModoCmdName__  "FabricCanvasAddFunc"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     6
+#define __CanvasCmdClass__  FabricCanvasAddFunc
+#define __CanvasCmdName__  "FabricCanvasAddFunc"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2252,16 +2252,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  FabricCanvasInstPreset
-#define __dfgModoCmdName__  "FabricCanvasInstPreset"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasInstPreset
+#define __CanvasCmdName__  "FabricCanvasInstPreset"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2269,16 +2269,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     7
-#define __dfgModoCmdClass__  FabricCanvasAddVar
-#define __dfgModoCmdName__  "FabricCanvasAddVar"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     7
+#define __CanvasCmdClass__  FabricCanvasAddVar
+#define __CanvasCmdName__  "FabricCanvasAddVar"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2288,16 +2288,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  FabricCanvasAddGet
-#define __dfgModoCmdName__  "FabricCanvasAddGet"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     6
+#define __CanvasCmdClass__  FabricCanvasAddGet
+#define __CanvasCmdName__  "FabricCanvasAddGet"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2306,16 +2306,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     6
-#define __dfgModoCmdClass__  FabricCanvasAddSet
-#define __dfgModoCmdName__  "FabricCanvasAddSet"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     6
+#define __CanvasCmdClass__  FabricCanvasAddSet
+#define __CanvasCmdName__  "FabricCanvasAddSet"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2324,16 +2324,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     8
-#define __dfgModoCmdClass__  FabricCanvasAddPort
-#define __dfgModoCmdName__  "FabricCanvasAddPort"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     8
+#define __CanvasCmdClass__  FabricCanvasAddPort
+#define __CanvasCmdName__  "FabricCanvasAddPort"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2344,16 +2344,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("extDep");
     addArgStr("uiMetadata");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     7
-#define __dfgModoCmdClass__  FabricCanvasEditPort
-#define __dfgModoCmdName__  "FabricCanvasEditPort"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     7
+#define __CanvasCmdClass__  FabricCanvasEditPort
+#define __CanvasCmdName__  "FabricCanvasEditPort"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2363,31 +2363,31 @@ __dfgModoCmd_constructor_begin__
     addArgStr("extDep");
     addArgStr("uiMetadata");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasRemovePort
-#define __dfgModoCmdName__  "FabricCanvasRemovePort"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasRemovePort
+#define __CanvasCmdName__  "FabricCanvasRemovePort"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("portName");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  FabricCanvasMoveNodes
-#define __dfgModoCmdName__  "FabricCanvasMoveNodes"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasMoveNodes
+#define __CanvasCmdName__  "FabricCanvasMoveNodes"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2395,16 +2395,16 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPoss");
     addArgStr("yPoss");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     7
-#define __dfgModoCmdClass__  FabricCanvasResizeBackDrop
-#define __dfgModoCmdName__  "FabricCanvasResizeBackDrop"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     7
+#define __CanvasCmdClass__  FabricCanvasResizeBackDrop
+#define __CanvasCmdName__  "FabricCanvasResizeBackDrop"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2414,47 +2414,47 @@ __dfgModoCmd_constructor_begin__
     addArgStr("Width");
     addArgStr("Height");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasImplodeNodes
-#define __dfgModoCmdName__  "FabricCanvasImplodeNodes"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasImplodeNodes
+#define __CanvasCmdName__  "FabricCanvasImplodeNodes"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("nodeNames");
     addArgStr("desiredNodeName");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasExplodeNode
-#define __dfgModoCmdName__  "FabricCanvasExplodeNode"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasExplodeNode
+#define __CanvasCmdName__  "FabricCanvasExplodeNode"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("nodeName");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  FabricCanvasAddBackDrop
-#define __dfgModoCmdName__  "FabricCanvasAddBackDrop"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasAddBackDrop
+#define __CanvasCmdName__  "FabricCanvasAddBackDrop"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2462,79 +2462,79 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasSetNodeTitle
-#define __dfgModoCmdName__  "FabricCanvasSetNodeTitle"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasSetNodeTitle
+#define __CanvasCmdName__  "FabricCanvasSetNodeTitle"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("nodeName");
     addArgStr("title");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasSetNodeComment
-#define __dfgModoCmdName__  "FabricCanvasSetNodeComment"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasSetNodeComment
+#define __CanvasCmdName__  "FabricCanvasSetNodeComment"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("nodeName");
     addArgStr("comment");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasSetCode
-#define __dfgModoCmdName__  "FabricCanvasSetCode"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasSetCode
+#define __CanvasCmdName__  "FabricCanvasSetCode"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("code");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasRenamePort
-#define __dfgModoCmdName__  "FabricCanvasRenamePort"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasRenamePort
+#define __CanvasCmdName__  "FabricCanvasRenamePort"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("oldPortName");
     addArgStr("desiredNewPortName");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  FabricCanvasPaste
-#define __dfgModoCmdName__  "FabricCanvasPaste"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasPaste
+#define __CanvasCmdName__  "FabricCanvasPaste"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2542,76 +2542,76 @@ __dfgModoCmd_constructor_begin__
     addArgStr("xPos");
     addArgStr("yPos");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasSetArgType
-#define __dfgModoCmdName__  "FabricCanvasSetArgType"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasSetArgType
+#define __CanvasCmdName__  "FabricCanvasSetArgType"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("argName");
     addArgStr("typeName");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasSetArgValue
-#define __dfgModoCmdName__  "FabricCanvasSetArgValue"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasSetArgValue
+#define __CanvasCmdName__  "FabricCanvasSetArgValue"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("argName");
     addArgStr("typeName");
     addArgStr("valueJSON");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasSetExtDeps
-#define __dfgModoCmdName__  "FabricCanvasSetExtDeps"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasSetExtDeps
+#define __CanvasCmdName__  "FabricCanvasSetExtDeps"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("extDeps");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     2
-#define __dfgModoCmdClass__  FabricCanvasSplitFromPreset
-#define __dfgModoCmdName__  "FabricCanvasSplitFromPreset"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     2
+#define __CanvasCmdClass__  FabricCanvasSplitFromPreset
+#define __CanvasCmdName__  "FabricCanvasSplitFromPreset"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     5
-#define __dfgModoCmdClass__  FabricCanvasSetPortDefaultValue
-#define __dfgModoCmdName__  "FabricCanvasSetPortDefaultValue"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasSetPortDefaultValue
+#define __CanvasCmdName__  "FabricCanvasSetPortDefaultValue"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
@@ -2619,41 +2619,41 @@ __dfgModoCmd_constructor_begin__
     addArgStr("typeName");
     addArgStr("valueJSON");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     4
-#define __dfgModoCmdClass__  FabricCanvasSetRefVarPath
-#define __dfgModoCmdName__  "FabricCanvasSetRefVarPath"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     4
+#define __CanvasCmdClass__  FabricCanvasSetRefVarPath
+#define __CanvasCmdName__  "FabricCanvasSetRefVarPath"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("refName");
     addArgStr("varPath");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdNumArgs__     3
-#define __dfgModoCmdClass__  FabricCanvasReorderPorts
-#define __dfgModoCmdName__  "FabricCanvasReorderPorts"
-__dfgModoCmd_constructor_begin__
+#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdClass__  FabricCanvasReorderPorts
+#define __CanvasCmdName__  "FabricCanvasReorderPorts"
+__CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("indices");
   }
-__dfgModoCmd_constructor_finish__
-__dfgModoCmd_execute__
-#undef  __dfgModoCmdNumArgs__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
 

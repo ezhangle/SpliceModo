@@ -19,9 +19,9 @@ BaseInterface::BaseInterface()
 {
   //
   m_id                          = s_maxId++;
-  m_ILxUnknownID_dfgModoIM      = NULL;
-  m_ILxUnknownID_dfgModoPI      = NULL;
-  m_ILxUnknownID_dfgModoPIpilot = NULL;
+  m_ILxUnknownID_CanvasIM       = NULL;
+  m_ILxUnknownID_CanvasPI       = NULL;
+  m_ILxUnknownID_CanvasPIpilot  = NULL;
 
   // construct the client
   if (s_instances.size() == 0)
@@ -204,9 +204,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
 
     // get the Modo item's ILxUnknownID.
     void             *unknownID = NULL;
-    if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoIM;
-    if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPI;
-    if (!unknownID)   unknownID = b.m_ILxUnknownID_dfgModoPIpilot;
+    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasIM;
+    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPI;
+    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPIpilot;
 
     // log.
     if (false)
@@ -408,9 +408,9 @@ std::string BaseInterface::GetItemName(void)
 {
   CLxUser_Item item;
 
-  if      (m_ILxUnknownID_dfgModoIM)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
-  else if (m_ILxUnknownID_dfgModoPI)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
-  else if (m_ILxUnknownID_dfgModoPIpilot) item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPIpilot);
+  if      (m_ILxUnknownID_CanvasIM)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasIM);
+  else if (m_ILxUnknownID_CanvasPI)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasPI);
+  else if (m_ILxUnknownID_CanvasPIpilot)  item.set((ILxUnknownID)m_ILxUnknownID_CanvasPIpilot);
   else                                    return "";
 
   if (!item.test())                       return "";
@@ -1524,14 +1524,14 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &b
     std::string err;
     CLxUser_Item item;
 
-    if      (m_ILxUnknownID_dfgModoIM)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoIM);
-    else if (m_ILxUnknownID_dfgModoPI)      item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPI);
-    else if (m_ILxUnknownID_dfgModoPIpilot) item.set((ILxUnknownID)m_ILxUnknownID_dfgModoPIpilot);
-    else                        {   err = "m_ILxUnknownID_dfgModo? == NULL";
+    if      (m_ILxUnknownID_CanvasIM)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasIM);
+    else if (m_ILxUnknownID_CanvasPI)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasPI);
+    else if (m_ILxUnknownID_CanvasPIpilot)  item.set((ILxUnknownID)m_ILxUnknownID_CanvasPIpilot);
+    else                        {   err = "m_ILxUnknownID_Canvas? == NULL";
                                     logErrorFunc(0, err.c_str(), err.length());
                                     return false;   }
 
-    if (!item.test())   {   err = "item((ILxUnknownID)m_ILxUnknownID_dfgModo?) failed";
+    if (!item.test())   {   err = "item((ILxUnknownID)m_ILxUnknownID_Canvas?) failed";
                             logErrorFunc(0, err.c_str(), err.length());
                             return false;    }
 

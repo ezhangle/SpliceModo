@@ -1,7 +1,7 @@
-#ifndef SRC_ITM_DFGMODOPIPILOT_H_
-#define SRC_ITM_DFGMODOPIPILOT_H_
+#ifndef SRC_ITM_CANVASPIPILOT_H_
+#define SRC_ITM_CANVASPIPILOT_H_
 
-namespace dfgModoPIpilot
+namespace CanvasPIpilot
 {
     void initialize();
     class CReadItemInstance;
@@ -15,5 +15,5 @@ namespace dfgModoPIpilot
 #define CHN_NAME_IO_FabricDisplay "FabricDisplay"
 #define CHN_NAME_IO_FabricOpacity "FabricOpacity"
 
-#endif  // SRC_ITM_DFGMODOPIPILOT_H_
+#endif  // SRC_ITM_CANVASPIPILOT_H_
 

@@ -3,7 +3,7 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgExportJSON.h"
+#include "cmd_FabricCanvasExportGraph.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 #include "itm_dfgModoPIpilot.h"
@@ -12,14 +12,14 @@
 #include <streambuf>
 
 // static tag description interface.
-LXtTagInfoDesc dfgExportJSON::Command::descInfo[] =
+LXtTagInfoDesc FabricCanvasExportGraph::Command::descInfo[] =
 {
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
 
 // constructor.
-dfgExportJSON::Command::Command(void)
+FabricCanvasExportGraph::Command::Command(void)
 {
   // arguments.
   int idx = 0;
@@ -32,10 +32,10 @@ dfgExportJSON::Command::Command(void)
 }
 
 // execute code.
-void dfgExportJSON::Command::cmd_Execute(unsigned flags)
+void FabricCanvasExportGraph::Command::cmd_Execute(unsigned flags)
 {
   // init err string,
-  std::string err = "command " SERVER_NAME_dfgExportJSON " failed: ";
+  std::string err = "command " SERVER_NAME_FabricCanvasExportGraph " failed: ";
 
   // declare and set item from argument.
   CLxUser_Item item;

@@ -3,7 +3,7 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgImportJSON.h"
+#include "cmd_FabricCanvasImportGraph.h"
 #include "itm_dfgModoIM.h"
 #include "itm_dfgModoPI.h"
 #include "itm_dfgModoPIpilot.h"
@@ -12,14 +12,14 @@
 #include <streambuf>
 
 // static tag description interface.
-LXtTagInfoDesc dfgImportJSON::Command::descInfo[] =
+LXtTagInfoDesc FabricCanvasImportGraph::Command::descInfo[] =
 {
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
 
 // constructor.
-dfgImportJSON::Command::Command(void)
+FabricCanvasImportGraph::Command::Command(void)
 {
   // arguments.
   int idx = 0;
@@ -32,10 +32,10 @@ dfgImportJSON::Command::Command(void)
 }
 
 // execute code.
-void dfgImportJSON::Command::cmd_Execute(unsigned flags)
+void FabricCanvasImportGraph::Command::cmd_Execute(unsigned flags)
 {
   // init err string,
-  std::string err = "command " SERVER_NAME_dfgImportJSON " failed: ";
+  std::string err = "command " SERVER_NAME_FabricCanvasImportGraph " failed: ";
 
   // declare and set item from argument.
   CLxUser_Item item;

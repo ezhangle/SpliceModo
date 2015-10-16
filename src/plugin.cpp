@@ -6,8 +6,8 @@
 #include "_class_FabricView.h"
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgExportJSON.h"
-#include "cmd_dfgImportJSON.h"
+#include "cmd_FabricCanvasExportGraph.h"
+#include "cmd_FabricCanvasImportGraph.h"
 #include "cmd_dfgIncEval.h"
 #include "cmd_FabricCanvasLogVersion.h"
 #include "cmd_dfgOpenCanvas.h"
@@ -79,8 +79,8 @@ void initialize()
 
   // Modo.
   {
-    dfgExportJSON :: Command:: initialize();
-    dfgImportJSON :: Command:: initialize();
+    FabricCanvasExportGraph :: Command:: initialize();
+    FabricCanvasImportGraph :: Command:: initialize();
     dfgIncEval    :: Command:: initialize();
     FabricCanvasLogVersion :: Command:: initialize();
     dfgOpenCanvas :: Command:: initialize();

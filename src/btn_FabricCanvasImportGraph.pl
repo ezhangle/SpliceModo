@@ -1,5 +1,5 @@
 #perl
 
 my $itemName = lxq("item.name ?");
-lx("dfgImportJSON " . '"' . $itemName . '"');
+lx("FabricCanvasImportGraph " . '"' . $itemName . '"');
 lx("dfgIncEval " . '"' . $itemName . '"' . "onlyIfZero:true");

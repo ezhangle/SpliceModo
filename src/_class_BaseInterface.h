@@ -12,7 +12,6 @@
 #include <ASTWrapper/KLASTManager.h>
 #include <map>
 
-struct _polymesh;
 class DFGUICmdHandlerDCC;
 
 // a management class for client and host

@@ -2,22 +2,22 @@
 
 #include "_class_BaseInterface.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgLogVersion.h"
+#include "cmd_FabricCanvasLogVersion.h"
 
 // static tag description interface.
-LXtTagInfoDesc dfgLogVersion::Command::descInfo[] =
+LXtTagInfoDesc FabricCanvasLogVersion::Command::descInfo[] =
 {
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
 
 // constructor.
-dfgLogVersion::Command::Command(void)
+FabricCanvasLogVersion::Command::Command(void)
 {
 }
 
 // execute code.
-void dfgLogVersion::Command::cmd_Execute(unsigned flags)
+void FabricCanvasLogVersion::Command::cmd_Execute(unsigned flags)
 {
   try
   {

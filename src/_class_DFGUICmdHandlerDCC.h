@@ -611,19 +611,19 @@ public:
 };
 
 // definitions of all the Modo command classes that execute the dfg commands.
-#define __dfgModoCmd__    class __dfgModoCmdClass__ : public CLxBasicCommand                                              \
+#define __CanvasCmd__    class __CanvasCmdClass__ : public CLxBasicCommand                                              \
                           {                                                                                               \
                           public:                                                                                         \
-                            __dfgModoCmdClass__(void);                                                                    \
+                            __CanvasCmdClass__(void);                                                                    \
                             static LXtTagInfoDesc descInfo[];                                                             \
                             static void initialize(void)                                                                  \
                             {                                                                                             \
-                              CLxGenericPolymorph *srv = new CLxPolymorph           <__dfgModoCmdClass__>;                \
-                              srv->AddInterface         (new CLxIfc_Command         <__dfgModoCmdClass__>);               \
-                              srv->AddInterface         (new CLxIfc_Attributes      <__dfgModoCmdClass__>);               \
-                              srv->AddInterface         (new CLxIfc_AttributesUI    <__dfgModoCmdClass__>);               \
-                              srv->AddInterface         (new CLxIfc_StaticDesc      <__dfgModoCmdClass__>);               \
-                              lx:: AddServer            (__dfgModoCmdName__.c_str(), srv);                                        \
+                              CLxGenericPolymorph *srv = new CLxPolymorph           <__CanvasCmdClass__>;                \
+                              srv->AddInterface         (new CLxIfc_Command         <__CanvasCmdClass__>);               \
+                              srv->AddInterface         (new CLxIfc_Attributes      <__CanvasCmdClass__>);               \
+                              srv->AddInterface         (new CLxIfc_AttributesUI    <__CanvasCmdClass__>);               \
+                              srv->AddInterface         (new CLxIfc_StaticDesc      <__CanvasCmdClass__>);               \
+                              lx:: AddServer            (__CanvasCmdName__.c_str(), srv);                                        \
                             };                                                                                            \
                             int     basic_CmdFlags  (void)                      LXx_OVERRIDE    { return LXfCMD_UNDO; }   \
                             bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    { return true;        }   \
@@ -632,184 +632,184 @@ public:
                             void addArgStr(char *argName)  { dyna_Add(argName, LXsTYPE_STRING); }                         \
                           };
 
-#define __dfgModoCmdClass__   FabricCanvasRemoveNodes
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasRemoveNodes
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasConnect
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_Connect::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasConnect
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_Connect::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasDisconnect
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_Disconnect::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasDisconnect
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_Disconnect::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddGraph
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddGraph::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddGraph
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddGraph::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddFunc
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddFunc::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddFunc
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddFunc::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasInstPreset
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_InstPreset::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasInstPreset
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_InstPreset::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddVar
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddVar::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddVar
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddVar::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddGet
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddGet::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddGet
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddGet::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddSet
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddSet::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddSet
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddSet::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddPort
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddPort::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddPort
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddPort::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasEditPort
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_EditPort::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasEditPort
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_EditPort::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasRemovePort
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_RemovePort::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasRemovePort
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_RemovePort::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasMoveNodes
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_MoveNodes::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasMoveNodes
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_MoveNodes::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasResizeBackDrop
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_ResizeBackDrop::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasResizeBackDrop
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_ResizeBackDrop::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasImplodeNodes
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasImplodeNodes
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasExplodeNode
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_ExplodeNode::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasExplodeNode
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_ExplodeNode::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasAddBackDrop
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_AddBackDrop::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasAddBackDrop
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddBackDrop::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetTitle
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetTitle::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetTitle
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetTitle::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetNodeComment
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetNodeComment
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetCode
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetCode::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetCode
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetCode::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasRenameNode
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_RenameNode::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasRenameNode
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_RenameNode::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasRenamePort
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_RenamePort::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasRenamePort
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_RenamePort::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasPaste
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_Paste::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasPaste
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_Paste::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetArgType
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetArgType::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetArgType
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetArgType::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetArgValue
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetArgValue::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetArgValue
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetArgValue::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetExtDeps
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetExtDeps::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetExtDeps
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetExtDeps::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetPortDefaultValue
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetPortDefaultValue
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSetRefVarPath
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSetRefVarPath
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasSplitFromPreset
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_SplitFromPreset::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasSplitFromPreset
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SplitFromPreset::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
-#define __dfgModoCmdClass__   FabricCanvasReorderPorts
-#define __dfgModoCmdName__    FabricUI::DFG::DFGUICmd_ReorderPorts::CmdName()
-        __dfgModoCmd__
-#undef  __dfgModoCmdClass__
-#undef  __dfgModoCmdName__
+#define __CanvasCmdClass__   FabricCanvasReorderPorts
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_ReorderPorts::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
 
 #endif

@@ -9,8 +9,6 @@
 #include "_class_FabricDFGWidget.h"
 #include "_class_DFGUICmdHandlerDCC.h"
 #include "_class_ModoTools.h"
-#include "itm_dfgModoIM.h"
-#include "itm_dfgModoPI.h"
 
 std::map<BaseInterface*, FabricDFGWidget*> FabricDFGWidget::s_instances;
 
@@ -84,9 +82,10 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
       // if necessary create FabricView.
       if (FabricView::s_FabricViews.size() == 0)
       {
+        std::string res;
         std::string err;
-        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", err))
-          ModoTools::ExecuteCommand("customview.view FabricCanvas", err);
+        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", res, err))
+          ModoTools::ExecuteCommand("customview.view FabricCanvas", res, err);
       }
 
       // no FabricView?
@@ -148,9 +147,9 @@ void FabricDFGWidget::onDefaultValueChanged()
 {
   if (m_baseInterface)
   {
-    if (m_baseInterface->m_ILxUnknownID_dfgModoIM)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoIM);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPI)      ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPI);
-    if (m_baseInterface->m_ILxUnknownID_dfgModoPIpilot) ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_dfgModoPIpilot);
+    if (m_baseInterface->m_ILxUnknownID_CanvasIM)       ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_CanvasIM);
+    if (m_baseInterface->m_ILxUnknownID_CanvasPI)       ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_CanvasPI);
+    if (m_baseInterface->m_ILxUnknownID_CanvasPIpilot)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_CanvasPIpilot);
   }
 }
 

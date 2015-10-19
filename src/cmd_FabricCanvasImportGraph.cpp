@@ -3,23 +3,23 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgImportJSON.h"
-#include "itm_dfgModoIM.h"
-#include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIpilot.h"
+#include "cmd_FabricCanvasImportGraph.h"
+#include "itm_CanvasIM.h"
+#include "itm_CanvasPI.h"
+#include "itm_CanvasPIpilot.h"
 
 #include <fstream>
 #include <streambuf>
 
 // static tag description interface.
-LXtTagInfoDesc dfgImportJSON::Command::descInfo[] =
+LXtTagInfoDesc FabricCanvasImportGraph::Command::descInfo[] =
 {
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
 
 // constructor.
-dfgImportJSON::Command::Command(void)
+FabricCanvasImportGraph::Command::Command(void)
 {
   // arguments.
   int idx = 0;
@@ -32,10 +32,10 @@ dfgImportJSON::Command::Command(void)
 }
 
 // execute code.
-void dfgImportJSON::Command::cmd_Execute(unsigned flags)
+void FabricCanvasImportGraph::Command::cmd_Execute(unsigned flags)
 {
   // init err string,
-  std::string err = "command " SERVER_NAME_dfgImportJSON " failed: ";
+  std::string err = "command " SERVER_NAME_FabricCanvasImportGraph " failed: ";
 
   // declare and set item from argument.
   CLxUser_Item item;
@@ -63,9 +63,9 @@ void dfgImportJSON::Command::cmd_Execute(unsigned flags)
 
   // get item's BaseInterface.
   BaseInterface *b = NULL;
-  if (!b) b = dfgModoIM::GetBaseInterface(item);
-  if (!b) b = dfgModoPI::GetBaseInterface(item);
-  if (!b) b = dfgModoPIpilot::GetBaseInterface(item);
+  if (!b) b = CanvasIM::GetBaseInterface(item);
+  if (!b) b = CanvasPI::GetBaseInterface(item);
+  if (!b) b = CanvasPIpilot::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);

@@ -1,10 +1,10 @@
 //
-#ifndef SRC_CMD_DFGEXPORTJSON_H_
-#define SRC_CMD_DFGEXPORTJSON_H_
+#ifndef SRC_CMD_FABRICCANVASEXPORTGRAPH_H_
+#define SRC_CMD_FABRICCANVASEXPORTGRAPH_H_
 
-#define SERVER_NAME_dfgExportJSON "dfgExportJSON"
+#define SERVER_NAME_FabricCanvasExportGraph "FabricCanvasExportGraph"
 
-namespace dfgExportJSON
+namespace FabricCanvasExportGraph
 {
   class Command : public CLxBasicCommand
   {
@@ -24,7 +24,7 @@ namespace dfgExportJSON
       srv->AddInterface         (new CLxIfc_Attributes      <Command>);
       srv->AddInterface         (new CLxIfc_AttributesUI    <Command>);
       srv->AddInterface         (new CLxIfc_StaticDesc      <Command>);
-      lx:: AddServer            (SERVER_NAME_dfgExportJSON, srv);
+      lx:: AddServer            (SERVER_NAME_FabricCanvasExportGraph, srv);
     };
 
     // command service.
@@ -32,7 +32,7 @@ namespace dfgExportJSON
     bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    { return true;          }
     void    cmd_Execute     (unsigned flags)            LXx_OVERRIDE;
   };
-};  // namespace dfgExportJSON
+};  // namespace FabricCanvasExportGraph
 
-#endif  // SRC_CMD_DFGEXPORTJSON_H_
+#endif  // SRC_CMD_FABRICCANVASEXPORTGRAPH_H_
 

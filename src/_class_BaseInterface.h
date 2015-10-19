@@ -12,7 +12,6 @@
 #include <ASTWrapper/KLASTManager.h>
 #include <map>
 
-struct _polymesh;
 class DFGUICmdHandlerDCC;
 
 // a management class for client and host
@@ -23,9 +22,9 @@ class BaseInterface
   BaseInterface();
   ~BaseInterface();
 
-  void *m_ILxUnknownID_dfgModoIM;       // ILxUnknownID of the Modo item modifier node   "dfgModoIM").      Cast this to ILxUnknownID.
-  void *m_ILxUnknownID_dfgModoPI;       // ILxUnknownID of the Modo procedural item node "dfgModoPI").      Cast this to ILxUnknownID.
-  void *m_ILxUnknownID_dfgModoPIpilot;  // ILxUnknownID of the Modo procedural item node "dfgModoPIpilot"). Cast this to ILxUnknownID.
+  void *m_ILxUnknownID_CanvasIM;       // ILxUnknownID of the Modo item modifier node   "CanvasIM").      Cast this to ILxUnknownID.
+  void *m_ILxUnknownID_CanvasPI;       // ILxUnknownID of the Modo procedural item node "CanvasPI").      Cast this to ILxUnknownID.
+  void *m_ILxUnknownID_CanvasPIpilot;  // ILxUnknownID of the Modo procedural item node "CanvasPIpilot"). Cast this to ILxUnknownID.
 
   // instance management
   // right now there are no locks in place,

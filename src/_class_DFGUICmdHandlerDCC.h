@@ -12,7 +12,6 @@
 
 #define DFGUICmdHandlerLOG        false  // FOR DEBUGGING: log some info (class DFGUICmdHandler).
 #define UndoDFGUICmdLOG           false  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
-#define DFGUICmdHandlerByPassDCC  false  // FOR DEBUGGING: execute the dfg commands directly instead of using the DCC's commands.
 
 bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result);
 
@@ -611,19 +610,19 @@ public:
 };
 
 // definitions of all the Modo command classes that execute the dfg commands.
-#define __CanvasCmd__    class __CanvasCmdClass__ : public CLxBasicCommand                                              \
+#define __CanvasCmd__    class __CanvasCmdClass__ : public CLxBasicCommand                                                \
                           {                                                                                               \
                           public:                                                                                         \
-                            __CanvasCmdClass__(void);                                                                    \
+                            __CanvasCmdClass__(void);                                                                     \
                             static LXtTagInfoDesc descInfo[];                                                             \
                             static void initialize(void)                                                                  \
                             {                                                                                             \
-                              CLxGenericPolymorph *srv = new CLxPolymorph           <__CanvasCmdClass__>;                \
-                              srv->AddInterface         (new CLxIfc_Command         <__CanvasCmdClass__>);               \
-                              srv->AddInterface         (new CLxIfc_Attributes      <__CanvasCmdClass__>);               \
-                              srv->AddInterface         (new CLxIfc_AttributesUI    <__CanvasCmdClass__>);               \
-                              srv->AddInterface         (new CLxIfc_StaticDesc      <__CanvasCmdClass__>);               \
-                              lx:: AddServer            (__CanvasCmdName__.c_str(), srv);                                        \
+                              CLxGenericPolymorph *srv = new CLxPolymorph           <__CanvasCmdClass__>;                 \
+                              srv->AddInterface         (new CLxIfc_Command         <__CanvasCmdClass__>);                \
+                              srv->AddInterface         (new CLxIfc_Attributes      <__CanvasCmdClass__>);                \
+                              srv->AddInterface         (new CLxIfc_AttributesUI    <__CanvasCmdClass__>);                \
+                              srv->AddInterface         (new CLxIfc_StaticDesc      <__CanvasCmdClass__>);                \
+                              lx:: AddServer            (__CanvasCmdName__.c_str(), srv);                                 \
                             };                                                                                            \
                             int     basic_CmdFlags  (void)                      LXx_OVERRIDE    { return LXfCMD_UNDO; }   \
                             bool    basic_Enable    (CLxUser_Message &msg)      LXx_OVERRIDE    { return true;        }   \

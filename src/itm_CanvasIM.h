@@ -1,7 +1,7 @@
-#ifndef SRC_ITM_DFGMODOIM_H_
-#define SRC_ITM_DFGMODOIM_H_
+#ifndef SRC_ITM_CANVASIM_H_
+#define SRC_ITM_CANVASIM_H_
 
-namespace dfgModoIM
+namespace CanvasIM
 {
   void initialize();
   class Instance;
@@ -9,4 +9,4 @@ namespace dfgModoIM
   BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
 };
 
-#endif  // SRC_ITM_DFGMODOIM_H_
+#endif  // SRC_ITM_CANVASIM_H_

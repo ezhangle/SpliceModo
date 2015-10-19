@@ -48,14 +48,15 @@ void ModoTools::checkFabricEnvVariables(bool showMsgbox)
       if (_showMsgbox && showMsgbox)
       {
         _showMsgbox = false;
+        std::string dummy;
         std::string out_err;
-        ExecuteCommand("dialog.setup {warning}", out_err);
-        ExecuteCommand("dialog.title {Fabric}", out_err);
-        ExecuteCommand("dialog.msg {One or more Fabric environment variables have not been set.}", out_err);
-        ExecuteCommand("dialog.open", out_err);
-        ExecuteCommand("dialog.setup {info}", out_err);
-        ExecuteCommand("dialog.msg {Please check the Event Log for more details.}", out_err);
-        ExecuteCommand("dialog.open", out_err);
+        ExecuteCommand("dialog.setup {warning}", dummy, out_err);
+        ExecuteCommand("dialog.title {Fabric}", dummy, out_err);
+        ExecuteCommand("dialog.msg {One or more Fabric environment variables have not been set.}", dummy, out_err);
+        ExecuteCommand("dialog.open", dummy, out_err);
+        ExecuteCommand("dialog.setup {info}", dummy, out_err);
+        ExecuteCommand("dialog.msg {Please check the Event Log for more details.}", dummy, out_err);
+        ExecuteCommand("dialog.open", dummy, out_err);
       }
 
       // log error.
@@ -65,10 +66,11 @@ void ModoTools::checkFabricEnvVariables(bool showMsgbox)
   }
 }
 
-bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
+bool ModoTools::ExecuteCommand(const std::string &command, std::string &io_result, std::string &out_err)
 {
   // init.
-  out_err = "";
+  io_result = "";
+  out_err   = "";
   if (command.length() <= 0)
   { out_err = "empty command string";
     return false; }
@@ -89,10 +91,11 @@ bool ModoTools::ExecuteCommand(const std::string &command, std::string &out_err)
   return true;
 }
 
-bool ModoTools::ExecuteCommand(const std::string &cmdName, const std::vector<std::string> &args, std::string &out_err)
+bool ModoTools::ExecuteCommand(const std::string &cmdName, const std::vector<std::string> &args, std::string &io_result, std::string &out_err)
 {
   // init.
-  out_err = "";
+  io_result = "";
+  out_err   = "";
   if (cmdName.length() <= 0)
   { out_err = "empty command name";
     return false; }
@@ -323,11 +326,12 @@ bool ModoTools::CreateUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     return false; }
 
   // execute command.
+  std::string dummy;
   return ExecuteCommand(std::string( "channel.create " + channelName
                                   + " "                + dataType
                                   + " "                + structType
                                   + " item:"           + item.IdentPtr() + "")
-                                  , out_err);
+                                  , dummy, out_err);
 }
 
 bool ModoTools::ItemExists(const std::string &itemName)
@@ -480,8 +484,9 @@ bool ModoTools::DeleteUserChannel(void *ptr_CLxUser_Item, const std::string &cha
     return false; }
 
   // execute command.
-  if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), out_err))
-    return ExecuteCommand("channel.delete", out_err);
+  std::string dummy;
+  if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), dummy, out_err))
+    return ExecuteCommand("channel.delete", dummy, out_err);
   else
     return false;
 }
@@ -508,12 +513,13 @@ bool ModoTools::DeleteAllUserChannels(void *ptr_CLxUser_Item, std::string &out_e
     return false;
 
   // select all user channels.
+  std::string dummy;
   for (size_t i = 0; i < usrChannels.size(); i++)
-    if (!ExecuteCommand("select.channel {" + std::string(item.IdentPtr()) + ":" + usrChannels[i] + (i == 0 ? "} set" : "} add"), out_err))
+    if (!ExecuteCommand("select.channel {" + std::string(item.IdentPtr()) + ":" + usrChannels[i] + (i == 0 ? "} set" : "} add"), dummy, out_err))
       return false;
 
   // delete selection.
-  return ExecuteCommand("channel.delete", out_err);
+  return ExecuteCommand("channel.delete", dummy, out_err);
 }
 
 bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &channelName, const std::string &channelNameNew, std::string &out_err, bool interpretate_ptr_as_ILxUnknownID)
@@ -567,10 +573,11 @@ bool ModoTools::RenameUserChannel(void *ptr_CLxUser_Item, const std::string &cha
   }
 
   // execute command.
-  if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), out_err))
+  std::string dummy;
+  if (ExecuteCommand(std::string("select.channel {" + std::string(item.IdentPtr()) + ":" + actualName + "} set"), dummy, out_err))
   {
-    if (ExecuteCommand(std::string("channel.name name:" + channelNameNew), out_err))
-      return ExecuteCommand("channel.username username:" + channelNameNew, out_err);
+    if (ExecuteCommand(std::string("channel.name name:" + channelNameNew), dummy, out_err))
+      return ExecuteCommand("channel.username username:" + channelNameNew, dummy, out_err);
     else
       return false;
   }
@@ -894,9 +901,10 @@ void ModoTools::InvalidateItem(ILxUnknownID item_obj)
     if (item.test())
     {
       std::string cmd;
+      std::string res;
       std::string err;
-      cmd = "dfgIncEval \"" + std::string(item.IdentPtr()) + "\"";
-      ModoTools::ExecuteCommand(std::string(cmd), err);
+      cmd = "FabricCanvasIncEval \"" + std::string(item.IdentPtr()) + "\"";
+      ModoTools::ExecuteCommand(std::string(cmd), res, err);
     }
   }
 }

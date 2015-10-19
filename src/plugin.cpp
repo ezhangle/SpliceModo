@@ -6,14 +6,14 @@
 #include "_class_FabricView.h"
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgExportJSON.h"
-#include "cmd_dfgImportJSON.h"
-#include "cmd_dfgIncEval.h"
-#include "cmd_dfgLogVersion.h"
-#include "cmd_dfgOpenCanvas.h"
-#include "itm_dfgModoIM.h"
-#include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIpilot.h"
+#include "cmd_FabricCanvasExportGraph.h"
+#include "cmd_FabricCanvasImportGraph.h"
+#include "cmd_FabricCanvasIncEval.h"
+#include "cmd_FabricCanvasLogVersion.h"
+#include "cmd_FabricCanvasOpenCanvas.h"
+#include "itm_CanvasIM.h"
+#include "itm_CanvasPI.h"
+#include "itm_CanvasPIpilot.h"
 
 // log system.
 class CItemLog : public CLxLogMessage
@@ -79,15 +79,15 @@ void initialize()
 
   // Modo.
   {
-    dfgExportJSON :: Command:: initialize();
-    dfgImportJSON :: Command:: initialize();
-    dfgIncEval    :: Command:: initialize();
-    dfgLogVersion :: Command:: initialize();
-    dfgOpenCanvas :: Command:: initialize();
+    FabricCanvasExportGraph :: Command:: initialize();
+    FabricCanvasImportGraph :: Command:: initialize();
+    FabricCanvasIncEval     :: Command:: initialize();
+    FabricCanvasLogVersion  :: Command:: initialize();
+    FabricCanvasOpenCanvas  :: Command:: initialize();
     //
-    dfgModoIM               :: initialize();
-    dfgModoPI               :: initialize();
-    dfgModoPIpilot          :: initialize();
+    CanvasIM                :: initialize();
+    CanvasPI                :: initialize();
+    CanvasPIpilot           :: initialize();
     //
     JSONValue               :: initialize();
     FabricView              :: initialize();

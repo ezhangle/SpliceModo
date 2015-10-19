@@ -4,12 +4,12 @@
 #include "_class_FabricDFGWidget.h"
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
-#include "itm_dfgModoIM.h"
+#include "itm_CanvasIM.h"
 #include <Persistence/RTValToJSONEncoder.hpp>
 
-static CLxItemType gItemType_dfgModoIM(SERVER_NAME_dfgModoIM);
+static CLxItemType gItemType_CanvasIM(SERVER_NAME_CanvasIM);
 
-namespace dfgModoIM
+namespace CanvasIM
 {
   // Implement the Package and Instance. The instance doesn't have to do anything,
   // but the package adds the standard set of channels and marks certain of those
@@ -25,22 +25,22 @@ namespace dfgModoIM
       CLxGenericPolymorph *srv = NULL;
       srv = new CLxPolymorph                              <Instance>;
       srv->AddInterface       (new CLxIfc_PackageInstance <Instance>);
-      lx::AddSpawner          (SERVER_NAME_dfgModoIM ".inst", srv);
+      lx::AddSpawner          (SERVER_NAME_CanvasIM ".inst", srv);
     }
 
     Instance()
     {
-      feLog("dfgModoIM::Instance::Instance() new BaseInterface");
+      feLog("CanvasIM::Instance::Instance() new BaseInterface");
       // init members and create base interface.
       m_baseInterface = new BaseInterface();
     };
 
     ~Instance()
     {
-      feLog("dfgModoIM::Instance::~Instance() called");
+      feLog("CanvasIM::Instance::~Instance() called");
       if (m_baseInterface)
       {
-        feLog("dfgModoIM::Instance::~Instance() delete BaseInterface");
+        feLog("CanvasIM::Instance::~Instance() delete BaseInterface");
         // delete widget and base interface.
         FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
         if (w) delete w;
@@ -68,7 +68,7 @@ namespace dfgModoIM
     m_item_obj = item_obj;
 
     //
-    if (m_baseInterface)  m_baseInterface->m_ILxUnknownID_dfgModoIM = item_obj;
+    if (m_baseInterface)  m_baseInterface->m_ILxUnknownID_CanvasIM = item_obj;
     else                  feLogError("m_baseInterface == NULL");
 
     // done.
@@ -209,10 +209,10 @@ namespace dfgModoIM
       srv->AddInterface        (new CLxIfc_StaticDesc         <Package>);
       srv->AddInterface        (new CLxIfc_SceneItemListener  <Package>);
       srv->AddInterface        (new CLxIfc_ChannelUI          <Package>);
-      lx::AddServer            (SERVER_NAME_dfgModoIM, srv);
+      lx::AddServer            (SERVER_NAME_CanvasIM, srv);
     }
 
-    Package() : m_inst_spawn (SERVER_NAME_dfgModoIM ".inst") {}
+    Package() : m_inst_spawn (SERVER_NAME_CanvasIM ".inst") {}
 
     LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)                          LXx_OVERRIDE;
     LxResult    pkg_Attach          (void **ppvObj)                                     LXx_OVERRIDE;
@@ -333,10 +333,10 @@ namespace dfgModoIM
     CLxUser_Item    item(item_obj);
     CLxUser_Scene   scene;
 
-    if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
+    if (item.test() && item.IsA(gItemType_CanvasIM.Type()))
     {
       if (item.GetContext(scene))
-        scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+        scene.EvalModInvalidate(SERVER_NAME_CanvasIM ".mod");
     }
   }
 
@@ -350,10 +350,10 @@ namespace dfgModoIM
     CLxUser_Item    item(item_obj);
     CLxUser_Scene   scene;
 
-    if (item.test() && item.IsA(gItemType_dfgModoIM.Type()))
+    if (item.test() && item.IsA(gItemType_CanvasIM.Type()))
     {
       if (item.GetContext(scene))
-        scene.EvalModInvalidate(SERVER_NAME_dfgModoIM ".mod");
+        scene.EvalModInvalidate(SERVER_NAME_CanvasIM ".mod");
     }
   }
 
@@ -390,7 +390,7 @@ namespace dfgModoIM
    public:
     static void initialize()
     {
-        CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_dfgModoIM ".mod");
+        CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasIM ".mod");
     }
 
     const char  *ItemType()   LXx_OVERRIDE;
@@ -808,7 +808,7 @@ namespace dfgModoIM
       The modifier should only associate itself with this item type.
     */
 
-    return SERVER_NAME_dfgModoIM;
+    return SERVER_NAME_CanvasIM;
   }
 
   CLxItemModifierElement *Modifier::Alloc(CLxUser_Evaluation &eval, ILxUnknownID item)
@@ -832,7 +832,7 @@ namespace dfgModoIM
       if (srv.ItemTypeName(item.Type(), &typeName) != LXe_OK || !typeName)
         return NULL;
 
-      if (strcmp(typeName, SERVER_NAME_dfgModoIM))
+      if (strcmp(typeName, SERVER_NAME_CanvasIM))
         return NULL;
     }
 
@@ -840,7 +840,7 @@ namespace dfgModoIM
     CLxLoc_PackageInstance pkg_inst(item_obj);
     if (pkg_inst.test())
     {
-      CLxSpawner <Instance> spawn(SERVER_NAME_dfgModoIM ".inst");
+      CLxSpawner <Instance> spawn(SERVER_NAME_CanvasIM ".inst");
       return spawn.Cast(pkg_inst);
     }
     return NULL;
@@ -860,7 +860,7 @@ namespace dfgModoIM
     Package  :: initialize();
     Modifier :: initialize();
   }
-};  // namespace dfgModoIM
+};  // namespace CanvasIM
 
 
 

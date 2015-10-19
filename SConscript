@@ -177,9 +177,9 @@ FABRIC_CORE_VERSION = '2.0'
 modoFiles = []
 modoFiles.append(installedModule)
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('index.cfg'))
-modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgExportJSON.pl'))
-modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgImportJSON.pl'))
-modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_dfgOpenCanvas.pl'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_FabricCanvasExportGraph.pl'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_FabricCanvasImportGraph.pl'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_FabricCanvasOpenCanvas.pl'))
 
 if FABRIC_BUILD_OS == 'Windows':
   modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricCore-' + FABRIC_CORE_VERSION + '.dll'))

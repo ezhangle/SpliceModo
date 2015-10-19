@@ -3,23 +3,23 @@
 #include "_class_BaseInterface.h"
 #include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
-#include "cmd_dfgIncEval.h"
-#include "itm_dfgModoIM.h"
-#include "itm_dfgModoPI.h"
-#include "itm_dfgModoPIpilot.h"
+#include "cmd_FabricCanvasIncEval.h"
+#include "itm_CanvasIM.h"
+#include "itm_CanvasPI.h"
+#include "itm_CanvasPIpilot.h"
 
 #include <fstream>
 #include <streambuf>
 
 // static tag description interface.
-LXtTagInfoDesc dfgIncEval::Command::descInfo[] =
+LXtTagInfoDesc FabricCanvasIncEval::Command::descInfo[] =
 {
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
 
 // constructor.
-dfgIncEval::Command::Command(void)
+FabricCanvasIncEval::Command::Command(void)
 {
   // arguments.
   int idx = 0;
@@ -37,10 +37,10 @@ dfgIncEval::Command::Command(void)
 }
 
 // execute code.
-void dfgIncEval::Command::cmd_Execute(unsigned flags)
+void FabricCanvasIncEval::Command::cmd_Execute(unsigned flags)
 {
   // init err string,
-  std::string err = "command " SERVER_NAME_dfgIncEval " failed: ";
+  std::string err = "command " SERVER_NAME_FabricCanvasIncEval " failed: ";
 
   // declare and set item from argument.
   CLxUser_Item item;
@@ -69,9 +69,9 @@ void dfgIncEval::Command::cmd_Execute(unsigned flags)
   // get item's BaseInterface.
   // note: we don't really need it, but that way we know we have a valid item.
   BaseInterface *b = NULL;
-  if (!b) b = dfgModoIM::GetBaseInterface(item);
-  if (!b) b = dfgModoPI::GetBaseInterface(item);
-  if (!b) b = dfgModoPIpilot::GetBaseInterface(item);
+  if (!b) b = CanvasIM::GetBaseInterface(item);
+  if (!b) b = CanvasPI::GetBaseInterface(item);
+  if (!b) b = CanvasPIpilot::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);

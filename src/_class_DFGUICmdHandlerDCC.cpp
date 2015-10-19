@@ -23,7 +23,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   /*
     executes a DCC command.
 
-    return values: on success: true and io_result contains the command's return value (unless DFGUICmdHandlerByPassDCC == false).
+    return values: on success: true and io_result contains the command's return value.
                    on failure: false and io_result is empty.
   */
 
@@ -41,23 +41,10 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   // execute DCC command.
   bool ret = false;
   {
-    if (DFGUICmdHandlerByPassDCC)
-    {
-      // execute the dfg command directly via the createAndExecuteDFGCommand() function.
-      FabricUI::DFG::DFGUICmd *cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(in_cmdName, in_args);
-      if (cmd)
-      {
-        ret = true;
-        delete cmd;
-      }
-    }
-    else
-    {
-      // execute the Modo command that will execute the dfg command via the createAndExecuteDFGCommand() function.
-      std::string err;
-      ret = ModoTools::ExecuteCommand(in_cmdName, in_args, err);
-      if (!ret) feLogError(err);
-    }
+    // execute the dfg command by executing the corresponding DCC command.
+    std::string err;
+    ret = ModoTools::ExecuteCommand(in_cmdName, in_args, io_result, err);
+    if (!ret) feLogError(err);
   }
 
   // failed?
@@ -1588,8 +1575,8 @@ FabricUI::DFG::DFGUICmd_SplitFromPreset *DFGUICmdHandlerDCC::createAndExecuteDFG
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_SplitFromPreset(binding,
-                                                 execPath,
-                                                 exec);
+                                                      execPath,
+                                                      exec);
     try
     {
       cmd->doit();
@@ -2213,29 +2200,29 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 
 
 // constructor.
-#define __CanvasCmd_constructor_begin__      LXtTagInfoDesc __CanvasCmdClass__::descInfo[] = \
+#define __CanvasCmd_constructor_begin__       LXtTagInfoDesc __CanvasCmdClass__::descInfo[] =  \
                                               {                                                \
                                                 { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },      \
                                                 { 0 }                                          \
                                               };                                               \
-                                              __CanvasCmdClass__::__CanvasCmdClass__(void)   \
+                                              __CanvasCmdClass__::__CanvasCmdClass__(void)     \
                                               {
-#define __CanvasCmd_constructor_finish__     }
+#define __CanvasCmd_constructor_finish__      }
 
 // execute.
-#define __CanvasCmd_execute__                void __CanvasCmdClass__::cmd_Execute(unsigned flags)                               \
+#define __CanvasCmd_execute__                 void __CanvasCmdClass__::cmd_Execute(unsigned flags)                                \
                                               {                                                                                   \
                                                 CLxUser_UndoService undoSvc;                                                      \
                                                 UndoDFGUICmd       *undo;                                                         \
                                                 ILxUnknownID        obj;                                                          \
-	                                              CLxSpawnerCreate<UndoDFGUICmd> sp("UndoDFGUICmd" __CanvasCmdName__);             \
+	                                              CLxSpawnerCreate<UndoDFGUICmd> sp("UndoDFGUICmd" __CanvasCmdName__);              \
                                                 if (sp.created) sp.AddInterface(new CLxIfc_Undo<UndoDFGUICmd>);                   \
                                                 undo = sp.Alloc(obj);                                                             \
                                                 undo->init();                                                                     \
-                                                std::vector<std::string> args(__CanvasCmdNumArgs__);                             \
+                                                std::vector<std::string> args(__CanvasCmdNumArgs__);                              \
                                                 for (size_t i=0;i<args.size();i++)                                                \
                                                   dyna_String(i, args[i]);                                                        \
-                                                undo->cmdName = __CanvasCmdName__;                                               \
+                                                undo->cmdName = __CanvasCmdName__;                                                \
                                                 undo->cmd = DFGUICmdHandlerDCC::createAndExecuteDFGCommand(undo->cmdName, args);  \
                                                 undoSvc.Record(obj);                                                              \
                                                 lx::ObjRelease(obj);                                                              \
@@ -2683,7 +2670,6 @@ __CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
-    addArgStr("extDeps");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

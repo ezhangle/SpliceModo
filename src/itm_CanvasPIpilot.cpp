@@ -1109,7 +1109,7 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
       {
         // set the base interface's evaluation member so that it doesn't
         // process notifications while the element is being evaluated.
-        b->SetEvaluating();
+        Fabric::Util::AutoSet<bool> isEvaluating( b->m_evaluating, true );
 
         // make ud.polymesh a valid, empty mesh.
         ud.polymesh.setEmptyMesh();
@@ -1118,17 +1118,14 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
         FabricCore::Client *client  = b->getClient();
         if (!client)
         { feLogError("Element::Eval(): getClient() returned NULL");
-          b->ResetEvaluating();
           return false; }
         FabricCore::DFGBinding binding = b->getBinding();
         if (!binding.isValid())
         { feLogError("Element::Eval(): invalid binding");
-          b->ResetEvaluating();
           return false; }
         FabricCore::DFGExec graph = binding.getExec();
         if (!graph.isValid())
         { feLogError("Element::Eval(): invalid graph");
-          b->ResetEvaluating();
           return false; }
 
         // Fabric Engine (step 1): WIP set the DFG ports (if available) from the fixed "Time" and "Frame" channels.
@@ -1197,7 +1194,6 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
             if (err != "")
             {
               feLogError(err);
-              b->ResetEvaluating();
               return false;
             }
           }
@@ -1205,7 +1201,6 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
           {
             std::string s = std::string("Element::Eval()(step 1): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
             feLogError(s);
-            b->ResetEvaluating();
             return false;
           }
         }
@@ -1270,7 +1265,6 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
                 {
                     ud.polymesh.clear();
                     feLogError(err);
-                    b->ResetEvaluating();
                     return false;
                 }
             }
@@ -1278,7 +1272,6 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
             {
                 ud.polymesh.clear();
                 feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-                b->ResetEvaluating();
                 return false;
             }
         }
@@ -1291,7 +1284,6 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
 
     // done.
     if (!ret)   ud.polymesh.clear();
-    b->ResetEvaluating();
     return ret;
 }
 

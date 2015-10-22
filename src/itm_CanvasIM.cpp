@@ -483,30 +483,26 @@ namespace CanvasIM
 
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
-    b->SetEvaluating();
+    Fabric::Util::AutoSet<bool> isEvaluating( b->m_evaluating, true );
 
     // refs 'n pointers.
     FabricCore::Client *client  = b->getClient();
     if (!client)
     { feLogError("Element::Eval(): getClient() returned NULL");
-      b->ResetEvaluating();
       return; }
     FabricCore::DFGBinding binding = b->getBinding();
     if (!binding.isValid())
     { feLogError("Element::Eval(): invalid binding");
-      b->ResetEvaluating();
       return; }
     FabricCore::DFGExec graph = binding.getExec();
     if (!graph.isValid())
     { feLogError("Element::Eval(): invalid graph");
-      b->ResetEvaluating();
       return; }
 
     // read the fixed input channels and return early if the FabricActive flag is disabled.
     int FabricActive = attr.Bool(m_eval_index_FabricActive, false);
     if (!FabricActive)
     {
-      b->ResetEvaluating();
       return;
     }
 
@@ -634,7 +630,6 @@ namespace CanvasIM
         if (err != "")
         {
           feLogError(err);
-          b->ResetEvaluating();
           return;
         }
       }
@@ -798,7 +793,6 @@ namespace CanvasIM
         if (err != "")
         {
           feLogError(err);
-          b->ResetEvaluating();
           return;
         }
       }
@@ -810,7 +804,6 @@ namespace CanvasIM
     }
 
     // done.
-      b->ResetEvaluating();
     return;
   }
 

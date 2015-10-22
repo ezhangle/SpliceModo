@@ -22,7 +22,7 @@ BaseInterface::BaseInterface()
   m_ILxUnknownID_CanvasIM       = NULL;
   m_ILxUnknownID_CanvasPI       = NULL;
   m_ILxUnknownID_CanvasPIpilot  = NULL;
-  ResetEvaluating();
+  m_evaluating                  = false;
 
   // construct the client
   if (s_instances.size() == 0)

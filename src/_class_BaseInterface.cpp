@@ -236,6 +236,15 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
         // do nothing.
       }
 
+      else if (nDesc == "dirty")
+      {
+        // the 'dirty' notification => we must invalidate the Modo item.
+        if (unknownID)
+        {
+          ModoTools::InvalidateItem((ILxUnknownID)unknownID);
+        }
+      }
+
       else if (nDesc == "argTypeChanged")
       {
         // the data type of a port changed => we must re-create the Modo user channel.

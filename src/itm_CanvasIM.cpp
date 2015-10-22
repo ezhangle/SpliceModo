@@ -501,6 +501,7 @@ namespace CanvasIM
 
     // read the fixed input channels and return early if the FabricActive flag is disabled.
     int FabricActive = attr.Bool(m_eval_index_FabricActive, false);
+    int FabricEval   = attr.Int (m_eval_index_FabricEval);
     if (!FabricActive)
     {
       return;

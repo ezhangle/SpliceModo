@@ -1102,15 +1102,15 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
     if (!b)
       return false;
 
+    // set the base interface's evaluation member so that it doesn't
+    // process notifications while the element is being evaluated.
+    FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
+
     // take care of geometry.
     if (ud.chn.FabricActive)
     {
       if (changeInGeoRelevantChannel || !ud.polymesh.isValid())
       {
-        // set the base interface's evaluation member so that it doesn't
-        // process notifications while the element is being evaluated.
-        FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
-
         // make ud.polymesh a valid, empty mesh.
         ud.polymesh.setEmptyMesh();
 
@@ -1208,6 +1208,7 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
         // Fabric Engine (step 2): execute the DFG.
         if (ret)
         {
+          if (false)
           {
             static int i = 0;
             char s[256];

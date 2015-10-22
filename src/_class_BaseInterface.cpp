@@ -190,6 +190,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
   if (!userData || !jsonCString)
     return;
 
+  // debug log.
+  bool debugLog = false;
+
   // go.
   try
   {
@@ -198,27 +201,32 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     FabricCore::DFGExec   graph         = b.getBinding().getExec();
     FabricCore::Variant   notification  = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
 
-    // currently evaluating?
-    if (b.IsEvaluating())
-      return; // ignore the notification and leave early.
-
     // get the notification's description and possibly the value of name.
     const FabricCore::Variant *vDesc = notification.getDictValue("desc");
     if (!vDesc)   return;
     std::string nDesc = vDesc->getStringData();
+
+    // currently evaluating?
+    if (b.IsEvaluating())
+    {
+      if (debugLog)
+      {
+        std::string s = "currently evaluating, ignoring notification \"" + nDesc + "\".";
+        logFunc(NULL, s.c_str(), s.length());
+      }
+      return; // ignore the notification and leave early.
+    }
+    else if (debugLog)
+    {
+      std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
+      logFunc(NULL, s.c_str(), s.length());
+    }
 
     // get the Modo item's ILxUnknownID.
     void             *unknownID = NULL;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasIM;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPI;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPIpilot;
-
-    // log.
-    if (false)
-    {
-      std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
-      logFunc(NULL, s.c_str(), s.length());
-    }
 
     // handle notification.
     std::string err = "";

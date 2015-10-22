@@ -245,7 +245,6 @@ namespace CanvasIM
 
       add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
       add_chan.SetDefault(0, 0);
-      add_chan.SetInternal();
 
       add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
       add_chan.SetStorage("+" SERVER_NAME_JSONValue);
@@ -482,8 +481,8 @@ namespace CanvasIM
     { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item_obj) returned NULL");
       return; }
 
-    // set the base interface's evaluation member to prevent so that it
-    // doesn't process notifications while the element is being evaluated.
+    // set the base interface's evaluation member so that it doesn't
+    // process notifications while the element is being evaluated.
     b->SetEvaluating();
 
     // refs 'n pointers.

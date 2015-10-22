@@ -483,7 +483,7 @@ namespace CanvasIM
 
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
-    Fabric::Util::AutoSet<bool> isEvaluating( b->m_evaluating, true );
+    FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
 
     // refs 'n pointers.
     FabricCore::Client *client  = b->getClient();

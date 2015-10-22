@@ -22,6 +22,7 @@ BaseInterface::BaseInterface()
   m_ILxUnknownID_CanvasIM       = NULL;
   m_ILxUnknownID_CanvasPI       = NULL;
   m_ILxUnknownID_CanvasPIpilot  = NULL;
+  ResetEvaluating();
 
   // construct the client
   if (s_instances.size() == 0)
@@ -196,6 +197,10 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     BaseInterface        &b             = *(BaseInterface *)userData;
     FabricCore::DFGExec   graph         = b.getBinding().getExec();
     FabricCore::Variant   notification  = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
+
+    // currently evaluating?
+    if (b.IsEvaluating())
+      return; // ignore the notification and leave early.
 
     // get the notification's description and possibly the value of name.
     const FabricCore::Variant *vDesc = notification.getDictValue("desc");

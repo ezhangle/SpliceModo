@@ -69,7 +69,8 @@ class BaseInterface
   FabricCore::DFGBinding                           m_binding;
   DFGUICmdHandlerDCC                              *m_cmdHandler;
   static std::map<unsigned int, BaseInterface*>    s_instances;
-
+  bool                                             m_evaluating;
+  
   // returns true if the binding's executable has a port called portName that matches the port type (input/output).
   // params:  in_portName     name of the port.
   //          testForInput    true: look for input port, else for output port.
@@ -82,6 +83,12 @@ class BaseInterface
 
   // gets the name of the item to which this binding belongs to.
   std::string GetItemName(void);
+
+  // functions for (re)setting/querying the m_evaluating member.
+  // note: when m_evaluating is 'true' then the bindingNotificationCallback() function returns early.
+  void SetEvaluating  (void)  { m_evaluating = true;  }
+  void ResetEvaluating(void)  { m_evaluating = false; }
+  bool IsEvaluating   (void)  { return m_evaluating;  }
 
   // returns true if the binding's executable has an input port called portName.
   bool HasInputPort(const char *portName);

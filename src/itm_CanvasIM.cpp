@@ -482,24 +482,34 @@ namespace CanvasIM
     { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item_obj) returned NULL");
       return; }
 
+    // set the base interface's evaluation member to prevent so that it
+    // doesn't process notifications while the element is being evaluated.
+    b->SetEvaluating();
+
     // refs 'n pointers.
     FabricCore::Client *client  = b->getClient();
     if (!client)
     { feLogError("Element::Eval(): getClient() returned NULL");
+      b->ResetEvaluating();
       return; }
     FabricCore::DFGBinding binding = b->getBinding();
     if (!binding.isValid())
     { feLogError("Element::Eval(): invalid binding");
+      b->ResetEvaluating();
       return; }
     FabricCore::DFGExec graph = binding.getExec();
     if (!graph.isValid())
     { feLogError("Element::Eval(): invalid graph");
+      b->ResetEvaluating();
       return; }
 
     // read the fixed input channels and return early if the FabricActive flag is disabled.
     int FabricActive = attr.Bool(m_eval_index_FabricActive, false);
     if (!FabricActive)
+    {
+      b->ResetEvaluating();
       return;
+    }
 
     // Fabric Engine (step 1): loop through all the DFG's input ports and set
     //                         their values from the matching Modo user channels.
@@ -625,6 +635,7 @@ namespace CanvasIM
         if (err != "")
         {
           feLogError(err);
+          b->ResetEvaluating();
           return;
         }
       }
@@ -788,6 +799,7 @@ namespace CanvasIM
         if (err != "")
         {
           feLogError(err);
+          b->ResetEvaluating();
           return;
         }
       }
@@ -799,6 +811,7 @@ namespace CanvasIM
     }
 
     // done.
+      b->ResetEvaluating();
     return;
   }
 

@@ -14,6 +14,7 @@
 
 // includes.
 #include <string>
+#include <FTL/AutoSet.h>
 
 // win32 stuff.
 #ifdef _WIN32

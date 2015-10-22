@@ -145,12 +145,9 @@ void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 
 void FabricDFGWidget::onDefaultValueChanged()
 {
-  if (m_baseInterface)
-  {
-    if (m_baseInterface->m_ILxUnknownID_CanvasIM)       ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_CanvasIM);
-    if (m_baseInterface->m_ILxUnknownID_CanvasPI)       ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_CanvasPI);
-    if (m_baseInterface->m_ILxUnknownID_CanvasPIpilot)  ModoTools::InvalidateItem((ILxUnknownID)m_baseInterface->m_ILxUnknownID_CanvasPIpilot);
-  }
+  // ... need to update the modo item
+
+  // note: this is not done here, but in BaseInterface::bindingNotificationCallback().
 }
 
 void FabricDFGWidget::showEvent(QShowEvent *event)

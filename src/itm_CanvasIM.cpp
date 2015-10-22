@@ -245,7 +245,6 @@ namespace CanvasIM
 
       add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
       add_chan.SetDefault(0, 0);
-      add_chan.SetInternal();
 
       add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
       add_chan.SetStorage("+" SERVER_NAME_JSONValue);
@@ -482,6 +481,10 @@ namespace CanvasIM
     { feLogError("Element::Eval(): GetBaseInterface(m_Instance->m_item_obj) returned NULL");
       return; }
 
+    // set the base interface's evaluation member so that it doesn't
+    // process notifications while the element is being evaluated.
+    FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
+
     // refs 'n pointers.
     FabricCore::Client *client  = b->getClient();
     if (!client)
@@ -498,8 +501,11 @@ namespace CanvasIM
 
     // read the fixed input channels and return early if the FabricActive flag is disabled.
     int FabricActive = attr.Bool(m_eval_index_FabricActive, false);
+    int FabricEval   = attr.Int (m_eval_index_FabricEval);
     if (!FabricActive)
+    {
       return;
+    }
 
     // Fabric Engine (step 1): loop through all the DFG's input ports and set
     //                         their values from the matching Modo user channels.

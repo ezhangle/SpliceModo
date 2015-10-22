@@ -22,6 +22,7 @@ BaseInterface::BaseInterface()
   m_ILxUnknownID_CanvasIM       = NULL;
   m_ILxUnknownID_CanvasPI       = NULL;
   m_ILxUnknownID_CanvasPIpilot  = NULL;
+  m_evaluating                  = false;
 
   // construct the client
   if (s_instances.size() == 0)
@@ -189,6 +190,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
   if (!userData || !jsonCString)
     return;
 
+  // debug log.
+  bool debugLog = false;
+
   // go.
   try
   {
@@ -202,18 +206,27 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     if (!vDesc)   return;
     std::string nDesc = vDesc->getStringData();
 
+    // currently evaluating?
+    if (b.IsEvaluating())
+    {
+      if (debugLog)
+      {
+        std::string s = "currently evaluating, ignoring notification \"" + nDesc + "\".";
+        logFunc(NULL, s.c_str(), s.length());
+      }
+      return; // ignore the notification and leave early.
+    }
+    else if (debugLog)
+    {
+      std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
+      logFunc(NULL, s.c_str(), s.length());
+    }
+
     // get the Modo item's ILxUnknownID.
     void             *unknownID = NULL;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasIM;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPI;
     if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPIpilot;
-
-    // log.
-    if (false)
-    {
-      std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
-      logFunc(NULL, s.c_str(), s.length());
-    }
 
     // handle notification.
     std::string err = "";
@@ -221,6 +234,15 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
       if      (nDesc == "")
       {
         // do nothing.
+      }
+
+      else if (nDesc == "dirty")
+      {
+        // the 'dirty' notification => we must invalidate the Modo item.
+        if (unknownID)
+        {
+          ModoTools::InvalidateItem((ILxUnknownID)unknownID);
+        }
       }
 
       else if (nDesc == "argTypeChanged")

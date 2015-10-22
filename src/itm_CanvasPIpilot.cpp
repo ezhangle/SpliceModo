@@ -489,7 +489,7 @@ class CReadItemInstance :    public CLxImpl_PackageInstance,
     // the Read() functions that read the channels and set the user data and the geometry.
     bool        Read                (CLxUser_ChannelRead &chanRead);    // reference at CLxUser_ChannelRead class.
 
-    bool        Read                (bakedChannels &baked);                // reference at baked channels.
+    bool        ReadAndEvaluate     (bakedChannels &baked);             // reference at baked channels.
 
     // implementation of package interface.
     LxResult pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)   LXx_OVERRIDE;
@@ -1068,10 +1068,10 @@ bool CReadItemInstance::Read(CLxUser_ChannelRead &chanRead)
     chanIndex = item.ChannelIndex(CHN_NAME_IO_FabricOpacity);       if (chanIndex >= 0) baked.FabricOpacity = (float)chanRead.FValue(m_item_obj, chanIndex);        else    return false;
 
     // call the other Read() function.
-    return Read(baked);
+    return ReadAndEvaluate(baked);
 }
 
-bool CReadItemInstance::Read(bakedChannels &baked)
+bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
 {
     // init return value and ref at user data.
     bool        ret = true;
@@ -1097,15 +1097,20 @@ bool CReadItemInstance::Read(bakedChannels &baked)
       memcpy(&ud.chn, &baked, sizeof(bakedChannels));
     }
 
+    // get base interface.
+    BaseInterface *b = ud.baseInterface;
+    if (!b)
+      return false;
+
+    // set the base interface's evaluation member so that it doesn't
+    // process notifications while the element is being evaluated.
+    FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
+
     // take care of geometry.
     if (ud.chn.FabricActive)
     {
       if (changeInGeoRelevantChannel || !ud.polymesh.isValid())
       {
-        BaseInterface *b = ud.baseInterface;
-        if (!b)
-          return false;
-
         // make ud.polymesh a valid, empty mesh.
         ud.polymesh.setEmptyMesh();
 
@@ -1203,6 +1208,7 @@ bool CReadItemInstance::Read(bakedChannels &baked)
         // Fabric Engine (step 2): execute the DFG.
         if (ret)
         {
+          if (false)
           {
             static int i = 0;
             char s[256];
@@ -1746,8 +1752,8 @@ LxResult CReadItemInstance::isurf_Evaluate(ILxUnknownID attr, unsigned index, vo
     baked.FabricDisplay = attributes.Int  (i++);
     baked.FabricOpacity = attributes.Float(i++);
 
-    // call Read().
-    Read(baked);
+    // call ReadAndEvaluate().
+    ReadAndEvaluate(baked);
 
     // done.
     return LXe_OK;
@@ -1785,7 +1791,6 @@ LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
 
     ac.NewChannel(CHN_NAME_IO_FabricEval,     LXsTYPE_INTEGER);
     ac.SetDefault(0, 0);
-    ac.SetInternal();
 
     ac.NewChannel(CHN_NAME_IO_time,           LXsTYPE_FLOAT);
     ac.SetDefault(0, 0);

@@ -25,6 +25,8 @@ class BaseInterface
   void *m_ILxUnknownID_CanvasIM;       // ILxUnknownID of the Modo item modifier node   "CanvasIM").      Cast this to ILxUnknownID.
   void *m_ILxUnknownID_CanvasPI;       // ILxUnknownID of the Modo procedural item node "CanvasPI").      Cast this to ILxUnknownID.
   void *m_ILxUnknownID_CanvasPIpilot;  // ILxUnknownID of the Modo procedural item node "CanvasPIpilot"). Cast this to ILxUnknownID.
+  
+  bool  m_evaluating;
 
   // instance management
   // right now there are no locks in place,
@@ -69,7 +71,7 @@ class BaseInterface
   FabricCore::DFGBinding                           m_binding;
   DFGUICmdHandlerDCC                              *m_cmdHandler;
   static std::map<unsigned int, BaseInterface*>    s_instances;
-
+  
   // returns true if the binding's executable has a port called portName that matches the port type (input/output).
   // params:  in_portName     name of the port.
   //          testForInput    true: look for input port, else for output port.
@@ -82,6 +84,10 @@ class BaseInterface
 
   // gets the name of the item to which this binding belongs to.
   std::string GetItemName(void);
+
+  // returns true if the m_evaluating member is set.
+  // note: when m_evaluating is 'true' then the bindingNotificationCallback() function returns early.
+  bool IsEvaluating   (void)  { return m_evaluating;  }
 
   // returns true if the binding's executable has an input port called portName.
   bool HasInputPort(const char *portName);

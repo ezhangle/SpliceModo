@@ -669,7 +669,8 @@ std::string DFGUICmdHandlerDCC::dfgDoEditNode(
   FabricCore::DFGExec const &exec,
   FTL::StrRef oldNodeName,
   FTL::StrRef desiredNewNodeName,
-  FTL::StrRef uiMetadata
+  FTL::StrRef nodeMetadata,
+  FTL::StrRef execMetadata
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_EditNode::CmdName());
@@ -679,7 +680,8 @@ std::string DFGUICmdHandlerDCC::dfgDoEditNode(
   args.push_back(execPath);
   args.push_back(oldNodeName);
   args.push_back(desiredNewNodeName);
-  args.push_back(uiMetadata);
+  args.push_back(nodeMetadata);
+  args.push_back(execMetadata);
 
   std::string result;
   execCmd(cmdName, args, result);
@@ -1877,11 +1879,21 @@ FabricUI::DFG::DFGUICmd_EditNode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
     if (!DecodeString(args, ai, desiredNewNodeName))
       return cmd;
 
+    std::string nodeMetadata;
+    if (!DecodeString(args, ai, nodeMetadata))
+      return cmd;
+
+    std::string execMetadata;
+    if (!DecodeString(args, ai, execMetadata))
+      return cmd;
+
     cmd = new FabricUI::DFG::DFGUICmd_EditNode(binding,
                                                  execPath.c_str(),
                                                  exec,
                                                  oldNodeName.c_str(),
-                                                 desiredNewNodeName.c_str());
+                                                 desiredNewNodeName.c_str(),
+                                                 nodeMetadata.c_str(),
+                                                 execMetadata.c_str());
     try
     {
       cmd->doit();
@@ -2570,7 +2582,7 @@ __CanvasCmd_execute__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__
 
-#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdNumArgs__     6
 #define __CanvasCmdClass__  FabricCanvasEditNode
 #define __CanvasCmdName__  "FabricCanvasEditNode"
 __CanvasCmd_constructor_begin__
@@ -2579,7 +2591,8 @@ __CanvasCmd_constructor_begin__
     addArgStr("execPath");
     addArgStr("oldNodeName");
     addArgStr("desiredNewNodeName");
-    addArgStr("uiMetadata");
+    addArgStr("nodeMetadata");
+    addArgStr("execMetadata");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

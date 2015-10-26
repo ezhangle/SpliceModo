@@ -92,36 +92,36 @@ void initialize()
     JSONValue               :: initialize();
     FabricView              :: initialize();
     //
-    FabricCanvasRemoveNodes          :: initialize();
+    FabricCanvasAddBackDrop          :: initialize();
+    FabricCanvasAddFunc              :: initialize();
+    FabricCanvasAddGet               :: initialize();
+    FabricCanvasAddGraph             :: initialize();
+    FabricCanvasAddPort              :: initialize();
+    FabricCanvasAddSet               :: initialize();
+    FabricCanvasAddVar               :: initialize();
     FabricCanvasConnect              :: initialize();
     FabricCanvasDisconnect           :: initialize();
-    FabricCanvasAddGraph             :: initialize();
-    FabricCanvasAddFunc              :: initialize();
-    FabricCanvasInstPreset           :: initialize();
-    FabricCanvasAddVar               :: initialize();
-    FabricCanvasAddGet               :: initialize();
-    FabricCanvasAddSet               :: initialize();
-    FabricCanvasAddPort              :: initialize();
+    FabricCanvasEditNode             :: initialize();
     FabricCanvasEditPort             :: initialize();
-    FabricCanvasRemovePort           :: initialize();
-    FabricCanvasMoveNodes            :: initialize();
-    FabricCanvasResizeBackDrop       :: initialize();
-    FabricCanvasImplodeNodes         :: initialize();
     FabricCanvasExplodeNode          :: initialize();
-    FabricCanvasAddBackDrop          :: initialize();
-    FabricCanvasSetTitle             :: initialize();
-    FabricCanvasSetNodeComment       :: initialize();
-    FabricCanvasSetCode              :: initialize();
-    FabricCanvasRenameNode           :: initialize();
-    FabricCanvasRenamePort           :: initialize();
+    FabricCanvasImplodeNodes         :: initialize();
+    FabricCanvasInstPreset           :: initialize();
+    FabricCanvasMoveNodes            :: initialize();
     FabricCanvasPaste                :: initialize();
+    FabricCanvasRemoveNodes          :: initialize();
+    FabricCanvasRemovePort           :: initialize();
+    FabricCanvasRenamePort           :: initialize();
+    FabricCanvasReorderPorts         :: initialize();
+    FabricCanvasResizeBackDrop       :: initialize();
     FabricCanvasSetArgType           :: initialize();
     FabricCanvasSetArgValue          :: initialize();
+    FabricCanvasSetCode              :: initialize();
     FabricCanvasSetExtDeps           :: initialize();
+    FabricCanvasSetNodeComment       :: initialize();
     FabricCanvasSetPortDefaultValue  :: initialize();
     FabricCanvasSetRefVarPath        :: initialize();
+    FabricCanvasSetTitle             :: initialize();
     FabricCanvasSplitFromPreset      :: initialize();
-    FabricCanvasReorderPorts         :: initialize();
   }
 }
 

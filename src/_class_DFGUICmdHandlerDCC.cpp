@@ -663,21 +663,23 @@ void DFGUICmdHandlerDCC::dfgDoSetCode(
   execCmd(cmdName, args, output);
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoRenameNode(
+std::string DFGUICmdHandlerDCC::dfgDoEditNode(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef oldNodeName,
-  FTL::CStrRef desiredNewNodeName
+  FTL::StrRef oldNodeName,
+  FTL::StrRef desiredNewNodeName,
+  FTL::StrRef uiMetadata
   )
 {
-  std::string cmdName(FabricUI::DFG::DFGUICmd_RenameNode::CmdName());
+  std::string cmdName(FabricUI::DFG::DFGUICmd_EditNode::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
   args.push_back(execPath);
   args.push_back(oldNodeName);
   args.push_back(desiredNewNodeName);
+  args.push_back(uiMetadata);
 
   std::string result;
   execCmd(cmdName, args, result);
@@ -930,7 +932,7 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetTitle::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetTitle           (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment::     CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetNodeComment     (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetCode::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetCode            (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_RenameNode::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_RenameNode         (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditNode::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_EditNode           (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_RenamePort::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_RenamePort         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_Paste::              CmdName().c_str())    cmd = createAndExecuteDFGCommand_Paste              (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgType::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetArgType         (in_args);
@@ -1854,9 +1856,9 @@ FabricUI::DFG::DFGUICmd_SetCode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
   return cmd;
 }
 
-FabricUI::DFG::DFGUICmd_RenameNode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_RenameNode(std::vector<std::string> &args)
+FabricUI::DFG::DFGUICmd_EditNode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_EditNode(std::vector<std::string> &args)
 {
-  FabricUI::DFG::DFGUICmd_RenameNode *cmd = NULL;
+  FabricUI::DFG::DFGUICmd_EditNode *cmd = NULL;
   if (args.size() == 4)
   {
     unsigned int ai = 0;
@@ -1875,7 +1877,7 @@ FabricUI::DFG::DFGUICmd_RenameNode *DFGUICmdHandlerDCC::createAndExecuteDFGComma
     if (!DecodeString(args, ai, desiredNewNodeName))
       return cmd;
 
-    cmd = new FabricUI::DFG::DFGUICmd_RenameNode(binding,
+    cmd = new FabricUI::DFG::DFGUICmd_EditNode(binding,
                                                  execPath.c_str(),
                                                  exec,
                                                  oldNodeName.c_str(),
@@ -2568,15 +2570,16 @@ __CanvasCmd_execute__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__
 
-#define __CanvasCmdNumArgs__     4
-#define __CanvasCmdClass__  FabricCanvasRenameNode
-#define __CanvasCmdName__  "FabricCanvasRenameNode"
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasEditNode
+#define __CanvasCmdName__  "FabricCanvasEditNode"
 __CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("oldNodeName");
     addArgStr("desiredNewNodeName");
+    addArgStr("uiMetadata");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

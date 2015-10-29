@@ -451,6 +451,29 @@ std::string DFGUICmdHandlerDCC::dfgDoAddPort(
   return result;
 }
 
+std::string DFGUICmdHandlerDCC::dfgDoCreatePreset(
+  FabricCore::DFGBinding const &binding,
+  FTL::CStrRef execPath,
+  FabricCore::DFGExec const &exec,
+  FTL::StrRef nodeName,
+  FTL::StrRef presetDirPath,
+  FTL::StrRef presetName
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_CreatePreset::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(execPath);
+  args.push_back(nodeName);
+  args.push_back(presetDirPath);
+  args.push_back(presetName);
+
+  std::string result;
+  execCmd(cmdName, args, result);
+  return result;
+}
+
 std::string DFGUICmdHandlerDCC::dfgDoEditPort(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
@@ -915,6 +938,7 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
 {
   FabricUI::DFG::DFGUICmd *cmd = NULL;
   if      (in_cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_CreatePreset::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_CreatePreset            (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_Connect::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_Connect            (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_Disconnect::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGraph::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddGraph           (in_args);
@@ -1374,6 +1398,50 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
                                               portToConnectWith.c_str(),
                                               extDep.c_str(),
                                               metaData.c_str());
+    try
+    {
+      cmd->doit();
+    }
+    catch(FabricCore::Exception e)
+    {
+      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    }
+  }
+
+  return cmd;
+}
+
+FabricUI::DFG::DFGUICmd_CreatePreset *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_CreatePreset(std::vector<std::string> &args)
+{
+  FabricUI::DFG::DFGUICmd_CreatePreset *cmd = NULL;
+  if (args.size() == 7)
+  {
+    unsigned int ai = 0;
+
+    FabricCore::DFGBinding binding;
+    std::string execPath;
+    FabricCore::DFGExec exec;
+    if (!DecodeExec(args, ai, binding, execPath, exec))
+      return cmd;
+
+    std::string nodeName;
+    if (!DecodeString(args, ai, nodeName))
+      return cmd;
+
+    std::string presetDirPath;
+    if (!DecodeString(args, ai, presetDirPath))
+      return cmd;
+
+    std::string presetName;
+    if (!DecodeString(args, ai, presetName))
+      return cmd;
+
+    cmd = new FabricUI::DFG::DFGUICmd_CreatePreset(binding,
+                                               execPath.c_str(),
+                                               exec,
+                                               nodeName.c_str(),
+                                               presetDirPath.c_str(),
+                                               presetName.c_str());
     try
     {
       cmd->doit();
@@ -2411,6 +2479,23 @@ __CanvasCmd_constructor_begin__
     addArgStr("portToConnect");
     addArgStr("extDep");
     addArgStr("uiMetadata");
+  }
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
+
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasCreatePreset
+#define __CanvasCmdName__  "FabricCanvasCreatePreset"
+__CanvasCmd_constructor_begin__
+  {
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("nodeName");
+    addArgStr("presetDirPath");
+    addArgStr("presetName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

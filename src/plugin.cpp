@@ -100,6 +100,7 @@ void initialize()
     FabricCanvasAddSet               :: initialize();
     FabricCanvasAddVar               :: initialize();
     FabricCanvasConnect              :: initialize();
+    FabricCanvasCreatePreset         :: initialize();
     FabricCanvasDisconnect           :: initialize();
     FabricCanvasEditNode             :: initialize();
     FabricCanvasEditPort             :: initialize();

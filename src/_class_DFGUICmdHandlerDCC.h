@@ -300,7 +300,7 @@ public:
 
   static FabricUI::DFG::DFGUICmd_RemoveNodes *createAndExecuteDFGCommand_RemoveNodes(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Connect *createAndExecuteDFGCommand_Connect(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_Connect *createAndExecuteDFGCommand_CreatePreset(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_CreatePreset *createAndExecuteDFGCommand_CreatePreset(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Disconnect *createAndExecuteDFGCommand_Disconnect(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddGraph *createAndExecuteDFGCommand_AddGraph(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddFunc *createAndExecuteDFGCommand_AddFunc(std::vector<std::string> &args);
@@ -458,7 +458,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_CreatePreset           ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_CreatePreset       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_CreatePreset T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();

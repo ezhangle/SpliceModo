@@ -453,7 +453,7 @@ std::string DFGUICmdHandlerDCC::dfgDoAddPort(
 
 std::string DFGUICmdHandlerDCC::dfgDoCreatePreset(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  FTL::StrRef execPath,
   FabricCore::DFGExec const &exec,
   FTL::StrRef nodeName,
   FTL::StrRef presetDirPath,
@@ -938,7 +938,7 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
 {
   FabricUI::DFG::DFGUICmd *cmd = NULL;
   if      (in_cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_CreatePreset::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_CreatePreset            (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_CreatePreset::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_CreatePreset       (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_Connect::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_Connect            (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_Disconnect::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_Disconnect         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGraph::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddGraph           (in_args);
@@ -1414,44 +1414,51 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
 FabricUI::DFG::DFGUICmd_CreatePreset *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_CreatePreset(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_CreatePreset *cmd = NULL;
-  if (args.size() == 7)
+  if (args.size() == 5)
   {
     unsigned int ai = 0;
 
+feLog("bla");
     FabricCore::DFGBinding binding;
     std::string execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
+feLog("bla");
     std::string nodeName;
     if (!DecodeString(args, ai, nodeName))
       return cmd;
 
+feLog("bla");
     std::string presetDirPath;
     if (!DecodeString(args, ai, presetDirPath))
       return cmd;
 
+feLog("bla");
     std::string presetName;
     if (!DecodeString(args, ai, presetName))
       return cmd;
 
+feLog("bla");
     cmd = new FabricUI::DFG::DFGUICmd_CreatePreset(binding,
-                                               execPath.c_str(),
-                                               exec,
-                                               nodeName.c_str(),
-                                               presetDirPath.c_str(),
-                                               presetName.c_str());
+                                                   execPath.c_str(),
+                                                   exec,
+                                                   nodeName.c_str(),
+                                                   presetDirPath.c_str(),
+                                                   presetName.c_str());
     try
     {
       cmd->doit();
     }
     catch(FabricCore::Exception e)
     {
+feLog("BLUUU!");
       feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
     }
   }
 
+feLog("bli :)");
   return cmd;
 }
 

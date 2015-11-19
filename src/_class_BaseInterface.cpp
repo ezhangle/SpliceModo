@@ -33,6 +33,9 @@ BaseInterface::BaseInterface()
       FabricCore::Client::CreateOptions options;
       memset(&options, 0, sizeof(options));
       options.guarded = 1;
+      CLxUser_PlatformService platformService;
+      if (platformService.IsHeadless())   options.licenseType = FabricCore::ClientLicenseType_Compute;
+      else                                options.licenseType = FabricCore::ClientLicenseType_Interactive;
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
       s_client = FabricCore::Client(reportFunc, NULL, &options);
 

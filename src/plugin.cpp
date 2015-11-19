@@ -56,20 +56,9 @@ void feLogError(const std::string &s)
   feLogError(NULL, s.c_str(), s.length());
 }
 
-// a global BaseInterface: its only purpose is to ensure
-// that Fabric is "up and running" when the DCC is executed
-// (this avoids the long initialization times when creating
-// the first base interface).
-BaseInterface *gblBaseInterface_dummy = NULL;
-
 // plugin initialization.
 void initialize()
 {
-  // this can't be initialized outside as its constructor adds to
-  // an s_instances global and we can't guarantee the order of
-  // global initialization
-  gblBaseInterface_dummy = new BaseInterface;
-
   // Fabric.
   {
     // set log function pointers.
@@ -85,50 +74,49 @@ void initialize()
     FabricCanvasLogVersion  :: Command:: initialize();
     FabricCanvasOpenCanvas  :: Command:: initialize();
     //
-    CanvasIM                :: initialize();
-    CanvasPI                :: initialize();
-    CanvasPIpilot           :: initialize();
+    CanvasIM                          :: initialize();
+    CanvasPI                          :: initialize();
+    CanvasPIpilot                     :: initialize();
     //
-    JSONValue               :: initialize();
-    FabricView              :: initialize();
+    JSONValue                         :: initialize();
+    FabricView                        :: initialize();
     //
-    FabricCanvasAddBackDrop          :: initialize();
-    FabricCanvasAddFunc              :: initialize();
-    FabricCanvasAddGet               :: initialize();
-    FabricCanvasAddGraph             :: initialize();
-    FabricCanvasAddPort              :: initialize();
-    FabricCanvasAddSet               :: initialize();
-    FabricCanvasAddVar               :: initialize();
-    FabricCanvasConnect              :: initialize();
-    FabricCanvasCreatePreset         :: initialize();
-    FabricCanvasDisconnect           :: initialize();
-    FabricCanvasEditNode             :: initialize();
-    FabricCanvasEditPort             :: initialize();
-    FabricCanvasExplodeNode          :: initialize();
-    FabricCanvasImplodeNodes         :: initialize();
-    FabricCanvasInstPreset           :: initialize();
-    FabricCanvasMoveNodes            :: initialize();
-    FabricCanvasPaste                :: initialize();
-    FabricCanvasRemoveNodes          :: initialize();
-    FabricCanvasRemovePort           :: initialize();
-    FabricCanvasRenamePort           :: initialize();
-    FabricCanvasReorderPorts         :: initialize();
-    FabricCanvasResizeBackDrop       :: initialize();
-    FabricCanvasSetArgType           :: initialize();
-    FabricCanvasSetArgValue          :: initialize();
-    FabricCanvasSetCode              :: initialize();
-    FabricCanvasSetExtDeps           :: initialize();
-    FabricCanvasSetNodeComment       :: initialize();
-    FabricCanvasSetPortDefaultValue  :: initialize();
-    FabricCanvasSetRefVarPath        :: initialize();
-    FabricCanvasSetTitle             :: initialize();
-    FabricCanvasSplitFromPreset      :: initialize();
+    FabricCanvasAddBackDrop           :: initialize();
+    FabricCanvasAddFunc               :: initialize();
+    FabricCanvasAddGet                :: initialize();
+    FabricCanvasAddGraph              :: initialize();
+    FabricCanvasAddPort               :: initialize();
+    FabricCanvasAddSet                :: initialize();
+    FabricCanvasAddVar                :: initialize();
+    FabricCanvasConnect               :: initialize();
+    FabricCanvasCreatePreset          :: initialize();
+    FabricCanvasDisconnect            :: initialize();
+    FabricCanvasEditNode              :: initialize();
+    FabricCanvasEditPort              :: initialize();
+    FabricCanvasExplodeNode           :: initialize();
+    FabricCanvasImplodeNodes          :: initialize();
+    FabricCanvasInstPreset            :: initialize();
+    FabricCanvasMoveNodes             :: initialize();
+    FabricCanvasPaste                 :: initialize();
+    FabricCanvasRemoveNodes           :: initialize();
+    FabricCanvasRemovePort            :: initialize();
+    FabricCanvasRenamePort            :: initialize();
+    FabricCanvasReorderPorts          :: initialize();
+    FabricCanvasResizeBackDrop        :: initialize();
+    FabricCanvasSetArgType            :: initialize();
+    FabricCanvasSetArgValue           :: initialize();
+    FabricCanvasSetCode               :: initialize();
+    FabricCanvasSetExtDeps            :: initialize();
+    FabricCanvasSetNodeComment        :: initialize();
+    FabricCanvasSetPortDefaultValue   :: initialize();
+    FabricCanvasSetRefVarPath         :: initialize();
+    FabricCanvasSetTitle              :: initialize();
+    FabricCanvasSplitFromPreset       :: initialize();
   }
 }
 
 // plugin clean up.
 void cleanup()
 {
-  delete gblBaseInterface_dummy;
 }
 

@@ -4,6 +4,8 @@
 #include "_class_DFGUICmdHandlerDCC.h"
 #include "_class_ModoTools.h"
 
+#include <FabricUI/Licensing/Licensing.h>
+
 #include <algorithm>
 #include <sstream>
 
@@ -43,6 +45,9 @@ BaseInterface::BaseInterface()
       s_client.loadExtension("Math",     "", false);
       s_client.loadExtension("Geometry", "", false);
       s_client.loadExtension("FileIO",   "", false);
+
+      // set status callback.
+      s_client.setStatusCallback(&CoreStatusCallback, &s_client);
 
       // create a host for Canvas
       s_host = s_client.getDFGHost();
@@ -108,6 +113,32 @@ BaseInterface::~BaseInterface()
       catch (FabricCore::Exception e)
       {
         logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+      }
+    }
+  }
+}
+
+void BaseInterface::CoreStatusCallback(void *userdata, char const *destinationData, uint32_t destinationLength, char const *payloadData, uint32_t payloadLength)
+{
+  FabricCore::Client *client = reinterpret_cast<FabricCore::Client *>(userdata);
+  if (client)
+  {
+    FTL::StrRef destination(destinationData, destinationLength);
+    FTL::StrRef payload(payloadData, payloadLength);
+    if (destination == FTL_STR("licensing"))
+    {
+      try
+      {
+        FabricUI_HandleLicenseData(
+          NULL,
+          *client,
+          payload,
+          true // modalDialogs
+          );
+      }
+      catch (FabricCore::Exception e)
+      {
+        logFunc(NULL, e.getDesc_cstr(), e.getDescLength());
       }
     }
   }

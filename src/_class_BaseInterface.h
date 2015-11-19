@@ -77,6 +77,9 @@ class BaseInterface
   //          testForInput    true: look for input port, else for output port.
   bool HasPort(const char *in_portName, const bool testForInput);
 
+  // status callback function.
+  static void CoreStatusCallback(void *userdata, char const *destinationData, uint32_t destinationLength, char const *payloadData, uint32_t payloadLength);
+
  public:
 
   // returns the amount of base interfaces.

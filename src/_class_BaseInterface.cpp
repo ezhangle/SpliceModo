@@ -121,24 +121,32 @@ BaseInterface::~BaseInterface()
 void BaseInterface::CoreStatusCallback(void *userdata, char const *destinationData, uint32_t destinationLength, char const *payloadData, uint32_t payloadLength)
 {
   FabricCore::Client *client = reinterpret_cast<FabricCore::Client *>(userdata);
-  if (client)
+  if (client && client->isValid())
   {
     FTL::StrRef destination(destinationData, destinationLength);
     FTL::StrRef payload(payloadData, payloadLength);
     if (destination == FTL_STR("licensing"))
     {
-      try
+      static bool showDialog = true;
+      if (showDialog)
       {
-        FabricUI_HandleLicenseData(
-          NULL,
-          *client,
-          payload,
-          true // modalDialogs
-          );
-      }
-      catch (FabricCore::Exception e)
-      {
-        logFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        // we display the dialog only once in Modo to avoid a crash.
+        // note: if we do not do this then Modo crashes after closing
+        //       the second license dialog. Reason: unknown.
+        showDialog = false;
+        try
+        {
+          FabricUI_HandleLicenseData(
+            NULL,
+            *client,
+            payload,
+            true // modalDialogs
+            );
+        }
+        catch (FabricCore::Exception e)
+        {
+          logFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+        }
       }
     }
   }

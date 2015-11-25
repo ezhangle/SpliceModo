@@ -2,6 +2,7 @@
 
 #include "_class_BaseInterface.h"
 #include "_class_DFGUICmdHandlerDCC.h"
+#include "_class_FabricDFGWidget.h"
 #include "_class_ModoTools.h"
 
 #include <FabricUI/Licensing/Licensing.h>
@@ -344,6 +345,17 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
              // failed, but we don't log an error.
           }
         }
+      }
+
+      else if(   nDesc == "varInserted"
+              || nDesc == "varRemoved" )
+      {
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(&b, false);
+
+        if (   w
+            && w->getDfgWidget()
+            && w->getDfgWidget()->getUIController())
+          w->getDfgWidget()->getUIController()->emitVarsChanged();
       }
 
       else

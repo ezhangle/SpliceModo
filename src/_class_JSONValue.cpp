@@ -111,7 +111,7 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
 
   if (!read.test())  return LXe_FAILED;
 
-  if (read.mzdRead(m_data.s))   return LXe_OK;
+  if (read.Read(m_data.s))   return LXe_OK;
   else                          return LXe_FAILED;
 }
 
@@ -120,33 +120,3 @@ LXtTagInfoDesc JSONValue::descInfo[] =
   { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
   { 0 }
 };
-
-bool CLxUser_BlockRead::mzdRead(std::string &result)
-{
-  // init output.
-  result = "";
-
-  // go.
-  char buf[128];
-  int  got;
-  while (true)
-  {
-    LxResult rc = ReadString(buf, sizeof(buf), LXfREADSTRING_PARTIAL | LXfREADSTRING_FORCE, &got);
-    if (LXx_FAIL(rc))
-      break;
-
-    if (rc == LXe_IO_PARTIALSTRING)
-    {
-      result.append (buf, (size_t) got);
-    }
-    else
-    {
-      if (got)
-        result.append (buf, (size_t) got - 1);
-      break;
-    }
-  }
-
-  // done.
-  return (!result.empty());
-}

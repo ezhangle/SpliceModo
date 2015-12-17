@@ -60,7 +60,7 @@ protected:
     FTL::CStrRef dstPath
     );
 
-  virtual std::string dfgDoAddGraph(
+  virtual QString dfgDoAddGraph(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
@@ -68,7 +68,7 @@ protected:
     QPointF pos
     );
 
-  virtual std::string dfgDoAddFunc(
+  virtual QString dfgDoAddFunc(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
@@ -77,7 +77,7 @@ protected:
     QPointF pos
     );
 
-  virtual std::string dfgDoInstPreset(
+  virtual QString dfgDoInstPreset(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
@@ -85,7 +85,7 @@ protected:
     QPointF pos
     );
 
-  virtual std::string dfgDoAddVar(
+  virtual QString dfgDoAddVar(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
@@ -95,7 +95,7 @@ protected:
     QPointF pos
     );
 
-  virtual std::string dfgDoAddGet(
+  virtual QString dfgDoAddGet(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
@@ -104,7 +104,7 @@ protected:
     QPointF pos
     );
 
-  virtual std::string dfgDoAddSet(
+  virtual QString dfgDoAddSet(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
@@ -156,8 +156,8 @@ protected:
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
-    FTL::ArrayRef<FTL::StrRef> nodeNames,
-    FTL::ArrayRef<QPointF> newTopLeftPoss
+    QList<QString> nodeNames,
+    QList<QPointF> newTopLeftPoss
     );
 
   virtual void dfgDoResizeBackDrop(
@@ -169,19 +169,19 @@ protected:
     QSizeF newSize
     );
 
-  virtual std::string dfgDoImplodeNodes(
+  virtual QString dfgDoImplodeNodes(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
-    FTL::ArrayRef<FTL::StrRef> nodeNames,
-    FTL::CStrRef desiredNodeName
+    QList<QString> nodeNames,
+    QString desiredNodeName
     );
 
-  virtual std::vector<std::string> dfgDoExplodeNode(
+  virtual QList<QString> dfgDoExplodeNode(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
-    FTL::CStrRef nodeName
+    QString nodeName
     );
 
   virtual void dfgDoAddBackDrop(
@@ -190,13 +190,6 @@ protected:
     FabricCore::DFGExec const &exec,
     FTL::CStrRef title,
     QPointF pos
-    );
-
-  virtual void dfgDoSetTitle(
-    FabricCore::DFGBinding const &binding,
-    FTL::CStrRef execPath,
-    FabricCore::DFGExec const &exec,
-    FTL::CStrRef title
     );
 
   virtual void dfgDoSetNodeComment(
@@ -232,18 +225,12 @@ protected:
     FTL::CStrRef desiredNewPortName
     );
 
-  virtual std::vector<std::string> dfgDoPaste(
+  virtual QList<QString> dfgDoPaste(
     FabricCore::DFGBinding const &binding,
     FTL::CStrRef execPath,
     FabricCore::DFGExec const &exec,
-    FTL::CStrRef json,
+    QString json,
     QPointF cursorPos
-    );
-
-  virtual void dfgDoSetArgType(
-    FabricCore::DFGBinding const &binding,
-    FTL::CStrRef argName,
-    FTL::CStrRef typeName
     );
 
   virtual void dfgDoSetArgValue(
@@ -316,13 +303,11 @@ public:
   static FabricUI::DFG::DFGUICmd_ImplodeNodes *createAndExecuteDFGCommand_ImplodeNodes(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_ExplodeNode *createAndExecuteDFGCommand_ExplodeNode(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddBackDrop *createAndExecuteDFGCommand_AddBackDrop(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetTitle *createAndExecuteDFGCommand_SetTitle(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetNodeComment *createAndExecuteDFGCommand_SetNodeComment(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetCode *createAndExecuteDFGCommand_SetCode(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_EditNode *createAndExecuteDFGCommand_EditNode(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_RenamePort *createAndExecuteDFGCommand_RenamePort(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_Paste *createAndExecuteDFGCommand_Paste(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetArgType *createAndExecuteDFGCommand_SetArgType(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetArgValue *createAndExecuteDFGCommand_SetArgValue(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetExtDeps *createAndExecuteDFGCommand_SetExtDeps(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SetPortDefaultValue *createAndExecuteDFGCommand_SetPortDefaultValue(std::vector<std::string> &args);
@@ -522,14 +507,6 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                               cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_SetTitle       ::CmdName().c_str())
-    { typedef           FabricUI::DFG::DFGUICmd_SetTitle T;
-      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
-    }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment     ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetNodeComment T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
@@ -564,14 +541,6 @@ public:
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Paste              ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Paste T;
-      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
-      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
-      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
-      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
-    }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_SetArgType         ::CmdName().c_str())
-    { typedef           FabricUI::DFG::DFGUICmd_SetArgType T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
@@ -759,12 +728,6 @@ public:
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__
 
-#define __CanvasCmdClass__   FabricCanvasSetTitle
-#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetTitle::CmdName()
-        __CanvasCmd__
-#undef  __CanvasCmdClass__
-#undef  __CanvasCmdName__
-
 #define __CanvasCmdClass__   FabricCanvasSetNodeComment
 #define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName()
         __CanvasCmd__
@@ -791,12 +754,6 @@ public:
 
 #define __CanvasCmdClass__   FabricCanvasPaste
 #define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_Paste::CmdName()
-        __CanvasCmd__
-#undef  __CanvasCmdClass__
-#undef  __CanvasCmdName__
-
-#define __CanvasCmdClass__   FabricCanvasSetArgType
-#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_SetArgType::CmdName()
         __CanvasCmd__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__

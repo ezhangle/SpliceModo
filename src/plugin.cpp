@@ -103,14 +103,12 @@ void initialize()
     FabricCanvasRenamePort            :: initialize();
     FabricCanvasReorderPorts          :: initialize();
     FabricCanvasResizeBackDrop        :: initialize();
-    FabricCanvasSetArgType            :: initialize();
     FabricCanvasSetArgValue           :: initialize();
     FabricCanvasSetCode               :: initialize();
     FabricCanvasSetExtDeps            :: initialize();
     FabricCanvasSetNodeComment        :: initialize();
     FabricCanvasSetPortDefaultValue   :: initialize();
     FabricCanvasSetRefVarPath         :: initialize();
-    FabricCanvasSetTitle              :: initialize();
     FabricCanvasSplitFromPreset       :: initialize();
   }
 }

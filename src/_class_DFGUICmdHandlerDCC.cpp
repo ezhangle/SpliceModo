@@ -60,6 +60,14 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   return ret;
 }
 
+bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, QString &io_result)
+{
+  std::string io_result_tmp;
+  bool result = execCmd( in_cmdName, in_args, io_result_tmp );
+  io_result = QString::fromUtf8( io_result_tmp.data(), io_result_tmp.size() );
+  return result;
+}
+
 static inline bool HandleFabricCoreException(FabricCore::Exception const &e)
 {
   std::string msg = "[DFGUICmd] Fabric Core exception: ";
@@ -82,6 +90,18 @@ static inline std::string EncodeNames(FTL::ArrayRef<FTL::StrRef> names)
   return nameSS.str();
 }
 
+static inline std::string EncodeNames( QList<QString> const &names )
+{
+  std::stringstream nameSS;
+  for ( int i = 0; i < names.size(); ++i )
+  {
+    if ( i != 0 )
+      nameSS << '|';
+    nameSS << names.at( i ).toUtf8().constData();
+  }
+  return nameSS.str();
+}
+
 static inline std::string EncodeXPoss(FTL::ArrayRef<QPointF> poss)
 {
   std::stringstream xPosSS;
@@ -94,6 +114,18 @@ static inline std::string EncodeXPoss(FTL::ArrayRef<QPointF> poss)
   return xPosSS.str();
 }
 
+static inline std::string EncodeXPoss( QList<QPointF> poss )
+{
+  std::stringstream xPosSS;
+  for ( int i = 0; i < poss.size(); ++i )
+  {
+    if ( i != 0 )
+      xPosSS << '|';
+    xPosSS << poss.at( i ).x();
+  }
+  return xPosSS.str();
+}
+
 static inline std::string EncodeYPoss(FTL::ArrayRef<QPointF> poss)
 {
   std::stringstream yPosSS;
@@ -102,6 +134,18 @@ static inline std::string EncodeYPoss(FTL::ArrayRef<QPointF> poss)
     if ( it != poss.begin() )
       yPosSS << '|';
     yPosSS << it->y();
+  }
+  return yPosSS.str();
+}
+
+static inline std::string EncodeYPoss( QList<QPointF> poss )
+{
+  std::stringstream yPosSS;
+  for ( int i = 0; i < poss.size(); ++i )
+  {
+    if ( i != 0 )
+      yPosSS << '|';
+    yPosSS << poss.at( i ).y();
   }
   return yPosSS.str();
 }
@@ -294,7 +338,7 @@ std::string DFGUICmdHandlerDCC::dfgDoAddGraph(
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoAddFunc(
+QString DFGUICmdHandlerDCC::dfgDoAddFunc(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
@@ -312,12 +356,12 @@ std::string DFGUICmdHandlerDCC::dfgDoAddFunc(
   args.push_back(initialCode);
   EncodePosition(pos, args);
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoInstPreset(
+QString DFGUICmdHandlerDCC::dfgDoInstPreset(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
@@ -333,12 +377,12 @@ std::string DFGUICmdHandlerDCC::dfgDoInstPreset(
   args.push_back(presetPath);
   EncodePosition(pos, args);
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoAddVar(
+QString DFGUICmdHandlerDCC::dfgDoAddVar(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
@@ -358,12 +402,12 @@ std::string DFGUICmdHandlerDCC::dfgDoAddVar(
   args.push_back(extDep);
   EncodePosition(pos, args);
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoAddGet(
+QString DFGUICmdHandlerDCC::dfgDoAddGet(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
@@ -381,12 +425,12 @@ std::string DFGUICmdHandlerDCC::dfgDoAddGet(
   args.push_back(varPath);
   EncodePosition(pos, args);
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoAddSet(
+QString DFGUICmdHandlerDCC::dfgDoAddSet(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
@@ -404,7 +448,7 @@ std::string DFGUICmdHandlerDCC::dfgDoAddSet(
   args.push_back(varPath);
   EncodePosition(pos, args);
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
@@ -523,8 +567,8 @@ void DFGUICmdHandlerDCC::dfgDoMoveNodes(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::ArrayRef<FTL::StrRef> nodeNames,
-  FTL::ArrayRef<QPointF> poss
+  QList<QString> nodeNames,
+  QList<QPointF> newTopLeftPoss
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_MoveNodes::CmdName());
@@ -562,12 +606,12 @@ void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
   execCmd(cmdName, args, output);
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoImplodeNodes(
+QString DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::ArrayRef<FTL::StrRef> nodeNames,
-  FTL::CStrRef desiredNodeName
+  QList<QString> nodeNames,
+  QString desiredNodeName
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName());
@@ -580,14 +624,14 @@ std::string DFGUICmdHandlerDCC::dfgDoImplodeNodes(
 
   std::string result;
   execCmd(cmdName, args, result);
-  return result;
+  return QString.fromUtf8( result.data(), result.size() );
 }
 
-std::vector<std::string> DFGUICmdHandlerDCC::dfgDoExplodeNode(
+QList<QString> DFGUICmdHandlerDCC::dfgDoExplodeNode(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef nodeName
+  QString nodeName
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_ExplodeNode::CmdName());
@@ -600,11 +644,13 @@ std::vector<std::string> DFGUICmdHandlerDCC::dfgDoExplodeNode(
   std::string resultValue;
   execCmd(cmdName, args, resultValue);
   FTL::StrRef explodedNodeNamesStr = resultValue;
-  std::vector<std::string> result;
+  QList<QString> result;
   while (!explodedNodeNamesStr.empty())
   {
     FTL::StrRef::Split split = explodedNodeNamesStr.split('|');
-    result.push_back(split.first);
+    result.append(
+      QString::fromUtf8( split.first.data(), split.first.size() )
+      );
     explodedNodeNamesStr = split.second;
   }
   return result;
@@ -625,24 +671,6 @@ void DFGUICmdHandlerDCC::dfgDoAddBackDrop(
   args.push_back(execPath);
   args.push_back(title);
   EncodePosition(pos, args);
-
-  std::string output;
-  execCmd(cmdName, args, output);
-}
-
-void DFGUICmdHandlerDCC::dfgDoSetTitle(
-  FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
-  FabricCore::DFGExec const &exec,
-  FTL::CStrRef title
-  )
-{
-  std::string cmdName(FabricUI::DFG::DFGUICmd_SetTitle::CmdName());
-  std::vector<std::string> args;
-
-  args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(title);
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -732,11 +760,11 @@ std::string DFGUICmdHandlerDCC::dfgDoRenamePort(
   return result;
 }
 
-std::vector<std::string> DFGUICmdHandlerDCC::dfgDoPaste(
+QList<QString> DFGUICmdHandlerDCC::dfgDoPaste(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef text,
+  QString text,
   QPointF cursorPos
   )
 {
@@ -751,31 +779,16 @@ std::vector<std::string> DFGUICmdHandlerDCC::dfgDoPaste(
   std::string resultValue;
   execCmd(cmdName, args, resultValue);
   FTL::StrRef pastedNodeNamesStr = resultValue;
-  std::vector<std::string> result;
+  QList<QString> result;
   while (!pastedNodeNamesStr.empty())
   {
     FTL::StrRef::Split split = pastedNodeNamesStr.split('|');
-    result.push_back(split.first);
+    result.append(
+      QString::fromUtf8( split.first.data(), split.first.size() )
+      );
     pastedNodeNamesStr = split.second;
   }
   return result;
-}
-
-void DFGUICmdHandlerDCC::dfgDoSetArgType(
-  FabricCore::DFGBinding const &binding,
-  FTL::CStrRef argName,
-  FTL::CStrRef typeName
-  )
-{
-  std::string cmdName(FabricUI::DFG::DFGUICmd_SetArgType::CmdName());
-  std::vector<std::string> args;
-
-  args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(argName);
-  args.push_back(typeName);
-
-  std::string output;
-  execCmd(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetArgValue(
@@ -955,13 +968,11 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_ImplodeNodes::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_ImplodeNodes       (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_ExplodeNode        (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddBackDrop        (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetTitle::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetTitle           (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment::     CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetNodeComment     (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetCode::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetCode            (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditNode::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_EditNode           (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_RenamePort::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_RenamePort         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_Paste::              CmdName().c_str())    cmd = createAndExecuteDFGCommand_Paste              (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgType::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetArgType         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgValue::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetArgValue        (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetExtDeps::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetExtDeps         (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetPortDefaultValue(in_args);
@@ -1826,40 +1837,6 @@ FabricUI::DFG::DFGUICmd_AddBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGComm
   return cmd;
 }
 
-FabricUI::DFG::DFGUICmd_SetTitle *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetTitle(std::vector<std::string> &args)
-{
-  FabricUI::DFG::DFGUICmd_SetTitle *cmd = NULL;
-  if (args.size() == 4)
-  {
-    unsigned int ai = 0;
-
-    FabricCore::DFGBinding binding;
-    std::string execPath;
-    FabricCore::DFGExec exec;
-    if (!DecodeExec(args, ai, binding, execPath, exec))
-      return cmd;
-
-    std::string title;
-    if (!DecodeName(args, ai, title))
-      return cmd;
-
-    cmd = new FabricUI::DFG::DFGUICmd_SetTitle(binding,
-                                               execPath.c_str(),
-                                               exec,
-                                               title.c_str());
-    try
-    {
-      cmd->doit();
-    }
-    catch(FabricCore::Exception e)
-    {
-      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-    }
-  }
-
-  return cmd;
-}
-
 FabricUI::DFG::DFGUICmd_SetNodeComment *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetNodeComment(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_SetNodeComment *cmd = NULL;
@@ -2047,41 +2024,6 @@ FabricUI::DFG::DFGUICmd_Paste *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Pa
                                             exec,
                                             text.c_str(),
                                             position);
-    try
-    {
-      cmd->doit();
-    }
-    catch(FabricCore::Exception e)
-    {
-      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-    }
-  }
-
-  return cmd;
-}
-
-FabricUI::DFG::DFGUICmd_SetArgType *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_SetArgType(std::vector<std::string> &args)
-{
-  FabricUI::DFG::DFGUICmd_SetArgType *cmd = NULL;
-  if (args.size() == 3)
-  {
-    unsigned int ai = 0;
-
-    FabricCore::DFGBinding binding;
-    if (!DecodeBinding(args, ai, binding))
-      return cmd;
-
-    std::string argName;
-    if (!DecodeName(args, ai, argName))
-      return cmd;
-
-    std::string typeName;
-    if (!DecodeName(args, ai, typeName))
-      return cmd;
-    
-    cmd = new FabricUI::DFG::DFGUICmd_SetArgType(binding,
-                                                 argName.c_str(),
-                                                 typeName.c_str());
     try
     {
       cmd->doit();
@@ -2628,21 +2570,6 @@ __CanvasCmd_execute__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__
 
-#define __CanvasCmdNumArgs__     3
-#define __CanvasCmdClass__  FabricCanvasSetTitle
-#define __CanvasCmdName__  "FabricCanvasSetTitle"
-__CanvasCmd_constructor_begin__
-  {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("title");
-  }
-__CanvasCmd_constructor_finish__
-__CanvasCmd_execute__
-#undef  __CanvasCmdNumArgs__
-#undef  __CanvasCmdClass__
-#undef  __CanvasCmdName__
-
 #define __CanvasCmdNumArgs__     4
 #define __CanvasCmdClass__  FabricCanvasSetNodeComment
 #define __CanvasCmdName__  "FabricCanvasSetNodeComment"
@@ -2718,21 +2645,6 @@ __CanvasCmd_constructor_begin__
     addArgStr("text");
     addArgStr("xPos");
     addArgStr("yPos");
-  }
-__CanvasCmd_constructor_finish__
-__CanvasCmd_execute__
-#undef  __CanvasCmdNumArgs__
-#undef  __CanvasCmdClass__
-#undef  __CanvasCmdName__
-
-#define __CanvasCmdNumArgs__     3
-#define __CanvasCmdClass__  FabricCanvasSetArgType
-#define __CanvasCmdName__  "FabricCanvasSetArgType"
-__CanvasCmd_constructor_begin__
-  {
-    addArgStr("binding");
-    addArgStr("argName");
-    addArgStr("typeName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

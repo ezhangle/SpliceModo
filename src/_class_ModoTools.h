@@ -181,6 +181,7 @@ class ModoTools
   static int GetChannelValueAsRGBA      (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
   static int GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
   static int GetChannelValueAsMatrix44  (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
+  static int GetChannelValueAsXfo       (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
 
   // invalidates an item so that it gets re-evaluated:
   // this is done by calling the command "FabricCanvasIncEval" which will increase

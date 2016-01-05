@@ -607,6 +607,11 @@ namespace CanvasIM
                                                             retGet = ModoTools::GetChannelValueAsMatrix44(attr, cd->eval_index, val);
                                                             if (retGet == 0)    BaseInterface::SetValueOfArgMat44(*client, binding, portName, val);
                                                           }
+          else if (   port__resolvedType == "Xfo")        {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsXfo(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgXfo(*client, binding, portName, val);
+                                                          }
           else
           {
             storable = false;

@@ -893,6 +893,111 @@ int ModoTools::GetChannelValueAsMatrix44(CLxUser_Attributes &attr, int eval_inde
   return -1;
 }
 
+int ModoTools::GetChannelValueAsXfo(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict)
+{
+  // init output.
+  out.clear();
+
+  // illegal index?
+  if (eval_index < 0)
+    return -2;
+
+  // set out from channel value.
+  int type = attr.Type(eval_index);
+  if (type == LXi_TYPE_OBJECT)
+  {
+    CLxUser_Matrix usrMatrix;
+    LXtMatrix4     m44;
+
+    if (!attr.ObjectRO(eval_index, usrMatrix) && usrMatrix.test())
+      return -3;
+
+    if (usrMatrix.Get4(m44) != LXe_OK)
+      return -3;
+
+    // couldn't find anything in the Modo wiki on how to
+    // convert their matrices into SRT, so we do it manually.
+
+    // scaling.
+    double sX = sqrt(  m44[0][0] * m44[0][0]
+                     + m44[0][1] * m44[0][1]
+                     + m44[0][2] * m44[0][2]);
+    double sY = sqrt(  m44[1][0] * m44[1][0]
+                     + m44[1][1] * m44[1][1]
+                     + m44[1][2] * m44[1][2]);
+    double sZ = sqrt(  m44[2][0] * m44[2][0]
+                     + m44[2][1] * m44[2][1]
+                     + m44[2][2] * m44[2][2]);
+    out.push_back(sX);
+    out.push_back(sY);
+    out.push_back(sZ);
+
+    // rotation.
+    LXtMatrix m33;
+    sX = (sX != 0 ? 1.0 / sX : 0);
+    sY = (sY != 0 ? 1.0 / sY : 0);
+    sZ = (sZ != 0 ? 1.0 / sZ : 0);
+    m33[0][0] = m44[0][0] * sX;   m33[0][1] = m44[0][1] * sX;   m33[0][2] = m44[0][2] * sX;
+    m33[1][0] = m44[1][0] * sY;   m33[1][1] = m44[1][1] * sY;   m33[1][2] = m44[1][2] * sY;
+    m33[2][0] = m44[2][0] * sZ;   m33[2][1] = m44[2][1] * sZ;   m33[2][2] = m44[2][2] * sZ;
+    double qw, qx, qy, qz;
+    const double trace = 1.0 + m33[0][0] + m33[1][1] + m33[2][2];
+    if(trace > 0)
+    {
+      const double s = 0.5 / sqrt(trace);
+      qw =  0.25 / s;
+      qx = (m33[1][2] - m33[2][1]) * s;
+      qy = (m33[2][0] - m33[0][2]) * s;
+      qz = (m33[0][1] - m33[1][0]) * s;
+    }
+    else
+    {
+      if (m33[0][0] > m33[1][1] && m33[0][0] > m33[2][2])
+      {
+        const double s = 2.0 * sqrt( 1.0 + m33[0][0] - m33[1][1] - m33[2][2] );
+        qw = (m33[1][2] - m33[2][1]) / s;
+        qx =  0.25 * s;
+        qy = (m33[1][0] + m33[0][1]) / s;
+        qz = (m33[2][0] + m33[0][2]) / s;
+      }
+      else if (m33[1][1] > m33[2][2])
+      {
+        const double s = 2.0 * sqrt( 1.0 + m33[1][1] - m33[0][0] - m33[2][2] );
+        qw = (m33[2][0] - m33[0][2]) / s;
+        qx = (m33[1][0] + m33[0][1]) / s;
+        qy =  0.25 * s;
+        qz = (m33[2][1] + m33[1][2]) / s;
+      }
+      else
+      {
+        const double s = 2.0 * sqrt( 1.0 + m33[2][2] - m33[0][0] - m33[1][1] );
+        qw = (m33[0][1] - m33[1][0]) / s;
+        qx = (m33[2][0] + m33[0][2]) / s;
+        qy = (m33[2][1] + m33[1][2]) / s;
+        qz =  0.25 * s;
+      }
+    }
+    out.push_back(qw);
+    out.push_back(qx);
+    out.push_back(qy);
+    out.push_back(qz);
+
+    // translation.
+    out.push_back(m44[3][0]);
+    out.push_back(m44[3][1]);
+    out.push_back(m44[3][2]);
+
+    return 0;
+  }
+  else if (!strict)
+  {
+    // nothing here.
+  }
+
+  // wrong channel type.
+  return -1;
+}
+
 void ModoTools::InvalidateItem(ILxUnknownID item_obj)
 {
   if (item_obj)

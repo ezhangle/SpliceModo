@@ -545,9 +545,14 @@ int BaseInterface::GetArgValueBoolean(FabricCore::DFGBinding &binding, char cons
       else if (resolvedType == "SInt32")    out = (0 != rtval.getSInt32());
       else if (resolvedType == "SInt64")    out = (0 != rtval.getSInt64());
 
+      else if (resolvedType == "Byte")      out = (0 != rtval.getUInt8());
       else if (resolvedType == "UInt8")     out = (0 != rtval.getUInt8());
       else if (resolvedType == "UInt16")    out = (0 != rtval.getUInt16());
+      else if (resolvedType == "Count")     out = (0 != rtval.getUInt32());
+      else if (resolvedType == "Index")     out = (0 != rtval.getUInt32());
+      else if (resolvedType == "Size")      out = (0 != rtval.getUInt32());
       else if (resolvedType == "UInt32")    out = (0 != rtval.getUInt32());
+      else if (resolvedType == "DataSize")  out = (0 != rtval.getUInt64());
       else if (resolvedType == "UInt64")    out = (0 != rtval.getUInt64());
 
       else return -1;
@@ -587,9 +592,14 @@ int BaseInterface::GetArgValueInteger(FabricCore::DFGBinding &binding, char cons
     else if (resolvedType == "SInt32")      out = (int)rtval.getSInt32();
     else if (resolvedType == "SInt64")      out = (int)rtval.getSInt64();
 
+    else if (resolvedType == "Byte")        out = (int)rtval.getUInt8();
     else if (resolvedType == "UInt8")       out = (int)rtval.getUInt8();
     else if (resolvedType == "UInt16")      out = (int)rtval.getUInt16();
+    else if (resolvedType == "Count")       out = (int)rtval.getUInt32();
+    else if (resolvedType == "Index")       out = (int)rtval.getUInt32();
+    else if (resolvedType == "Size")        out = (int)rtval.getUInt32();
     else if (resolvedType == "UInt32")      out = (int)rtval.getUInt32();
+    else if (resolvedType == "DataSize")    out = (int)rtval.getUInt64();
     else if (resolvedType == "UInt64")      out = (int)rtval.getUInt64();
 
     else if (!strict)
@@ -645,9 +655,14 @@ int BaseInterface::GetArgValueFloat(FabricCore::DFGBinding &binding, char const 
       else if (resolvedType == "SInt32")    out = (double)rtval.getSInt32();
       else if (resolvedType == "SInt64")    out = (double)rtval.getSInt64();
 
+      else if (resolvedType == "Byte")      out = (double)rtval.getUInt8();
       else if (resolvedType == "UInt8")     out = (double)rtval.getUInt8();
       else if (resolvedType == "UInt16")    out = (double)rtval.getUInt16();
+      else if (resolvedType == "Count")     out = (double)rtval.getUInt32();
+      else if (resolvedType == "Index")     out = (double)rtval.getUInt32();
+      else if (resolvedType == "Size")      out = (double)rtval.getUInt32();
       else if (resolvedType == "UInt32")    out = (double)rtval.getUInt32();
+      else if (resolvedType == "DataSize")  out = (double)rtval.getUInt64();
       else if (resolvedType == "UInt64")    out = (double)rtval.getUInt64();
 
       else return -1;
@@ -1079,7 +1094,7 @@ int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const 
                                                 #ifdef _WIN32
                                                   sprintf_s(member, sizeof(member), "row%ld", i);
                                                 #else
-                                                  snprintf(member, sizeof(member), "row%d", i);
+                                                  snprintf(member, sizeof(member), "row%ld", i);
                                                 #endif
                                                 rtRow = rtval.maybeGetMember(member);
                                                 out.push_back(rtRow.maybeGetMember("x").getFloat32());
@@ -1088,8 +1103,29 @@ int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const 
                                                 out.push_back(rtRow.maybeGetMember("t").getFloat32());
                                               }
                                             }
-    else
-      return -1;
+    else if (!strict)
+    {
+        if      (resolvedType == "Xfo")     {
+                                              FabricCore::RTVal rtmat44 = rtval.callMethod("Mat44", "toMat44", 0, NULL);
+                                              char member[32];
+                                              FabricCore::RTVal rtRow;
+                                              for (int i = 0; i < 4; i++)
+                                              {
+                                                #ifdef _WIN32
+                                                  sprintf_s(member, sizeof(member), "row%ld", i);
+                                                #else
+                                                  snprintf(member, sizeof(member), "row%ld", i);
+                                                #endif
+                                                rtRow = rtmat44.maybeGetMember(member);
+                                                out.push_back(rtRow.maybeGetMember("x").getFloat32());
+                                                out.push_back(rtRow.maybeGetMember("y").getFloat32());
+                                                out.push_back(rtRow.maybeGetMember("z").getFloat32());
+                                                out.push_back(rtRow.maybeGetMember("t").getFloat32());
+                                              }
+                                            }
+        else
+          return -1;
+    }
   }
   catch (FabricCore::Exception e)
   {
@@ -1110,6 +1146,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
                                            std::vector <uint32_t>                  *out_polygonNumVertices,
                                            std::vector <uint32_t>                  *out_polygonVertices,
                                            std::vector <float>                     *out_polygonNodeNormals,
+                                           std::vector <float>                     *out_polygonNodeUVWs,
+                                           std::vector <float>                     *out_polygonNodeColors,
                                            bool                                     strict)
 {
   // init output.
@@ -1120,6 +1158,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
   if (out_polygonNumVertices) out_polygonNumVertices -> clear();
   if (out_polygonVertices)    out_polygonVertices    -> clear();
   if (out_polygonNodeNormals) out_polygonNodeNormals -> clear();
+  if (out_polygonNodeUVWs)    out_polygonNodeUVWs    -> clear();
+  if (out_polygonNodeColors)  out_polygonNodeColors  -> clear();
 
   // set out from port value.
   int errID = 0;
@@ -1220,6 +1260,52 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
         args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "Float32", data.size(), (void *)data.data());
         rtMesh.callMethod("", "getNormalsAsExternalArray", 1, &args[0]);
       }
+
+      // get polygon node UVWs.
+      if (   out_polygonNodeUVWs    != NULL
+          && out_numPolygons         > 0
+          && out_numSamples          > 0  )
+      {
+        if (rtMesh.callMethod("Boolean", "hasUVs", 0, NULL).getBoolean())
+        {
+          std::vector <float> &data = *out_polygonNodeUVWs;
+
+          // resize output array(s).
+              data.   resize(3 * out_numSamples);
+          if (data.size() != 3 * out_numSamples)
+          { errID = -3;
+            break;  }
+
+          // fill output array(s).
+          std::vector <FabricCore::RTVal> args(2);
+          args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "Float32", data.size(), (void *)data.data());
+          args[1] = FabricCore::RTVal::ConstructUInt32       (*getClient(), 3);
+          rtMesh.callMethod("", "getUVsAsExternalArray", 2, &args[0]);
+        }
+      }
+
+      // get polygon node colors.
+      if (   out_polygonNodeColors  != NULL
+          && out_numPolygons         > 0
+          && out_numSamples          > 0  )
+      {
+        if (rtMesh.callMethod("Boolean", "hasVertexColors", 0, NULL).getBoolean())
+        {
+          std::vector <float> &data = *out_polygonNodeColors;
+
+          // resize output array(s).
+              data.   resize(4 * out_numSamples);
+          if (data.size() != 4 * out_numSamples)
+          { errID = -3;
+            break;  }
+
+          // fill output array(s).
+          std::vector <FabricCore::RTVal> args(2);
+          args[0] = FabricCore::RTVal::ConstructExternalArray(*getClient(), "Float32", data.size(), (void *)data.data());
+          args[1] = FabricCore::RTVal::ConstructUInt32       (*getClient(), 4);  
+          rtMesh.callMethod("", "getVertexColorsAsExternalArray", 2, &args[0]);
+        }
+      }
     } while (false);
   }
   catch (FabricCore::Exception e)
@@ -1241,6 +1327,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
     if (out_polygonNumVertices) out_polygonNumVertices -> clear();
     if (out_polygonVertices)    out_polygonVertices    -> clear();
     if (out_polygonNodeNormals) out_polygonNodeNormals -> clear();
+    if (out_polygonNodeUVWs)    out_polygonNodeUVWs    -> clear();
+    if (out_polygonNodeColors)  out_polygonNodeColors  -> clear();
   }
 
   // done.
@@ -1307,10 +1395,15 @@ void BaseInterface::SetValueOfArgUInt(FabricCore::Client &client, FabricCore::DF
   {
     FabricCore::RTVal rtval;
     std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
-    if      (resolvedType == "UInt8")   rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
-    else if (resolvedType == "UInt16")  rtval = FabricCore::RTVal::ConstructUInt16(client, val);
-    else if (resolvedType == "UInt32")  rtval = FabricCore::RTVal::ConstructUInt32(client, val);
-    else if (resolvedType == "UInt64")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
+    if      (resolvedType == "Byte")      rtval = FabricCore::RTVal::ConstructUInt8 (client, val);
+    else if (resolvedType == "UInt8")     rtval = FabricCore::RTVal::ConstructUInt16(client, val);
+    else if (resolvedType == "UInt16")    rtval = FabricCore::RTVal::ConstructUInt16(client, val);
+    else if (resolvedType == "Count")     rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+    else if (resolvedType == "Index")     rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+    else if (resolvedType == "Size")      rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+    else if (resolvedType == "UInt32")    rtval = FabricCore::RTVal::ConstructUInt32(client, val);
+    else if (resolvedType == "DataSize")  rtval = FabricCore::RTVal::ConstructUInt64(client, val);
+    else if (resolvedType == "UInt64")    rtval = FabricCore::RTVal::ConstructUInt64(client, val);
     binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
@@ -1375,12 +1468,12 @@ void BaseInterface::SetValueOfArgVec2(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const size_t N      =     2;
+    const int  N        =     2;
     const char name[16] = "Vec2";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1402,12 +1495,12 @@ void BaseInterface::SetValueOfArgVec3(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const size_t N      =     3;
+    const int  N        =     3;
     const char name[16] = "Vec3";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1429,12 +1522,12 @@ void BaseInterface::SetValueOfArgVec4(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const size_t N      =     4;
+    const int  N        =     4;
     const char name[16] = "Vec4";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1456,12 +1549,12 @@ void BaseInterface::SetValueOfArgColor(FabricCore::Client &client, FabricCore::D
 
   try
   {
-    const size_t N      =      4;
+    const int  N        =      4;
     const char name[16] = "Color";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1483,12 +1576,12 @@ void BaseInterface::SetValueOfArgRGB(FabricCore::Client &client, FabricCore::DFG
 
   try
   {
-    const size_t N      =    3;
+    const int  N        =    3;
     const char name[16] = "RGB";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1510,12 +1603,12 @@ void BaseInterface::SetValueOfArgRGBA(FabricCore::Client &client, FabricCore::DF
 
   try
   {
-    const size_t N      =     4;
+    const int  N        =     4;
     const char name[16] = "RGBA";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
     const bool valIsValid  = (val.size() >= N);
-    for (size_t i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
     binding.setArgValue(argName, rtval, false);
@@ -1586,86 +1679,46 @@ void BaseInterface::SetValueOfArgMat44(FabricCore::Client &client, FabricCore::D
   }
 }
 
-bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &binding, char const *argName)
+void BaseInterface::SetValueOfArgXfo(FabricCore::Client &client, FabricCore::DFGBinding &binding, char const * argName, const std::vector <double> &val)
 {
   if (!binding.getExec().haveExecPort(argName))
   {
-    std::string s = "BaseInterface::CreateModoUserChannelForPort(): port not found.";
+    std::string s = "BaseInterface::SetValueOfArgMat44(): port not found.";
     logErrorFunc(NULL, s.c_str(), s.length());
-    return false;
+    return;
   }
 
   try
   {
-    std::string err;
-    CLxUser_Item item;
+    FabricCore::RTVal rtval;
+    FabricCore::RTVal sc[3], xyz[3], ori[2], tr[3], xfo[3];
+    const bool valIsValid = (val.size() >= 10);
 
-    if      (m_ILxUnknownID_CanvasIM)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasIM);
-    else if (m_ILxUnknownID_CanvasPI)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasPI);
-    else if (m_ILxUnknownID_CanvasPIpilot)  item.set((ILxUnknownID)m_ILxUnknownID_CanvasPIpilot);
-    else                        {   err = "m_ILxUnknownID_Canvas? == NULL";
-                                    logErrorFunc(0, err.c_str(), err.length());
-                                    return false;   }
+    xyz[0] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[4] : 0);
+    xyz[1] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[5] : 0);
+    xyz[2] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[6] : 0);
+    ori[0] = FabricCore::RTVal::Construct(client, "Vec3", 3, xyz);
+    ori[1] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[3] : 0);
 
-    if (!item.test())   {   err = "item((ILxUnknownID)m_ILxUnknownID_Canvas?) failed";
-                            logErrorFunc(0, err.c_str(), err.length());
-                            return false;    }
+    tr[0] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[7] : 0);
+    tr[1] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[8] : 0);
+    tr[2] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[9] : 0);
 
-    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
-    std::string structType   = "";
+    sc[0] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[0] : 0);
+    sc[1] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[1] : 0);
+    sc[2] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[2] : 0);
 
-    if      (   resolvedType == "")         {   err = "resolvedType == \"\"";
-                                                logErrorFunc(0, err.c_str(), err.length());
-                                                return false;    }
+    xfo[1]   = FabricCore::RTVal::Construct(client, "Vec3", 3, tr);
+    xfo[0]   = FabricCore::RTVal::Construct(client, "Quat", 2, ori);
+    xfo[2]   = FabricCore::RTVal::Construct(client, "Vec3", 3, sc);
 
-    else if (   resolvedType == "Boolean")  {   resolvedType = "boolean";                           }
-
-    else if (   resolvedType == "Integer"
-             || resolvedType == "SInt8"
-             || resolvedType == "SInt16"
-             || resolvedType == "SInt32"
-             || resolvedType == "SInt64"
-             || resolvedType == "UInt8"
-             || resolvedType == "UInt16"
-             || resolvedType == "UInt32"
-             || resolvedType == "UInt64")   {   resolvedType = "integer";                           }
-
-    else if (   resolvedType == "Scalar"
-             || resolvedType == "Float32"
-             || resolvedType == "Float64")  {   resolvedType = "float";                             }
-
-    else if (   resolvedType == "String")   {   resolvedType = "string";                            }
-
-    else if (   resolvedType == "Quat")     {   resolvedType = "quaternion";                        }
-
-    else if (   resolvedType == "Mat44")    {   resolvedType = "matrix";                            }
-
-    else if (   resolvedType == "Vec2")     {   resolvedType = "float";     structType = "vecXY";   }
-    else if (   resolvedType == "Vec3")     {   resolvedType = "float";     structType = "vecXYZ";  }
-
-    else if (   resolvedType == "Color")    {   resolvedType = "float";     structType = "vecRGBA"; }
-    else if (   resolvedType == "RGB")      {   resolvedType = "float";     structType = "vecRGB";  }
-    else if (   resolvedType == "RGBA")     {   resolvedType = "float";     structType = "vecRGBA"; }
-
-    else
-    {
-      err = "unable to create user channel, data type \"" + resolvedType + "\" not implemented";
-      logErrorFunc(0, err.c_str(), err.length());
-      return false;
-    }
-
-    if (!ModoTools::CreateUserChannel(&item, argName, resolvedType, structType, err))
-      logErrorFunc(0, err.c_str(), err.length());
+    rtval = FabricCore::RTVal::Construct(client, "Xfo", 3, xfo);
+    binding.setArgValue(argName, rtval, false);
   }
   catch (FabricCore::Exception e)
   {
     logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
-    return false;
   }
-
-  // done.
-  return true;
 }
-
 
 

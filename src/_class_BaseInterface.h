@@ -12,6 +12,7 @@
 #include <ASTWrapper/KLASTManager.h>
 #include <map>
 
+struct _polymesh;
 class DFGUICmdHandlerDCC;
 
 // a management class for client and host
@@ -100,9 +101,9 @@ class BaseInterface
   bool HasOutputPort(const char *portName);
   bool HasOutputPort(const std::string &portName);
 
-  // gets the value of an argument (= port).
+  // gets the value of an argument (= a "port").
   // params:  binding     ref at binding.
-  //          argName     name of the argument (= port).
+  //          argName     name of the argument (= the "port").
   //          out         will contain the result.
   //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
   // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 unknown, -4 Fabric exception.
@@ -121,7 +122,7 @@ class BaseInterface
 
   // gets the value of a "PolygonMesh" argument (= port).
   // params:  binding     ref at binding.
-  //          argName     name of the argument (= port).
+  //          argName     name of the argument (= the "port").
   //          out_*       will contain the result. These may be NULL. See parameters for more information.
   //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
   // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
@@ -134,9 +135,11 @@ class BaseInterface
                                      std::vector <uint32_t>   *out_polygonNumVertices     = NULL,     // polygon vertex counts.
                                      std::vector <uint32_t>   *out_polygonVertices        = NULL,     // polygon vertex indices.
                                      std::vector <float>      *out_polygonNodeNormals     = NULL,     // polygon node normals.
+                                     std::vector <float>      *out_polygonNodeUVWs        = NULL,     // polygon node UVWs.
+                                     std::vector <float>      *out_polygonNodeColors      = NULL,     // polygon node colors.
                                      bool                      strict                     = false);
 
-  // sets the value of an argument (= port).
+  // sets the value of an argument (= a port).
   static void SetValueOfArgBoolean      (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const bool                  val);
   static void SetValueOfArgSInt         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const int32_t               val);
   static void SetValueOfArgUInt         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const uint32_t              val);
@@ -150,6 +153,7 @@ class BaseInterface
   static void SetValueOfArgRGBA         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
   static void SetValueOfArgQuat         (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
   static void SetValueOfArgMat44        (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
+  static void SetValueOfArgXfo          (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const std::vector <double> &val);
 
   // creates a Modo matching (i.e. same name, type, data type) user channel for a Fabric argument (= port).
   // returns: true on success, false otherwise.

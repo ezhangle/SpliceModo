@@ -547,9 +547,14 @@ namespace CanvasIM
                                                             retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, val);
                                                             if (retGet == 0)    BaseInterface::SetValueOfArgSInt(*client, binding, portName, val);
                                                           }
-          else if (   port__resolvedType == "UInt8"
+          else if (   port__resolvedType == "Byte"
+                   || port__resolvedType == "UInt8"
                    || port__resolvedType == "UInt16"
+                   || port__resolvedType == "Count"
+                   || port__resolvedType == "Index"
+                   || port__resolvedType == "Size"
                    || port__resolvedType == "UInt32"
+                   || port__resolvedType == "DataSize"
                    || port__resolvedType == "UInt64" )    {
                                                             unsigned int val = 0;
                                                             retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, *(int *)val);

@@ -1760,9 +1760,14 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &b
              || resolvedType == "SInt16"
              || resolvedType == "SInt32"
              || resolvedType == "SInt64"
+             || resolvedType == "Byte"
              || resolvedType == "UInt8"
              || resolvedType == "UInt16"
+             || resolvedType == "Count"
+             || resolvedType == "Index"
+             || resolvedType == "Size"
              || resolvedType == "UInt32"
+             || resolvedType == "DataSize"
              || resolvedType == "UInt64")   {   resolvedType = "integer";                           }
 
     else if (   resolvedType == "Scalar"
@@ -1773,7 +1778,8 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &b
 
     else if (   resolvedType == "Quat")     {   resolvedType = "quaternion";                        }
 
-    else if (   resolvedType == "Mat44")    {   resolvedType = "matrix";                            }
+    else if (   resolvedType == "Mat44"
+             || resolvedType == "Xfo")      {   resolvedType = "matrix";                            }
 
     else if (   resolvedType == "Vec2")     {   resolvedType = "float";     structType = "vecXY";   }
     else if (   resolvedType == "Vec3")     {   resolvedType = "float";     structType = "vecXYZ";  }

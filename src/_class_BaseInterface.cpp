@@ -1721,4 +1721,84 @@ void BaseInterface::SetValueOfArgXfo(FabricCore::Client &client, FabricCore::DFG
   }
 }
 
+bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &binding, char const *argName)
+{
+  if (!binding.getExec().haveExecPort(argName))
+  {
+    std::string s = "BaseInterface::CreateModoUserChannelForPort(): port not found.";
+    logErrorFunc(NULL, s.c_str(), s.length());
+    return false;
+  }
+
+  try
+  {
+    std::string err;
+    CLxUser_Item item;
+
+    if      (m_ILxUnknownID_CanvasIM)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasIM);
+    else if (m_ILxUnknownID_CanvasPI)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasPI);
+    else if (m_ILxUnknownID_CanvasPIpilot)  item.set((ILxUnknownID)m_ILxUnknownID_CanvasPIpilot);
+    else                        {   err = "m_ILxUnknownID_Canvas? == NULL";
+                                    logErrorFunc(0, err.c_str(), err.length());
+                                    return false;   }
+
+    if (!item.test())   {   err = "item((ILxUnknownID)m_ILxUnknownID_Canvas?) failed";
+                            logErrorFunc(0, err.c_str(), err.length());
+                            return false;    }
+
+    std::string resolvedType = binding.getExec().getExecPortResolvedType(argName);
+    std::string structType   = "";
+
+    if      (   resolvedType == "")         {   err = "resolvedType == \"\"";
+                                                logErrorFunc(0, err.c_str(), err.length());
+                                                return false;    }
+
+    else if (   resolvedType == "Boolean")  {   resolvedType = "boolean";                           }
+
+    else if (   resolvedType == "Integer"
+             || resolvedType == "SInt8"
+             || resolvedType == "SInt16"
+             || resolvedType == "SInt32"
+             || resolvedType == "SInt64"
+             || resolvedType == "UInt8"
+             || resolvedType == "UInt16"
+             || resolvedType == "UInt32"
+             || resolvedType == "UInt64")   {   resolvedType = "integer";                           }
+
+    else if (   resolvedType == "Scalar"
+             || resolvedType == "Float32"
+             || resolvedType == "Float64")  {   resolvedType = "float";                             }
+
+    else if (   resolvedType == "String")   {   resolvedType = "string";                            }
+
+    else if (   resolvedType == "Quat")     {   resolvedType = "quaternion";                        }
+
+    else if (   resolvedType == "Mat44")    {   resolvedType = "matrix";                            }
+
+    else if (   resolvedType == "Vec2")     {   resolvedType = "float";     structType = "vecXY";   }
+    else if (   resolvedType == "Vec3")     {   resolvedType = "float";     structType = "vecXYZ";  }
+
+    else if (   resolvedType == "Color")    {   resolvedType = "float";     structType = "vecRGBA"; }
+    else if (   resolvedType == "RGB")      {   resolvedType = "float";     structType = "vecRGB";  }
+    else if (   resolvedType == "RGBA")     {   resolvedType = "float";     structType = "vecRGBA"; }
+
+    else
+    {
+      err = "unable to create user channel, data type \"" + resolvedType + "\" not implemented";
+      logErrorFunc(0, err.c_str(), err.length());
+      return false;
+    }
+
+    if (!ModoTools::CreateUserChannel(&item, argName, resolvedType, structType, err))
+      logErrorFunc(0, err.c_str(), err.length());
+  }
+  catch (FabricCore::Exception e)
+  {
+    logErrorFunc(NULL, e.getDesc_cstr(), e.getDescLength());
+    return false;
+  }
+
+  // done.
+  return true;
+}
 

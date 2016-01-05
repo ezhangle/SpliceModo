@@ -556,9 +556,9 @@ namespace CanvasIM
                    || port__resolvedType == "UInt32"
                    || port__resolvedType == "DataSize"
                    || port__resolvedType == "UInt64" )    {
-                                                            unsigned int val = 0;
-                                                            retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, *(int *)val);
-                                                            if (retGet == 0)    BaseInterface::SetValueOfArgUInt(*client, binding, portName, val);
+                                                            int val = 0;
+                                                            retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgUInt(*client, binding, portName, (uint32_t)val);
                                                           }
           else if (   port__resolvedType == "Scalar"
                    || port__resolvedType == "Float32"

@@ -28,7 +28,7 @@ BaseInterface::BaseInterface()
   m_evaluating                  = false;
 
   // construct the client
-  if (s_instances.size() == 0)
+  if (!s_client.isValid())
   {
     try
     {
@@ -106,10 +106,10 @@ BaseInterface::~BaseInterface()
     {
       try
       {
-        printf("Destructing client...\n");
-        delete(s_manager);
-        s_host = FabricCore::DFGHost();
-        s_client = FabricCore::Client();
+        // [FE-5802] only remove the singleton objects
+        // instead of destroying the client entirely.
+        FabricCore::RTVal handleVal = FabricCore::RTVal::Construct(s_client, "SingletonHandle", 0, NULL);
+        handleVal.callMethod("", "removeAllObjects", 0, NULL);
       }
       catch (FabricCore::Exception e)
       {

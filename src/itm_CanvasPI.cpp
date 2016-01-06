@@ -261,7 +261,7 @@ namespace CanvasPI
         try
         {
           // delete widget and base interface.
-          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface);
           if (w) delete w;
           delete baseInterface;
           baseInterface = NULL;
@@ -1162,7 +1162,7 @@ namespace CanvasPI
     if (m_userData.baseInterface)
     {
       // delete only widget.
-      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface);
       if (w) delete w;
     }
   }

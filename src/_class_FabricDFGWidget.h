@@ -30,7 +30,7 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
   FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInterface);
   ~FabricDFGWidget();
 
-  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound = true);
+  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound = false, bool callRefreshGraph = false);
 
  public slots:
   virtual void onUndo();

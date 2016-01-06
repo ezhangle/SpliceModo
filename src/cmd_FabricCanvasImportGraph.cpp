@@ -132,7 +132,7 @@ void FabricCanvasImportGraph::Command::cmd_Execute(unsigned flags)
     }
 
     // if we have an open DFG widget then refresh it.
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
+    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
     if (w)  w->refreshGraph();
   }
   catch (FabricCore::Exception e)

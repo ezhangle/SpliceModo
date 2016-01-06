@@ -240,8 +240,8 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
   try
   {
     // get the base interface, its graph and the notification variant.
-    BaseInterface        &b             = *(BaseInterface *)userData;
-    FabricCore::DFGExec   graph         = b.getBinding().getExec();
+    BaseInterface        *b             = static_cast<BaseInterface *>(userData);
+    FabricCore::DFGExec   graph         = b->getBinding().getExec();
     FabricCore::Variant   notification  = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
 
     // get the notification's description and possibly the value of name.
@@ -250,7 +250,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     std::string nDesc = vDesc->getStringData();
 
     // currently evaluating?
-    if (b.IsEvaluating())
+    if (b->IsEvaluating())
     {
       if (debugLog)
       {
@@ -267,9 +267,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
 
     // get the Modo item's ILxUnknownID.
     void             *unknownID = NULL;
-    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasIM;
-    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPI;
-    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPIpilot;
+    if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasIM;
+    if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasPI;
+    if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasPIpilot;
 
     // handle notification.
     std::string err = "";
@@ -305,7 +305,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
 
           // create new channel
           if (graph.isValid() && graph.getExecPortResolvedType(name.c_str()) != std::string("PolygonMesh"))
-            b.CreateModoUserChannelForPort(b.getBinding(), name.c_str());
+            b->CreateModoUserChannelForPort(b->getBinding(), name.c_str());
         }
       }
 
@@ -347,15 +347,16 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
         }
       }
 
-      else if(   nDesc == "varInserted"
-              || nDesc == "varRemoved" )
+      else if (   nDesc == "varInserted"
+               || nDesc == "varRemoved" )
       {
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(&b, false);
-
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
         if (   w
             && w->getDfgWidget()
             && w->getDfgWidget()->getUIController())
+        {
           w->getDfgWidget()->getUIController()->emitVarsChanged();
+        }
       }
 
       else

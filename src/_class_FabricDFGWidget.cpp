@@ -102,6 +102,24 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
       fv->setWidget(newDFGWidget);
       fv->parentWidget()->setAttribute(Qt::WA_DeleteOnClose, true);
 
+      // adjust some colors.
+      if (newDFGWidget->getDfgWidget())
+      {
+        // [FE-4184]
+        //
+        // Modo's Qt palette works pretty well for Canvas, however a few colors
+        // need to be adjusted to get things right.
+        //
+        // Note: modifying the widget's palette via QWidget::palette() and
+        //       QWidget::setPalette() does not work (at least it doesn't
+        //       work within Modo), so instead we use CSS.
+        //
+
+        // source code widget.
+        FabricUI::KLEditor::KLSourceCodeWidget *wSourceCode = newDFGWidget->getDfgWidget()->getKLEditor()->klEditor()->sourceCodeWidget();
+        wSourceCode->setStyleSheet("QPlainTextEdit { color: rgb(200, 200, 200); background-color: rgb(40, 45, 50); }");
+      }
+
       // insert in map.
       s_instances.insert(std::pair<BaseInterface*, FabricDFGWidget*>(in_baseInterface, newDFGWidget));
 

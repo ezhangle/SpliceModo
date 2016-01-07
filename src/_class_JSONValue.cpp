@@ -83,6 +83,9 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   try
   {
     std::string json = m_data.baseInterface->getJSON();
+    char log[128];
+    sprintf(log, "JSONValue::io_Write() writing %.1f kilobytes (%ld bytes)", (float)json.length() / 1024.0, (long)json.length());
+    feLog(log);
     if (json.c_str())   return write.WriteString(json.c_str());
     else                return write.WriteString("");
   }

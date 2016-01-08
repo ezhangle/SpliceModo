@@ -11,6 +11,7 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     Copy another instance of our custom value to this one. We just cast
     the object to our internal structure and then copy the data.
   */
+  if (!other) return LXe_FAILED;
 
   _JSONValue *otherData = (_JSONValue *)((void *)other);
   if (!otherData) return LXe_FAILED;
@@ -85,10 +86,10 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   if (!write.test())        return LXe_FAILED;
   if (m_data.chnIndex < 0)  return LXe_FAILED;
 
-  // note: we never write nothing, i.e. zero bytes or else
+  // note: we never write 'nothing' (zero bytes) or else
   // the CHN_NAME_IO_FabricJSON channels won't get properly
   // initialized when loading a scene.
-  char pseudoNothing[8] = " ";
+  char pseudoNothing[8] = " ";  // one byte of data.
 
   // write the JSON string.
   if (!m_data.baseInterface)

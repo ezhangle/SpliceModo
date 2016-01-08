@@ -88,26 +88,35 @@ namespace CanvasIM
     */
 
     // store pointer at BaseInterface in JSON channel.
-    bool ok = false;
+    bool err = false;
     CLxUser_Item item(m_item_obj);
     if (item.test())
     {
       CLxUser_ChannelWrite chanWrite;
       if (chanWrite.from(item))
       {
-        CLxUser_Value value_json;
-        if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
+        char chnName[128];
+        for (int i=0;i<CHN_FabricJSON_NUM;i++)
         {
-          JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
-          if (jv)
+          CLxUser_Value value_json;
+          sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+          if (chanWrite.Object(item, chnName, value_json) && value_json.test())
           {
-            ok = true;
-            jv->baseInterface = m_baseInterface;
+            JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
+            if (!jv)
+            {
+              err |= true;
+            }
+            else
+            {
+              jv->chnIndex      = i;
+              jv->baseInterface = m_baseInterface;
+            }
           }
         }
       }
     }
-    if (!ok)
+    if (err)
       feLogError("failed to store pointer at BaseInterface in JSON channel");
 
     // done.
@@ -154,27 +163,46 @@ namespace CanvasIM
       feLogError(err);
       return LXe_OK;  }
 
-    // get value object.
-    CLxUser_Value value;
-    if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
-    { // note: we don't log an error here.
-      return LXe_OK;  }
+    // get the contents of all CHN_NAME_IO_FabricJSON channels and paste them together.
+    // (note: we also set the jv.chnIndex and pointer at BaseInterface here).
+    std::string sJSON = "";
+    {
+      char chnName[128];
+      for (int i=0;i<CHN_FabricJSON_NUM;i++)
+      {
+        // get value object.
+        sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+        CLxUser_Value value;
+        if (!chanRead.Object(item, chnName, value) || !value.test())
+        { // note: we don't log an error here.
+          return LXe_OK;  }
 
-    // get content of channel CHN_NAME_IO_FabricJSON.
-    JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
-    if (!jv)
-    { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
-      feLogError(err);
-      return LXe_OK;  }
+        //
+        JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+        if (!jv)
+        { err += "channel \"";
+          err += chnName;
+          err += "\" data is NULL";
+          feLogError(err);
+          return LXe_OK;  }
 
-    // set pointer at BaseInterface.
-    jv->baseInterface = m_baseInterface;
+        // set chnIndex.
+        jv->chnIndex = i;
+
+        // set pointer at BaseInterface.
+        jv->baseInterface = m_baseInterface;
+
+        // add s to sJSON.
+        if (jv->s.length() > 0)
+          sJSON += jv->s;
+      }
+    }
 
     // do it.
     try
     {
-      if (jv->s.length() > 0)
-        b->setFromJSON(jv->s);
+      if (sJSON.length() > 0)
+        b->setFromJSON(sJSON);
     }
     catch (FabricCore::Exception e)
     {
@@ -246,9 +274,14 @@ namespace CanvasIM
       add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
       add_chan.SetDefault(0, 0);
 
-      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
-      add_chan.SetStorage("+" SERVER_NAME_JSONValue);
-      add_chan.SetInternal();
+      char chnName[128];
+      for (int i=0;i<CHN_FabricJSON_NUM;i++)
+      {
+        sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+        add_chan.NewChannel(chnName, "+" SERVER_NAME_JSONValue);
+        add_chan.SetStorage("+" SERVER_NAME_JSONValue);
+        add_chan.SetInternal();
+      }
 
       result = LXe_OK;
     }
@@ -296,9 +329,9 @@ namespace CanvasIM
     {
       if (strcmp(channelName, "draw"))
       {
-          if (   !strcmp(channelName, CHN_NAME_IO_FabricActive)
-              || !strcmp(channelName, CHN_NAME_IO_FabricEval)
-              || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
+          if (   !strcmp (channelName, CHN_NAME_IO_FabricActive)
+              || !strcmp (channelName, CHN_NAME_IO_FabricEval)
+              || !strncmp(channelName, CHN_NAME_IO_FabricJSON, strlen(CHN_NAME_IO_FabricJSON))
              )
           {
             result = hints.ChannelFlags(0);   // by default we don't display the fixed channels in the schematic view.
@@ -418,9 +451,14 @@ namespace CanvasIM
       return;
 
     // add the fixed input channels to eval.
-    m_eval_index_FabricActive = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-    m_eval_index_FabricEval   = eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
-    m_eval_index_FabricJSON   = eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
+    m_eval_index_FabricActive   = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+    m_eval_index_FabricEval     = eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+    char chnName[128];
+    for (int i=0;i<CHN_FabricJSON_NUM;i++)
+    {
+      sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+      m_eval_index_FabricJSON   = eval.AddChan(item, chnName, LXfECHAN_READ);
+    }
 
     // collect all the user channels and add them to eval.
     ModoTools::usrChanCollect(item, m_usrChan);

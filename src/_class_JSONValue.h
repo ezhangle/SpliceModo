@@ -49,10 +49,12 @@ class JSONValue : public CLxImpl_Value,
   
   struct _JSONValue
   {
+    int            chnIndex;
     std::string    s;
     BaseInterface *baseInterface;
-    void zero()
+    void init()
     {
+      chnIndex = -1;
       s.clear();
       baseInterface = NULL;
     }
@@ -61,8 +63,8 @@ class JSONValue : public CLxImpl_Value,
   static LXtTagInfoDesc descInfo[];
   _JSONValue m_data;
 
-  JSONValue()   { m_data.zero(); }
-  ~JSONValue()  { m_data.zero(); }
+  JSONValue()   { m_data.init(); }
+  ~JSONValue()  { m_data.init(); }
   
   unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
   LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;

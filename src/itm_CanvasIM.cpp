@@ -99,7 +99,7 @@ namespace CanvasIM
         for (int i=0;i<CHN_FabricJSON_NUM;i++)
         {
           CLxUser_Value value_json;
-          sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+          sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
           if (chanWrite.Object(item, chnName, value_json) && value_json.test())
           {
             JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
@@ -171,7 +171,7 @@ namespace CanvasIM
       for (int i=0;i<CHN_FabricJSON_NUM;i++)
       {
         // get value object.
-        sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+        sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
         CLxUser_Value value;
         if (!chanRead.Object(item, chnName, value) || !value.test())
         { // note: we don't log an error here.
@@ -277,7 +277,7 @@ namespace CanvasIM
       char chnName[128];
       for (int i=0;i<CHN_FabricJSON_NUM;i++)
       {
-        sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+        sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
         add_chan.NewChannel(chnName, "+" SERVER_NAME_JSONValue);
         add_chan.SetStorage("+" SERVER_NAME_JSONValue);
         add_chan.SetInternal();
@@ -456,7 +456,7 @@ namespace CanvasIM
     char chnName[128];
     for (int i=0;i<CHN_FabricJSON_NUM;i++)
     {
-      sprintf(chnName, "%s%ld", CHN_NAME_IO_FabricJSON, i);
+      sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
       m_eval_index_FabricJSON   = eval.AddChan(item, chnName, LXfECHAN_READ);
     }
 

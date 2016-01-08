@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.110   // note: version 0.021 was "FMX Demo", i.e. the last version before using Matt Cox' surfaceItem sample instead of my own emReader code.
+#define FABRICMODO_PLUGIN_VERSION   0.300   // note: version 0.021 was "FMX Demo", i.e. the last version before using Matt Cox' surfaceItem sample instead of my own emReader code.
 
 // disable some annoying VS warnings.
 #ifdef _WIN32
@@ -32,7 +32,7 @@
 #define CHN_NAME_IO_FabricActive    "FabricActive"      // io:  enable/disable execution of DFG for this item.
 #define CHN_NAME_IO_FabricEval      "FabricEval"        // io:  internal counter used to re-evaluate the item.
 #define CHN_NAME_IO_FabricJSON      "FabricJSON"        // io:  custom value for persistence (read/write BaseInterface's JSON).
-#define CHN_FabricJSON_NUM          1024                // amount of FabricJSON channels.
+#define CHN_FabricJSON_NUM          196                 // amount of FabricJSON channels.
 #define CHN_FabricJSON_MAX_BYTES    ((uint32_t)64000)   // max amount of bytes per FabricJSON channel.
 
 // forward declaration: log system.

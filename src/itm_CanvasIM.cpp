@@ -99,7 +99,7 @@ namespace CanvasIM
         for (int i=0;i<CHN_FabricJSON_NUM;i++)
         {
           CLxUser_Value value_json;
-          sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
+          sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
           if (chanWrite.Object(item, chnName, value_json) && value_json.test())
           {
             JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
@@ -154,7 +154,7 @@ namespace CanvasIM
     item.GetUniqueName(itemName);
     std::string info;
     info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
-    feLog(0, info.c_str(), info.length());
+    feLog(info);
 
     // create channel reader.
     CLxUser_ChannelRead chanRead;
@@ -171,11 +171,13 @@ namespace CanvasIM
       for (int i=0;i<CHN_FabricJSON_NUM;i++)
       {
         // get value object.
-        sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
+        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
         CLxUser_Value value;
         if (!chanRead.Object(item, chnName, value) || !value.test())
-        { // note: we don't log an error here.
-          return LXe_OK;  }
+        {
+          feLogError(std::string("failed to get chanRead for channel") + std::string(chnName) + std::string("!"));
+          return LXe_OK;
+        }
 
         //
         JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
@@ -277,7 +279,7 @@ namespace CanvasIM
       char chnName[128];
       for (int i=0;i<CHN_FabricJSON_NUM;i++)
       {
-        sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
+        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
         add_chan.NewChannel(chnName, "+" SERVER_NAME_JSONValue);
         add_chan.SetStorage("+" SERVER_NAME_JSONValue);
         add_chan.SetInternal();
@@ -411,7 +413,7 @@ namespace CanvasIM
    private:
     int                                 m_eval_index_FabricActive;
     int                                 m_eval_index_FabricEval;
-    int                                 m_eval_index_FabricJSON;
+    int                                 m_eval_index_FabricJSON0;
     std::vector <ModoTools::UsrChnDef>  m_usrChan;
 
     Instance *m_Instance;
@@ -456,8 +458,10 @@ namespace CanvasIM
     char chnName[128];
     for (int i=0;i<CHN_FabricJSON_NUM;i++)
     {
-      sprintf(chnName, "%s%05d", CHN_NAME_IO_FabricJSON, i);
-      m_eval_index_FabricJSON   = eval.AddChan(item, chnName, LXfECHAN_READ);
+      sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+      unsigned int eval_index = eval.AddChan(item, chnName, LXfECHAN_READ);
+      if (i == 0)
+        m_eval_index_FabricJSON0 = eval_index;
     }
 
     // collect all the user channels and add them to eval.

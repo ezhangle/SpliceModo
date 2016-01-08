@@ -85,6 +85,11 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   if (!write.test())        return LXe_FAILED;
   if (m_data.chnIndex < 0)  return LXe_FAILED;
 
+  // note: we never write nothing, i.e. zero bytes or else
+  // the CHN_NAME_IO_FabricJSON channels won't get properly
+  // initialized when loading a scene.
+  char pseudoNothing[8] = " ";
+
   // write the JSON string.
   if (!m_data.baseInterface)
   { feLogError(std::string(preLog) + ": pointer at BaseInterface is NULL!");
@@ -97,7 +102,7 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
 
     // trivial case, i.e. nothing to write?
     if ((uint32_t)m_data.chnIndex * CHN_FabricJSON_MAX_BYTES >= len)
-      return write.WriteString("");
+      return write.WriteString(pseudoNothing);
 
     // string too long?
     if (len > (uint32_t)CHN_FabricJSON_NUM * CHN_FabricJSON_MAX_BYTES)
@@ -122,8 +127,8 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
       sprintf(log, " writing %.1f kilobytes (%ld bytes)", (float)part.length() / 1024.0, (long)part.length());
       feLog(std::string(preLog) + log);
     }
-    if (part.c_str())   return write.WriteString(part.c_str());
-    else                return write.WriteString("");
+    if (part.length() && part.c_str())   return write.WriteString(part.c_str());
+    else                                 return write.WriteString(pseudoNothing);
   }
   catch (FabricCore::Exception e)
   {
@@ -146,13 +151,9 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
   */
 
   CLxUser_BlockRead read(stream);
-  if (JSONVALUE_DEBUG_LOG)
-    feLog("JSONValue::io_Read()");
 
-  if (!read.test())  return LXe_FAILED;
-
-  if (read.Read(m_data.s))   return LXe_OK;
-  else                       return LXe_FAILED;
+  if (read.test() && read.Read(m_data.s))   return LXe_OK;
+  else                                      return LXe_FAILED;
 }
 
 LXtTagInfoDesc JSONValue::descInfo[] =

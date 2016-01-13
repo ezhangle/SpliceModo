@@ -1418,29 +1418,24 @@ FabricUI::DFG::DFGUICmd_CreatePreset *DFGUICmdHandlerDCC::createAndExecuteDFGCom
   {
     unsigned int ai = 0;
 
-feLog("bla");
     FabricCore::DFGBinding binding;
     std::string execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-feLog("bla");
     std::string nodeName;
     if (!DecodeString(args, ai, nodeName))
       return cmd;
 
-feLog("bla");
     std::string presetDirPath;
     if (!DecodeString(args, ai, presetDirPath))
       return cmd;
 
-feLog("bla");
     std::string presetName;
     if (!DecodeString(args, ai, presetName))
       return cmd;
 
-feLog("bla");
     cmd = new FabricUI::DFG::DFGUICmd_CreatePreset(binding,
                                                    execPath.c_str(),
                                                    exec,
@@ -1453,12 +1448,10 @@ feLog("bla");
     }
     catch(FabricCore::Exception e)
     {
-feLog("BLUUU!");
       feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
     }
   }
 
-feLog("bli :)");
   return cmd;
 }
 

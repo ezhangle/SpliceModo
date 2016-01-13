@@ -101,42 +101,48 @@ void FabricCanvasImportGraph::Command::cmd_Execute(unsigned flags)
   // do it.
   try
   {
-    // set from JSON.
-    b->setFromJSON(json.c_str());
-
-    // delete all user channels.
-    std::string oErr;
-    if (!ModoTools::DeleteAllUserChannels(&item, oErr))
-    { err += oErr;
-      feLogError(err);
-      return;    }
-
-    // get graph.
-    FabricCore::DFGExec graph = b->getBinding().getExec();
-    if (!graph.isValid())
-    { feLogError(err + "failed to get a valid graph.");
-      return; }
-
-    // re-create all user channels.
-    for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
+    do
     {
-      // if the port has the wrong type then skip it.
-      if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_In
-          && graph.getExecPortType(fi) != FabricCore::DFGPortType_Out)
-        continue;
+      // set from JSON.
+      b->setFromJSON(json.c_str());
 
-      // create a Modo user channel for this port.
-      if (!b->CreateModoUserChannelForPort(b->getBinding(), graph.getExecPortName(fi)))
-      { feLogError(err + "creating user channel for port \"" + graph.getExecPortName(fi) + "\" failed. Continuing anyway.");
-        continue; }
-    }
+      // delete all user channels.
+      std::string oErr;
+      if (!ModoTools::DeleteAllUserChannels(&item, oErr))
+      { err += oErr;
+        feLogError(err);
+        break; }
 
-    // if we have an open DFG widget then refresh it.
-    FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
-    if (w)  w->refreshGraph();
+      // get graph.
+      FabricCore::DFGExec graph = b->getBinding().getExec();
+      if (!graph.isValid())
+      { feLogError(err + "failed to get a valid graph.");
+        break; }
+
+      // re-create all user channels.
+      for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
+      {
+        // if the port has the wrong type then skip it.
+        if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_In
+            && graph.getExecPortType(fi) != FabricCore::DFGPortType_Out)
+          continue;
+
+        // create a Modo user channel for this port.
+        if (!b->CreateModoUserChannelForPort(b->getBinding(), graph.getExecPortName(fi)))
+        { feLogError(err + "creating user channel for port \"" + graph.getExecPortName(fi) + "\" failed. Continuing anyway.");
+          continue; }
+      }
+
+      // if we have an open DFG widget then refresh it.
+      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b, false);
+      if (w)  w->refreshGraph();
+    } while (false);
   }
   catch (FabricCore::Exception e)
   {
     feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
   }
+
+  // clear the undo stack.
+  ModoTools::ClearUndoStack();
 }

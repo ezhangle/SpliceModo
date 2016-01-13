@@ -1014,4 +1014,11 @@ void ModoTools::InvalidateItem(ILxUnknownID item_obj)
   }
 }
 
+void ModoTools::ClearUndoStack()
+{
+  std::string cmd = "app.clearUndos";
+  std::string res;
+  std::string err;
+  ModoTools::ExecuteCommand(std::string(cmd), res, err);
+}
 

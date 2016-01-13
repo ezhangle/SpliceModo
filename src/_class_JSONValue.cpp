@@ -3,7 +3,7 @@
 #include "_class_BaseInterface.h"
 #include "_class_JSONValue.h"
 
-#define JSONVALUE_DEBUG_LOG   1   // if != 0 then log info when reading/writing JSONValue channels.
+#define JSONVALUE_DEBUG_LOG   0   // if != 0 then log info when reading/writing JSONValue channels.
 
 LxResult JSONValue::val_Copy(ILxUnknownID other)
 {
@@ -111,7 +111,9 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
       if (m_data.chnIndex == 0)
       {
         char log[256];
-        sprintf(log, " the JSON string is %ld long and exceeds the max size of %ld bytes!", len, (uint32_t)CHN_FabricJSON_NUM * CHN_FabricJSON_MAX_BYTES);
+        sprintf(log, ": the JSON string is %ld long!", len);
+        feLogError(std::string(preLog) + log);
+        sprintf(log, ": it exceeds the max size of %ld bytes!", (uint32_t)CHN_FabricJSON_NUM * CHN_FabricJSON_MAX_BYTES);
         feLogError(std::string(preLog) + log);
       }
       return LXe_FAILED;
@@ -125,7 +127,7 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
     if (JSONVALUE_DEBUG_LOG)
     {
       char log[128];
-      sprintf(log, " writing %.1f kilobytes (%ld bytes)", (float)part.length() / 1024.0, (long)part.length());
+      sprintf(log, ": writing %.1f kilobytes (%ld bytes)", (float)part.length() / 1024.0, (long)part.length());
       feLog(std::string(preLog) + log);
     }
     if (part.length() && part.c_str())   return write.WriteString(part.c_str());
@@ -152,9 +154,26 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
   */
 
   CLxUser_BlockRead read(stream);
+  char preLog[128];
+  sprintf(preLog, "JSONValue::io_Read()");
 
-  if (read.test() && read.Read(m_data.s))   return LXe_OK;
-  else                                      return LXe_FAILED;
+  if (read.test() && read.Read(m_data.s))
+  {
+    if (JSONVALUE_DEBUG_LOG && m_data.s.length() > 1)
+    {
+      char log[128];
+      sprintf(log, ": read %.1f kilobytes (%ld bytes)", (float)m_data.s.length() / 1024.0, (long)m_data.s.length());
+      feLog(std::string(preLog) + log);
+    }
+    return LXe_OK;
+  }
+  else
+  {
+    if (JSONVALUE_DEBUG_LOG)
+      feLog(std::string(preLog) + ": read error");
+    m_data.s = " ";
+    return LXe_FAILED;
+  }
 }
 
 LXtTagInfoDesc JSONValue::descInfo[] =

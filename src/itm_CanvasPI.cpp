@@ -5,6 +5,7 @@
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
 #include "itm_CanvasPI.h"
+#include <Persistence/RTValToJSONEncoder.hpp>
 
 static CLxItemType gItemType_CanvasPI(SERVER_NAME_CanvasPI);
 
@@ -1055,6 +1056,8 @@ namespace CanvasPI
     LxResult    pkg_Attach          (void **ppvObj)                                     LXx_OVERRIDE;
     LxResult    pkg_TestInterface   (const LXtGUID *guid)                               LXx_OVERRIDE;
 
+    LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE;
+
     void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
     void        sil_ItemChannelName (ILxUnknownID item_obj, unsigned int index)         LXx_OVERRIDE;
 
@@ -1113,6 +1116,52 @@ namespace CanvasPI
     */
 
     return m_inst_spawn.TestInterfaceRC(guid);
+  }
+
+  LxResult Package::cui_UIHints(const char *channelName, ILxUnknownID hints_obj)
+  {
+    /*
+      Here we set some hints for the built in channels. These allow channels
+      to be displayed as either inputs or outputs in the schematic. 
+    */
+
+    CLxUser_UIHints hints(hints_obj);
+    LxResult        result = LXe_FAILED;
+
+    if (hints.test())
+    {
+      if (strcmp(channelName, "draw"))
+      {
+          if (   !strcmp (channelName, CHN_NAME_IO_FabricActive)
+              || !strcmp (channelName, CHN_NAME_IO_FabricEval)
+              || !strncmp(channelName, CHN_NAME_IO_FabricJSON, strlen(CHN_NAME_IO_FabricJSON))
+             )
+          {
+            // by default we don't display the fixed channels in the schematic view.
+            result = hints.ChannelFlags(0);
+          }
+          else
+          {
+            // note:  we cannot access Instance from within this function, so
+            //        what do here is to just follow a naming convention:
+            //        if the channel name starts with "in_" it gets displayed
+            //        as input, if it ends with "_out" it gets display as output,
+            //        else it gets displayed as whatever Modo's default is.
+
+            if (strlen(channelName) >= 3 && !memcmp(channelName, "in_", 3))
+            {
+              result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
+            }
+            else if (strlen(channelName) >= 4 && !memcmp(channelName + strlen(channelName) - 4, "_out", 4))
+            {
+              result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+            }
+          }
+      }
+      result = LXe_OK;
+    }
+
+    return result;
   }
 
   void Package::sil_ItemAddChannel(ILxUnknownID item_obj)

@@ -315,10 +315,6 @@ namespace CanvasIM
 
   LxResult Package::cui_UIHints(const char *channelName, ILxUnknownID hints_obj)
   {
-    // WIP: we must be able to somehow access Instance, so that we can get
-    // the BaseInterface and the DFG input/output ports and set the channel
-    // hints accordingly.
-
     /*
       Here we set some hints for the built in channels. These allow channels
       to be displayed as either inputs or outputs in the schematic. 
@@ -336,16 +332,25 @@ namespace CanvasIM
               || !strncmp(channelName, CHN_NAME_IO_FabricJSON, strlen(CHN_NAME_IO_FabricJSON))
              )
           {
-            result = hints.ChannelFlags(0);   // by default we don't display the fixed channels in the schematic view.
+            // by default we don't display the fixed channels in the schematic view.
+            result = hints.ChannelFlags(0);
           }
           else
           {
-            // WIP: must be able to somehow access Instance.
+            // note:  we cannot access Instance from within this function, so
+            //        what do here is to just follow a naming convention:
+            //        if the channel name starts with "in_" it gets displayed
+            //        as input, if it ends with "_out" it gets display as output,
+            //        else it gets displayed as whatever Modo's default is.
 
-
-            //if      ((*quickhack_baseInterface).HasInputPort(channelName))  result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
-            //else if ((*quickhack_baseInterface).HasOutputPort(channelName)) result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
-            //else                                                            result = hints.ChannelFlags(0);
+            if (strlen(channelName) >= 3 && !memcmp(channelName, "in_", 3))
+            {
+              result = hints.ChannelFlags(LXfUIHINTCHAN_INPUT_ONLY  | LXfUIHINTCHAN_SUGGESTED);
+            }
+            else if (strlen(channelName) >= 4 && !memcmp(channelName + strlen(channelName) - 4, "_out", 4))
+            {
+              result = hints.ChannelFlags(LXfUIHINTCHAN_OUTPUT_ONLY | LXfUIHINTCHAN_SUGGESTED);
+            }
           }
       }
       result = LXe_OK;

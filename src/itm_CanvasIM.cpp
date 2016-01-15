@@ -226,6 +226,10 @@ namespace CanvasIM
     }
   }
 
+  /*
+    Implement the Package.
+  */
+
   class Package : public CLxImpl_Package,
                   public CLxImpl_ChannelUI,
                   public CLxImpl_SceneItemListener
@@ -270,6 +274,8 @@ namespace CanvasIM
 
     if (add_chan.test())
     {
+      // built-in Fabric channels.
+
       add_chan.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
       add_chan.SetDefault(1, 1);
 

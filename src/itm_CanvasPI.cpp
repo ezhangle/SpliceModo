@@ -895,27 +895,48 @@ namespace CanvasPI
       feLogError(err);
       return LXe_OK;  }
 
-    // get value object.
-    CLxUser_Value value;
-    if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
-    { // note: we don't log an error here.
-      return LXe_OK;  }
+    // get the contents of all CHN_NAME_IO_FabricJSON channels and paste them together.
+    // (note: we also set the jv.chnIndex and pointer at BaseInterface here).
+    std::string sJSON = "";
+    {
+      char chnName[128];
+      for (int i=0;i<CHN_FabricJSON_NUM;i++)
+      {
+        // get value object.
+        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+        CLxUser_Value value;
+        if (!chanRead.Object(item, chnName, value) || !value.test())
+        {
+          feLogError(std::string("failed to get chanRead for channel") + std::string(chnName) + std::string("!"));
+          return LXe_OK;
+        }
 
-    // get content of channel CHN_NAME_IO_FabricJSON.
-    JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
-    if (!jv)
-    { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
-      feLogError(err);
-      return LXe_OK;  }
+        //
+        JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+        if (!jv)
+        { err += "channel \"";
+          err += chnName;
+          err += "\" data is NULL";
+          feLogError(err);
+          return LXe_OK;  }
 
-    // set pointer at BaseInterface.
-    jv->baseInterface = m_userData.baseInterface;
+        // set chnIndex.
+        jv->chnIndex = i;
+
+        // set pointer at BaseInterface.
+        jv->baseInterface = m_userData.baseInterface;
+
+        // add s to sJSON.
+        if (jv->s.length() > 0)
+          sJSON += jv->s;
+      }
+    }
 
     // do it.
     try
     {
-      if (jv->s.length() > 0)
-        b->setFromJSON(jv->s);
+      if (sJSON.length() > 0)
+        b->setFromJSON(sJSON);
     }
     catch (FabricCore::Exception e)
     {
@@ -1047,7 +1068,7 @@ namespace CanvasPI
       srv->AddInterface       (new CLxIfc_Package           <Package>);
       srv->AddInterface       (new CLxIfc_StaticDesc        <Package>);
       srv->AddInterface       (new CLxIfc_SceneItemListener <Package>);
-      srv->AddInterface        (new CLxIfc_ChannelUI          <Package>);
+      srv->AddInterface       (new CLxIfc_ChannelUI         <Package>);
       lx::AddServer           (SERVER_NAME_CanvasPI, srv);
     }
 
@@ -1079,7 +1100,11 @@ namespace CanvasPI
 
     if (add_chan.test())
     {
-      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);  // objref channel, used for caching the instanceable version of the surface
+      // objref channel, used for caching the instanceable version of the surface
+
+      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);
+
+      // built-in Fabric channels.
 
       add_chan.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
       add_chan.SetDefault(1, 1);
@@ -1087,9 +1112,14 @@ namespace CanvasPI
       add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
       add_chan.SetDefault(0, 0);
 
-      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
-      add_chan.SetStorage("+" SERVER_NAME_JSONValue);
-      add_chan.SetInternal();
+      char chnName[128];
+      for (int i=0;i<CHN_FabricJSON_NUM;i++)
+      {
+        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+        add_chan.NewChannel(chnName, "+" SERVER_NAME_JSONValue);
+        add_chan.SetStorage("+" SERVER_NAME_JSONValue);
+        add_chan.SetInternal();
+      }
 
       result = LXe_OK;
     }

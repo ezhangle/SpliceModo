@@ -699,14 +699,10 @@ namespace CanvasPI
     */
 
     CLxSpawner<SurfInst>  spawner(SERVER_NAME_CanvasPI ".instObj");
-    SurfInst             *other = NULL;
-
-    other = spawner.Cast(other_obj);
+    SurfInst             *other = spawner.Cast(other_obj);
     
-    if (other)
-      return m_surf_def.Compare(&other->m_surf_def);
-    
-    return 0;
+    if (other)  return m_surf_def.Compare(&other->m_surf_def);
+    else        return 0;
   }
 
   /*
@@ -829,7 +825,7 @@ namespace CanvasPI
       at the same time.
     */
     
-    CLxUser_Attributes  attr(attr_obj);
+    CLxUser_Attributes attr(attr_obj);
     Surface *surface = m_surf_spawn.Alloc(ppvObj);
     if (surface)
     {
@@ -992,11 +988,6 @@ namespace CanvasPI
       surface definition to it - then we evaluate it's channels.
     */
 
-    CLxSpawner <SurfInst>     spawner (SERVER_NAME_CanvasPI ".instObj");
-    CLxUser_ValueReference    val_ref;
-    ILxUnknownID              object          = NULL;
-    unsigned                  temp_chan_index = m_chan_index;
-    
     if (!eval || !attr)
       return;
     
@@ -1006,8 +997,12 @@ namespace CanvasPI
       the object it contains to our spawned instanceable object.
     */
     
+    CLxSpawner <SurfInst> spawner (SERVER_NAME_CanvasPI ".instObj");
+    ILxUnknownID object = NULL;
     SurfInst *instObj = spawner.Alloc(object);
     
+    CLxUser_ValueReference val_ref;
+    unsigned int temp_chan_index = m_chan_index;
     if (instObj && attr.ObjectRW(temp_chan_index++, val_ref))
     {
       val_ref.SetObject(object);

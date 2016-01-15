@@ -783,10 +783,10 @@ namespace CanvasPI
     };
 
     LxResult    pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)  LXx_OVERRIDE;
-    LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)         LXx_OVERRIDE;
-    LxResult    pins_AfterLoad(void)                                        LXx_OVERRIDE;
+    LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)         LXx_OVERRIDE  { return ItemCommon::pins_Newborn(original, flags, m_item_obj, m_userData.baseInterface); }
+    LxResult    pins_AfterLoad(void)                                        LXx_OVERRIDE  { return ItemCommon::pins_AfterLoad(m_item_obj, m_userData.baseInterface); }
     void        pins_Doomed(void)                                           LXx_OVERRIDE  { ItemCommon::pins_Doomed(m_userData.baseInterface); }
-    void        pins_Cleanup(void)                                          LXx_OVERRIDE;
+    void        pins_Cleanup(void)                                          LXx_OVERRIDE  { m_userData.clear(); }
     
     LxResult    isurf_GetSurface (ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj) LXx_OVERRIDE;
     LxResult    isurf_Prepare    (ILxUnknownID eval_obj, unsigned *index)                   LXx_OVERRIDE;
@@ -815,147 +815,6 @@ namespace CanvasPI
 
     // done.
     return LXe_OK;
-  }
-
-  LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
-  {
-    /*
-      This function is called when an item is added.
-      We store the pointer at the BaseInterface here so that the
-      functions JSONValue::io_Write() can write the JSON string
-      when the scene is saved.
-
-      note: this function is *not* called when a scene is loaded,
-            instead pins_AfterLoad() is called.
-    */
-
-    // store pointer at BaseInterface in JSON channel.
-    bool ok = false;
-    CLxUser_Item item(m_item_obj);
-    if (item.test())
-    {
-      CLxUser_ChannelWrite chanWrite;
-      if (chanWrite.from(item))
-      {
-        CLxUser_Value value_json;
-        if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
-        {
-          JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
-          if (jv)
-          {
-            ok = true;
-            jv->baseInterface = m_userData.baseInterface;
-          }
-        }
-      }
-    }
-    if (!ok)
-      feLogError("failed to store pointer at BaseInterface in JSON channel");
-
-    // done.
-    return LXe_OK;
-  }
-
-  LxResult Instance::pins_AfterLoad(void)
-  {
-    /*
-      This function is called when a scene was loaded.
-
-      We store the pointer at the BaseInterface here so that the
-      functions JSONValue::io_Write() can write the JSON string
-      when the scene is saved.
-
-      Furthermore we set the graph from the content (i.e. the string)
-      of the channel CHN_NAME_IO_FabricJSON.
-    */
-
-    // init err string.
-    std::string err = "pins_AfterLoad() failed: ";
-
-    // get BaseInterface.
-    BaseInterface *b = m_userData.baseInterface;
-
-    // create item.
-    CLxUser_Item item(m_item_obj);
-    if (!item.test())
-    { err += "item(m_item_obj) failed";
-      feLogError(err);
-      return LXe_OK;  }
-
-    // log.
-    std::string itemName;
-    item.GetUniqueName(itemName);
-    std::string info;
-    info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
-    feLog(0, info.c_str(), info.length());
-
-    // create channel reader.
-    CLxUser_ChannelRead chanRead;
-    if (!chanRead.from(item))
-    { err += "failed to create channel reader.";
-      feLogError(err);
-      return LXe_OK;  }
-
-    // get the contents of all CHN_NAME_IO_FabricJSON channels and paste them together.
-    // (note: we also set the jv.chnIndex and pointer at BaseInterface here).
-    std::string sJSON = "";
-    {
-      char chnName[128];
-      for (int i=0;i<CHN_FabricJSON_NUM;i++)
-      {
-        // get value object.
-        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
-        CLxUser_Value value;
-        if (!chanRead.Object(item, chnName, value) || !value.test())
-        {
-          feLogError(std::string("failed to get chanRead for channel") + std::string(chnName) + std::string("!"));
-          return LXe_OK;
-        }
-
-        //
-        JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
-        if (!jv)
-        { err += "channel \"";
-          err += chnName;
-          err += "\" data is NULL";
-          feLogError(err);
-          return LXe_OK;  }
-
-        // set chnIndex.
-        jv->chnIndex = i;
-
-        // set pointer at BaseInterface.
-        jv->baseInterface = m_userData.baseInterface;
-
-        // add s to sJSON.
-        if (jv->s.length() > 0)
-          sJSON += jv->s;
-      }
-    }
-
-    // do it.
-    try
-    {
-      if (sJSON.length() > 0)
-        b->setFromJSON(sJSON);
-    }
-    catch (FabricCore::Exception e)
-    {
-      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-      feLogError(err);
-    }
-
-    // done.
-    return LXe_OK;
-  }
-
-  void Instance::pins_Cleanup(void)
-  {
-    // note: for some reason the destructor doesn't get called,
-    //       so the workaround is to delete the base interface
-    //       and the rest of the user data here.
-
-    m_userData.clear();
   }
 
   LxResult Instance::isurf_GetSurface(ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)
@@ -1241,33 +1100,10 @@ namespace CanvasPI
   class Modifier : public CLxItemModifierServer
   {
    public:
-    static void initialize()
-    {
-      CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasPI ".mod");
-    }
-    
-    const char              *ItemType()                                                 LXx_OVERRIDE;
-    
-    CLxItemModifierElement  *Alloc   (CLxUser_Evaluation &eval, ILxUnknownID item_obj)  LXx_OVERRIDE;
+    static void initialize()  { CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasPI ".mod"); }
+    const char *ItemType()  LXx_OVERRIDE  { return SERVER_NAME_CanvasPI; }
+    CLxItemModifierElement *Alloc(CLxUser_Evaluation &eval, ILxUnknownID item_obj)   LXx_OVERRIDE { return new Element (eval, item_obj); }
   };
-
-  const char *Modifier::ItemType()
-  {
-    /*
-      The modifier should only associate itself with this item type.
-    */
-
-    return SERVER_NAME_CanvasPI;
-  }
-
-  CLxItemModifierElement *Modifier::Alloc(CLxUser_Evaluation &eval, ILxUnknownID item)
-  {
-    /*
-      Allocate and return the modifier element.
-    */
-
-    return new Element (eval, item);
-  }
 
   Instance *GetInstance(ILxUnknownID item_obj)
   {

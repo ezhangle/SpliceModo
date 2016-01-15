@@ -12,6 +12,150 @@
 
 namespace ItemCommon
 {
+  LxResult pins_Newborn(ILxUnknownID original, unsigned flags, ILxUnknownID item_obj, BaseInterface *baseInterface)
+  {
+    /*
+      This function is called when an item is added.
+      We store the pointer at the BaseInterface here so that the
+      functions JSONValue::io_Write() can write the JSON string
+      when the scene is saved.
+
+      note: this function is *not* called when a scene is loaded,
+            instead pins_AfterLoad() is called.
+    */
+
+    // store pointer at BaseInterface in JSON channel.
+    bool err = false;
+    CLxUser_Item item(item_obj);
+    if (item.test())
+    {
+      CLxUser_ChannelWrite chanWrite;
+      if (chanWrite.from(item))
+      {
+        char chnName[128];
+        for (int i=0;i<CHN_FabricJSON_NUM;i++)
+        {
+          CLxUser_Value value_json;
+          sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+          if (chanWrite.Object(item, chnName, value_json) && value_json.test())
+          {
+            JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
+            if (!jv)
+            {
+              err |= true;
+            }
+            else
+            {
+              jv->chnIndex      = i;
+              jv->baseInterface = baseInterface;
+            }
+          }
+        }
+      }
+    }
+    if (err)
+      feLogError("failed to store pointer at BaseInterface in JSON channel");
+
+    // done.
+    return LXe_OK;
+  }
+
+  LxResult pins_AfterLoad(ILxUnknownID item_obj, BaseInterface *baseInterface)
+  {
+    /*
+      This function is called when a scene was loaded.
+
+      We store the pointer at the BaseInterface here so that the
+      functions JSONValue::io_Write() can write the JSON string
+      when the scene is saved.
+
+      Furthermore we set the graph from the content (i.e. the string)
+      of the channel CHN_NAME_IO_FabricJSON.
+    */
+
+    // init err string.
+    std::string err = "pins_AfterLoad() failed: ";
+
+    // create item.
+    CLxUser_Item item(item_obj);
+    if (!item.test())
+    { err += "item(m_item_obj) failed";
+      feLogError(err);
+      return LXe_OK;  }
+
+    // check baseInterface.
+    if (!baseInterface)
+    { err += "baseInterface is NULL";
+      feLogError(err);
+      return LXe_OK;  }
+
+    // log.
+    std::string itemName;
+    item.GetUniqueName(itemName);
+    std::string info;
+    info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
+    feLog(info);
+
+    // create channel reader.
+    CLxUser_ChannelRead chanRead;
+    if (!chanRead.from(item))
+    { err += "failed to create channel reader.";
+      feLogError(err);
+      return LXe_OK;  }
+
+    // get the contents of all CHN_NAME_IO_FabricJSON channels and paste them together.
+    // (note: we also set the jv.chnIndex and pointer at BaseInterface here).
+    std::string sJSON = "";
+    {
+      char chnName[128];
+      for (int i=0;i<CHN_FabricJSON_NUM;i++)
+      {
+        // get value object.
+        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+        CLxUser_Value value;
+        if (!chanRead.Object(item, chnName, value) || !value.test())
+        {
+          feLogError(std::string("failed to get chanRead for channel") + std::string(chnName) + std::string("!"));
+          return LXe_OK;
+        }
+
+        //
+        JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+        if (!jv)
+        { err += "channel \"";
+          err += chnName;
+          err += "\" data is NULL";
+          feLogError(err);
+          return LXe_OK;  }
+
+        // set chnIndex.
+        jv->chnIndex = i;
+
+        // set pointer at BaseInterface.
+        jv->baseInterface = baseInterface;
+
+        // add s to sJSON.
+        if (jv->s.length() > 0)
+          sJSON += jv->s;
+      }
+    }
+
+    // do it.
+    try
+    {
+      if (sJSON.length() > 0)
+        baseInterface->setFromJSON(sJSON);
+    }
+    catch (FabricCore::Exception e)
+    {
+      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+      feLogError(err);
+    }
+
+    // done.
+    return LXe_OK;
+  }
+
   void pins_Doomed(BaseInterface *baseInterface)
   {
     if (baseInterface)

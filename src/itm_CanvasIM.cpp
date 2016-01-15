@@ -176,14 +176,6 @@ namespace CanvasIM
     Instance *m_Instance;
   };
 
-  class Modifier : public CLxItemModifierServer
-  {
-   public:
-    static void initialize()  { CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasIM ".mod"); }
-    const char *ItemType()  LXx_OVERRIDE  { return SERVER_NAME_CanvasIM; }
-    CLxItemModifierElement *Alloc(CLxUser_Evaluation &eval, ILxUnknownID item_obj)   LXx_OVERRIDE { return new Element (eval, item_obj); }
-  };
-
   Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
   {
     m_Instance = GetInstance(item_obj);
@@ -579,6 +571,14 @@ namespace CanvasIM
     // done.
     return;
   }
+
+  class Modifier : public CLxItemModifierServer
+  {
+   public:
+    static void initialize()  { CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasIM ".mod"); }
+    const char *ItemType()  LXx_OVERRIDE  { return SERVER_NAME_CanvasIM; }
+    CLxItemModifierElement *Alloc(CLxUser_Evaluation &eval, ILxUnknownID item_obj)   LXx_OVERRIDE { return new Element (eval, item_obj); }
+  };
 
   Instance *GetInstance(ILxUnknownID item_obj)
   {

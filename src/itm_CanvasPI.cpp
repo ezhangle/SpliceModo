@@ -261,7 +261,7 @@ namespace CanvasPI
     
     LxResult      stag_Get            (LXtID4 type, const char **tag)                                   LXx_OVERRIDE;
 
-    SurfDef      *Definition();
+    SurfDef      *getDefinition()     { return &m_surf_def; }
     
    private:
     int           m_offsets[4];
@@ -483,12 +483,6 @@ namespace CanvasPI
     return LXe_NOTFOUND;
   }
 
-  SurfDef *SurfElement::Definition()
-  {
-    // return a pointer to our surface definition.
-    return &m_surf_def;
-  }
-
   /*
     The surface itself represents the entire 3D surface. It is composed of
     surface elements, divided up in to bins, based on their material tagging.
@@ -515,7 +509,7 @@ namespace CanvasPI
     LxResult  surf_TagByIndex (LXtID4 type, unsigned int index, const char **stag)      LXx_OVERRIDE;
     LxResult  surf_GLCount    (unsigned int *count)                                     LXx_OVERRIDE;
     
-    SurfDef  *Definition();
+    SurfDef  *getDefinition() { return &m_surf_def; }
     
    private:
     SurfDef   m_surf_def;
@@ -581,26 +575,18 @@ namespace CanvasPI
       FETODO: If you have more than one bin, you'll need to add the correct
       code for allocating different bins.
     */
-    
-    CLxSpawner<SurfElement> spawner(SERVER_NAME_CanvasPI ".elmt");
-    SurfElement            *element    = NULL;
-    SurfDef                *definition = NULL;
-    
+
     if (index == 0)
     {
-      element = spawner.Alloc(ppvObj);
-    
+      CLxSpawner<SurfElement> spawner(SERVER_NAME_CanvasPI ".elmt");
+      SurfElement *element = element = spawner.Alloc(ppvObj);
       if (element)
       {
-        definition = element->Definition();
-            
-        if (definition)
-          definition->Copy(&m_surf_def);
-            
+        element->getDefinition()->Copy(&m_surf_def);
         return LXe_OK;
       }
     }
-    
+
     return LXe_FAILED;
   }
 
@@ -661,15 +647,6 @@ namespace CanvasPI
     return LXe_OK;
   }
     
-  SurfDef *Surface::Definition()
-  {
-    /*
-      Return a pointer to our surface definition.
-    */
-
-    return &m_surf_def;
-  }
-
   /*
     The instanceable object is spawned by our modifier. It has one task, which is
     to return a surface that matches the current state of the input channels.
@@ -686,10 +663,10 @@ namespace CanvasPI
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".instObj", srv);
     }
     
-    LxResult    instable_GetSurface (void **ppvObj)         LXx_OVERRIDE;
-    int         instable_Compare    (ILxUnknownID other)    LXx_OVERRIDE;
+    LxResult  instable_GetSurface (void **ppvObj)         LXx_OVERRIDE;
+    int       instable_Compare    (ILxUnknownID other)    LXx_OVERRIDE;
     
-    SurfDef    *Definition();
+    SurfDef  *getDefinition()     { return &m_surf_def; }
     
    private:
     SurfDef     m_surf_def;
@@ -703,18 +680,10 @@ namespace CanvasPI
     */
 
     CLxSpawner<Surface> spawner(SERVER_NAME_CanvasPI ".surf");
-    Surface            *surface    = NULL;
-    SurfDef            *definition = NULL;
-
-    surface = spawner.Alloc(ppvObj);
-    
+    Surface *surface = spawner.Alloc(ppvObj);
     if (surface)
     {
-      definition = surface->Definition();
-    
-      if (definition)
-        definition->Copy(&m_surf_def);
-        
+      surface->getDefinition()->Copy(&m_surf_def);
       return LXe_OK;
     }
     
@@ -738,15 +707,6 @@ namespace CanvasPI
       return m_surf_def.Compare(&other->m_surf_def);
     
     return 0;
-  }
-
-  SurfDef *SurfInst::Definition()
-  {
-    /*
-      Return a pointer to our surface definition.
-    */
-
-    return &m_surf_def;
   }
 
   /*
@@ -828,26 +788,14 @@ namespace CanvasPI
     */
 
     CLxUser_Item item(m_item_obj);
-    if (!item.test())
+    if (item.test())
     {
-      feLogError("Instance::isurf_GetSurface(): item(m_item_obj) failed");
-      return LXe_FAILED;
+      CLxUser_ChannelRead chan_read(chanRead_obj);
+      Surface *surface = m_surf_spawn.Alloc(ppvObj);
+      if (surface)
+        return surface->getDefinition()->Evaluate(chan_read, item);
     }
 
-    CLxUser_ChannelRead chan_read (chanRead_obj);
-    Surface            *surface    = NULL;
-    SurfDef            *definition = NULL;
-
-    surface = m_surf_spawn.Alloc(ppvObj);
-    
-    if (surface)
-    {
-      definition = surface->Definition();
-    
-      if (definition)
-        return definition->Evaluate(chan_read, item);
-    }
-    
     return LXe_FAILED;
   }
 
@@ -882,21 +830,11 @@ namespace CanvasPI
     */
     
     CLxUser_Attributes  attr(attr_obj);
-    Surface            *surface    = NULL;
-    SurfDef            *definition = NULL;
-    
-    surface = m_surf_spawn.Alloc(ppvObj);
-    
+    Surface *surface = m_surf_spawn.Alloc(ppvObj);
     if (surface)
     {
-      definition = surface->Definition();
-    
-      if (definition)
-      {
-        definition->Copy(&m_surf_def);
-        
-        return definition->Evaluate(attr, index);
-      }
+      surface->getDefinition()->Copy(&m_surf_def);
+      return surface->getDefinition()->Evaluate(attr, index);
     }
     
     return LXe_FAILED;
@@ -1056,8 +994,6 @@ namespace CanvasPI
 
     CLxSpawner <SurfInst>     spawner (SERVER_NAME_CanvasPI ".instObj");
     CLxUser_ValueReference    val_ref;
-    SurfInst                 *instObj         = NULL;
-    SurfDef                  *definition      = NULL;
     ILxUnknownID              object          = NULL;
     unsigned                  temp_chan_index = m_chan_index;
     
@@ -1070,7 +1006,7 @@ namespace CanvasPI
       the object it contains to our spawned instanceable object.
     */
     
-    instObj = spawner.Alloc(object);
+    SurfInst *instObj = spawner.Alloc(object);
     
     if (instObj && attr.ObjectRW(temp_chan_index++, val_ref))
     {
@@ -1080,20 +1016,13 @@ namespace CanvasPI
         Copy the cached surface definition to the surface definition
         on the instanceable object.
       */
-        
-      definition = instObj->Definition();
-        
-      if (definition)
-      {
-        definition->Copy (&m_surf_def);
+      instObj->getDefinition()->Copy(&m_surf_def);
             
-        /*
-          Call Evaluate on the Surface Defintion to get the
-          channels required for evaluation.
-        */
-            
-        definition->Evaluate (attr, temp_chan_index);
-      }
+      /*
+        Call Evaluate on the Surface Defintion to get the
+        channels required for evaluation.
+      */
+      instObj->getDefinition()->Evaluate(attr, temp_chan_index);
     }
   }
 

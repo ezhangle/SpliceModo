@@ -1066,8 +1066,8 @@ namespace CanvasPI
     Package () : m_inst_spawn(SERVER_NAME_CanvasPI ".inst") {}
     
     LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)  LXx_OVERRIDE  { return ItemCommon::pkg_SetupChannels(addChan_obj, true); }
-    LxResult    pkg_Attach          (void **ppvObj)             LXx_OVERRIDE;
-    LxResult    pkg_TestInterface   (const LXtGUID *guid)       LXx_OVERRIDE;
+    LxResult    pkg_Attach          (void **ppvObj)             LXx_OVERRIDE  { m_inst_spawn.Alloc(ppvObj); return (ppvObj[0] ? LXe_OK : LXe_FAILED); }
+    LxResult    pkg_TestInterface   (const LXtGUID *guid)       LXx_OVERRIDE  { return m_inst_spawn.TestInterfaceRC(guid); }
 
     LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE  { return ItemCommon::cui_UIHints(channelName, hints_obj); }
 
@@ -1079,21 +1079,6 @@ namespace CanvasPI
    private:
     CLxSpawner <Instance> m_inst_spawn;
   };
-
-  LxResult Package::pkg_Attach(void **ppvObj)
-  {
-    // allocate an instance of the package instance.
-    m_inst_spawn.Alloc(ppvObj);
-    return (ppvObj[0] ? LXe_OK : LXe_FAILED);
-  }
-
-  LxResult Package::pkg_TestInterface(const LXtGUID *guid)
-  {
-    /* This is called for the various interfaces this package could
-       potentially support, it should return a result code to indicate if it
-       implements the specified interface. */
-    return m_inst_spawn.TestInterfaceRC(guid);
-  }
 
   void Package::sil_ItemAddChannel(ILxUnknownID item_obj)
   {
@@ -1154,9 +1139,9 @@ namespace CanvasPI
   class Element : public CLxItemModifierElement
   {
    public:
-    Element           (CLxUser_Evaluation &eval, ILxUnknownID item_obj);
-    bool        Test  (ILxUnknownID item_obj)                               LXx_OVERRIDE;
-    void        Eval  (CLxUser_Evaluation &eval, CLxUser_Attributes &attr)  LXx_OVERRIDE;
+    Element     (CLxUser_Evaluation &eval, ILxUnknownID item_obj);
+    bool    Test(ILxUnknownID item_obj)                               LXx_OVERRIDE  { return ItemCommon::Test(item_obj, m_usrChan); }
+    void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)  LXx_OVERRIDE;
     
    private:
     int                                 m_chan_index;
@@ -1200,38 +1185,6 @@ namespace CanvasPI
     */
     
     ModoTools::usrChanCollect(item, m_usrChan);
-  }
-
-  bool Element::Test(ILxUnknownID item_obj)
-  {
-    /*
-      When the list of user channels for a particular item changes, the
-      modifier will be invalidated. This function will be called to check
-      if the modifier we allocated previously matches what we'd allocate
-      if the Alloc function was called now. We return true if it does.
-    */
-
-    CLxUser_Item             item(item_obj);
-    std::vector <ModoTools::UsrChnDef> tmp;
-
-    if (item.test())
-    {
-      ModoTools::usrChanCollect(item, tmp);
-
-      if (tmp.size() == m_usrChan.size())
-      {
-        bool foundDifference = false;
-        for (size_t i = 0; i < tmp.size(); i++)
-          if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
-          {
-            foundDifference = true;
-            break;
-          }
-        return !foundDifference;
-      }
-    }
-
-    return false;
   }
 
   void Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)

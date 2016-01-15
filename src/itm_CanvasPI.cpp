@@ -1047,6 +1047,7 @@ namespace CanvasPI
       srv->AddInterface       (new CLxIfc_Package           <Package>);
       srv->AddInterface       (new CLxIfc_StaticDesc        <Package>);
       srv->AddInterface       (new CLxIfc_SceneItemListener <Package>);
+      srv->AddInterface        (new CLxIfc_ChannelUI          <Package>);
       lx::AddServer           (SERVER_NAME_CanvasPI, srv);
     }
 

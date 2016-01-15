@@ -579,7 +579,7 @@ namespace CanvasPI
     if (index == 0)
     {
       CLxSpawner<SurfElement> spawner(SERVER_NAME_CanvasPI ".elmt");
-      SurfElement *element = element = spawner.Alloc(ppvObj);
+      SurfElement *element = spawner.Alloc(ppvObj);
       if (element)
       {
         element->getDefinition()->Copy(&m_surf_def);

@@ -1065,11 +1065,11 @@ namespace CanvasPI
 
     Package () : m_inst_spawn(SERVER_NAME_CanvasPI ".inst") {}
     
-    LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)  LXx_OVERRIDE  { ItemCommon::pkg_SetupChannels(addChan_obj, true); }
+    LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)  LXx_OVERRIDE  { return ItemCommon::pkg_SetupChannels(addChan_obj, true); }
     LxResult    pkg_Attach          (void **ppvObj)             LXx_OVERRIDE;
     LxResult    pkg_TestInterface   (const LXtGUID *guid)       LXx_OVERRIDE;
 
-    LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE  { ItemCommon::cui_UIHints(channelName, hints_obj); }
+    LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE  { return ItemCommon::cui_UIHints(channelName, hints_obj); }
 
     void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
     void        sil_ItemChannelName (ILxUnknownID item_obj, unsigned int index)         LXx_OVERRIDE;

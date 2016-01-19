@@ -168,9 +168,7 @@ namespace CanvasIM
     void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)  LXx_OVERRIDE;
 
    private:
-    int                                 m_eval_index_FabricActive;
-    int                                 m_eval_index_FabricEval;
-    int                                 m_eval_index_FabricJSON0;
+    int                                 m_first_eval_index;
     std::vector <ModoTools::UsrChnDef>  m_usrChan;
 
     Instance *m_Instance;
@@ -197,15 +195,13 @@ namespace CanvasIM
       return;
 
     // add the fixed input channels to eval.
-    m_eval_index_FabricActive   = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-    m_eval_index_FabricEval     = eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+    m_first_eval_index = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+    eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
     char chnName[128];
     for (int i=0;i<CHN_FabricJSON_NUM;i++)
     {
       sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
-      unsigned int eval_index = eval.AddChan(item, chnName, LXfECHAN_READ);
-      if (i == 0)
-        m_eval_index_FabricJSON0 = eval_index;
+      eval.AddChan(item, chnName, LXfECHAN_READ);
     }
 
     // collect all the user channels and add them to eval.
@@ -254,12 +250,11 @@ namespace CanvasIM
       return; }
 
     // read the fixed input channels and return early if the FabricActive flag is disabled.
-    int FabricActive = attr.Bool(m_eval_index_FabricActive, false);
-    int FabricEval   = attr.Int (m_eval_index_FabricEval);
+    unsigned int eval_index = m_first_eval_index;
+    int FabricActive = attr.Bool(eval_index++, false);
+    int FabricEval   = attr.Int (eval_index++);
     if (!FabricActive)
-    {
       return;
-    }
 
     // Fabric Engine (step 1): loop through all the DFG's input ports and set
     //                         their values from the matching Modo user channels.

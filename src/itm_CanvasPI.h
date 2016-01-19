@@ -3,9 +3,11 @@
 
 namespace CanvasPI
 {
+  struct piUserData;
   void initialize();
   class Instance;
   Instance *GetInstance(ILxUnknownID item_obj);
+  piUserData *GetInstanceUserData(ILxUnknownID item_obj);
   BaseInterface *GetBaseInterface(ILxUnknownID item_obj);
 };
 

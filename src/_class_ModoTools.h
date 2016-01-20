@@ -187,6 +187,9 @@ class ModoTools
   // this is done by calling the command "FabricCanvasIncEval" which will increase
   // the value of the internal integer channel called "FabricEval" by 1.
   static void InvalidateItem(ILxUnknownID item_obj);
+
+  // clears Modo's undo stack.
+  static void ClearUndoStack();
 };
 
 #endif  // SRC__CLASS_MODOTOOLS_H_

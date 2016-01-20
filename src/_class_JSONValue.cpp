@@ -3,6 +3,7 @@
 #include "_class_BaseInterface.h"
 #include "_class_JSONValue.h"
 
+#define JSONVALUE_DEBUG_LOG   0   // if != 0 then log info when reading/writing JSONValue channels.
 
 LxResult JSONValue::val_Copy(ILxUnknownID other)
 {
@@ -10,6 +11,7 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     Copy another instance of our custom value to this one. We just cast
     the object to our internal structure and then copy the data.
   */
+  if (!other) return LXe_FAILED;
 
   _JSONValue *otherData = (_JSONValue *)((void *)other);
   if (!otherData) return LXe_FAILED;
@@ -70,25 +72,70 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
 
     NOTE: we do not write the string m_data.s, instead we write
           the JSON string BaseInterface::getJSON().
+
+    [FE-4927] unfortunately these types of channels can only store 2^16 bytes,
+              so until that limitation is present the JSON string is split
+              into chunks of size CHN_FabricJSON_MAX_BYTES and divided over
+              all the CHN_NAME_IO_FabricJSON channels.
+              Not the prettiest workaround, but it works.
   */
   CLxUser_BlockWrite write(stream);
-  feLog("JSONValue::io_Write()");
+  char preLog[128];
+  sprintf(preLog, "JSONValue::io_Write(m_data.chnIndex = %ld)", m_data.chnIndex);
 
-  if (!write.test())  return LXe_FAILED;
+  if (!write.test())        return LXe_FAILED;
+  if (m_data.chnIndex < 0)  return LXe_FAILED;
+
+  // note: we never write 'nothing' (zero bytes) or else
+  // the CHN_NAME_IO_FabricJSON channels won't get properly
+  // initialized when loading a scene.
+  char pseudoNothing[8] = " ";  // one byte of data.
 
   // write the JSON string.
   if (!m_data.baseInterface)
-  { feLogError("JSONValue::io_Write(): pointer at BaseInterface is NULL!");
+  { feLogError(std::string(preLog) + ": pointer at BaseInterface is NULL!");
     return LXe_FAILED;  }
   try
   {
+    // get the JSON string and its length.
     std::string json = m_data.baseInterface->getJSON();
-    if (json.c_str())   return write.WriteString(json.c_str());
-    else                return write.WriteString("");
+    uint32_t len = json.length();
+
+    // trivial case, i.e. nothing to write?
+    if ((uint32_t)m_data.chnIndex * CHN_FabricJSON_MAX_BYTES >= len)
+      return write.WriteString(pseudoNothing);
+
+    // string too long?
+    if (len > (uint32_t)CHN_FabricJSON_NUM * CHN_FabricJSON_MAX_BYTES)
+    {
+      if (m_data.chnIndex == 0)
+      {
+        char log[256];
+        sprintf(log, ": the JSON string is %ld long!", len);
+        feLogError(std::string(preLog) + log);
+        sprintf(log, ": it exceeds the max size of %ld bytes!", (uint32_t)CHN_FabricJSON_NUM * CHN_FabricJSON_MAX_BYTES);
+        feLogError(std::string(preLog) + log);
+      }
+      return LXe_FAILED;
+    }
+
+    // extract the part that will be saved for this channel.
+    std::string part;
+    part = json.substr((uint32_t)m_data.chnIndex * CHN_FabricJSON_MAX_BYTES, CHN_FabricJSON_MAX_BYTES);
+
+    // write.
+    if (JSONVALUE_DEBUG_LOG)
+    {
+      char log[128];
+      sprintf(log, ": writing %.1f kilobytes (%ld bytes)", (float)part.length() / 1024.0, (long)part.length());
+      feLog(std::string(preLog) + log);
+    }
+    if (part.length() && part.c_str())   return write.WriteString(part.c_str());
+    else                                 return write.WriteString(pseudoNothing);
   }
   catch (FabricCore::Exception e)
   {
-    std::string err = "JSONValue::io_Write(): ";
+    std::string err = std::string(preLog) + ": ";
     err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
     feLogError(err);
     return LXe_FAILED;
@@ -107,12 +154,26 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
   */
 
   CLxUser_BlockRead read(stream);
-  feLog("JSONValue::io_Read()");
+  char preLog[128];
+  sprintf(preLog, "JSONValue::io_Read()");
 
-  if (!read.test())  return LXe_FAILED;
-
-  if (read.Read(m_data.s))   return LXe_OK;
-  else                          return LXe_FAILED;
+  if (read.test() && read.Read(m_data.s))
+  {
+    if (JSONVALUE_DEBUG_LOG && m_data.s.length() > 1)
+    {
+      char log[128];
+      sprintf(log, ": read %.1f kilobytes (%ld bytes)", (float)m_data.s.length() / 1024.0, (long)m_data.s.length());
+      feLog(std::string(preLog) + log);
+    }
+    return LXe_OK;
+  }
+  else
+  {
+    if (JSONVALUE_DEBUG_LOG)
+      feLog(std::string(preLog) + ": read error");
+    m_data.s = " ";
+    return LXe_FAILED;
+  }
 }
 
 LXtTagInfoDesc JSONValue::descInfo[] =

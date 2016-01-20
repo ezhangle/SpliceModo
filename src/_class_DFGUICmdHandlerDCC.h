@@ -384,7 +384,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Connect            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Connect T;
@@ -392,7 +392,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Disconnect         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Disconnect T;
@@ -400,7 +400,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddGraph           ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddGraph T;
@@ -408,7 +408,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddFunc            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddFunc T;
@@ -416,7 +416,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_InstPreset         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_InstPreset T;
@@ -424,7 +424,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddVar             ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddVar T;
@@ -432,7 +432,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddGet             ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddGet T;
@@ -440,7 +440,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddSet             ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddSet T;
@@ -448,7 +448,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddPort            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddPort T;
@@ -456,7 +456,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_CreatePreset       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_CreatePreset T;
@@ -464,7 +464,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_EditPort           ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_EditPort T;
@@ -472,7 +472,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_RemovePort         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_RemovePort T;
@@ -480,7 +480,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_MoveNodes          ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_MoveNodes T;
@@ -488,7 +488,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ResizeBackDrop     ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ResizeBackDrop T;
@@ -496,7 +496,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ImplodeNodes       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ImplodeNodes T;
@@ -504,7 +504,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ExplodeNode T;
@@ -512,7 +512,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddBackDrop T;
@@ -520,7 +520,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetTitle       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetTitle T;
@@ -528,7 +528,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment     ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetNodeComment T;
@@ -536,7 +536,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetCode            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetCode T;
@@ -544,7 +544,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_EditNode         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_EditNode T;
@@ -552,7 +552,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_RenamePort         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_RenamePort T;
@@ -560,7 +560,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_Paste              ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_Paste T;
@@ -568,7 +568,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetArgType         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetArgType T;
@@ -576,7 +576,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetArgValue        ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetArgValue T;
@@ -584,7 +584,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetExtDeps         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetExtDeps T;
@@ -592,7 +592,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetPortDefaultValue T;
@@ -600,7 +600,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath      ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetRefVarPath T;
@@ -608,7 +608,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset         ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SplitFromPreset T;
@@ -616,7 +616,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts       ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_ReorderPorts T;
@@ -624,7 +624,7 @@ public:
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
-                                              cmd = NULL; }
+                                             cmd = NULL; }
     }
   }
 };

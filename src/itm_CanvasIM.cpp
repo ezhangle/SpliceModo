@@ -206,7 +206,7 @@ namespace CanvasIM
 
     // collect all the user channels and add them to eval.
     ModoTools::usrChanCollect(item, m_usrChan);
-    for (unsigned i = 0; i < m_usrChan.size(); i++)
+    for (unsigned i=0;i<m_usrChan.size();i++)
     {
       ModoTools::UsrChnDef &c = m_usrChan[i];
 

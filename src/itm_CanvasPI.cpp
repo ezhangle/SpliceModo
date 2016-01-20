@@ -10,6 +10,8 @@
 
 static CLxItemType gItemType_CanvasPI(SERVER_NAME_CanvasPI);
 
+#define FELOG 0
+
 namespace CanvasPI
 {
   // user data structure.
@@ -78,8 +80,6 @@ namespace CanvasPI
     { feLogError("SurfDef::Prepare(): GetBaseInterface() returned NULL");
       return LXe_INVALIDARG; }
 
-feLog("SurfDef::Prepare( 0 )");
-
     // check.
     CLxUser_Item item(item_obj);
     if (!eval.test() || !item.test())   return LXe_NOINTERFACE;
@@ -101,10 +101,12 @@ feLog("SurfDef::Prepare( 0 )");
       eval.AddChan(item, chnName, LXfECHAN_READ);
     }
 
-feLog("SurfDef::Prepare( 1 )");
     // collect all the user channels and add them to eval.
     ModoTools::usrChanCollect(item, m_usrChan);
-    for (unsigned i = 0; i < m_usrChan.size(); i++)
+char si[128];
+sprintf(si, "%ld", m_usrChan.size());
+if (FELOG) feLog(std::string("SurfDef::Prepare(), m_usrChan.size() = ") + std::string(si));
+    for (unsigned i=0;i<m_usrChan.size();i++)
     {
       ModoTools::UsrChnDef &c = m_usrChan[i];
 
@@ -126,7 +128,9 @@ feLog("SurfDef::Prepare( 1 )");
     if (!attr || !attr.test())
       return LXe_NOINTERFACE;
 
-feLog("SurfDef::EvaluateMain()");
+char si[128];
+sprintf(si, "%ld", m_usrChan.size());
+if (FELOG) feLog(std::string("SurfDef::EvaluateMain(), m_usrChan.size() = ") + std::string(si));
 
     //
     if (!m_userData)
@@ -484,11 +488,15 @@ feLog("SurfDef::EvaluateMain()");
     if (!chan_read.test() || !item.test())  return LXe_NOINTERFACE;
     
     // collect the user channels on this item.
-    ModoTools::usrChanCollect(item, m_usrChan);
-    
-    // read fixed channels.
+    //ModoTools::usrChanCollect(item, m_usrChan);char si[128];
+
+char si[128];
+sprintf(si, "%ld", m_usrChan.size());
+if (FELOG) feLog(std::string("SurfDef::Evaluate(), m_usrChan.size() = ") + std::string(si));
+
+// read fixed channels.
     int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
-    int FabricEval = chan_read.IValue(item, CHN_NAME_IO_FabricEval);
+    int FabricEval   = chan_read.IValue(item, CHN_NAME_IO_FabricEval);
     
     /*
       Enumerate over the user channels and read them here. We don't do
@@ -497,7 +505,7 @@ feLog("SurfDef::EvaluateMain()");
       FETODO: Add support for the other channel types and do something with
       the channels.
     */
-    for (size_t i = 0; i < m_usrChan.size(); i++)
+    for (size_t i=0;i<m_usrChan.size();i++)
     {
       ModoTools::UsrChnDef *channel = &m_usrChan[i];
       unsigned              type    = 0;
@@ -520,16 +528,18 @@ feLog("SurfDef::EvaluateMain()");
     // This function is used to copy the cached channel values from one
     // surface definition to another. We also copy the cached user channels.
     
+if (FELOG) feLog(std::string("SurfDef::Copy()"));
     if (!other) return LXe_INVALIDARG;
 
     // copy the pointer at the user data.
     m_userData = other->m_userData;
 
     // copy the cached user channel information.
-    m_usrChan.clear();
-    m_usrChan.reserve(other->m_usrChan.size());
-    std::copy(other->m_usrChan.begin(), other->m_usrChan.end(), std::back_inserter(m_usrChan));
-   
+    //m_usrChan.clear();
+    //m_usrChan.reserve(other->m_usrChan.size());
+    //std::copy(other->m_usrChan.begin(), other->m_usrChan.end(), std::back_inserter(m_usrChan));
+m_usrChan = other->m_usrChan;   
+
     // done.
     return LXe_OK;
   }
@@ -541,6 +551,7 @@ feLog("SurfDef::EvaluateMain()");
       should work like strcmp and return 0 for identical, or -1/1 to imply
       relative positioning.
     */
+if (FELOG) feLog(std::string("SurfDef::Compare()"));
     
     if (!other)   return 0;
 
@@ -877,6 +888,7 @@ feLog("SurfDef::EvaluateMain()");
       SurfElement *element = spawner.Alloc(ppvObj);
       if (element)
       {
+if (FELOG) feLog(std::string("Surface::surf_BinByIndex()"));
         element->m_surf_def.Copy(&m_surf_def);
         return LXe_OK;
       }
@@ -980,6 +992,7 @@ feLog("SurfDef::EvaluateMain()");
     Surface *surface = spawner.Alloc(ppvObj);
     if (surface)
     {
+if (FELOG) feLog(std::string("SurfInst::instable_GetSurface()"));
       surface->m_surf_def.Copy(&m_surf_def);
       return LXe_OK;
     }
@@ -998,6 +1011,7 @@ feLog("SurfDef::EvaluateMain()");
     CLxSpawner<SurfInst>  spawner(SERVER_NAME_CanvasPI ".instObj");
     SurfInst             *other = spawner.Cast(other_obj);
     
+if (FELOG) feLog(std::string("SurfInst::instable_Compare()"));
     if (other)  return m_surf_def.Compare(&other->m_surf_def);
     else        return 0;
   }
@@ -1122,6 +1136,7 @@ feLog("SurfDef::EvaluateMain()");
       at the same time.
     */
     
+feLog(std::string("Instance::isurf_Evaluate()"));
     CLxUser_Attributes attr(attr_obj);
     Surface *surface = m_surf_spawn.Alloc(ppvObj);
     if (surface)
@@ -1268,6 +1283,7 @@ feLog("SurfDef::EvaluateMain()");
       surface definition to it - then we evaluate it's channels.
     */
 
+feLog(std::string("Element::isurf_Eval(0)"));
     if (!eval || !attr)
       return;
     
@@ -1285,6 +1301,7 @@ feLog("SurfDef::EvaluateMain()");
     unsigned int temp_chan_index = m_eval_index_InstObj;
     if (instObj && attr.ObjectRW(temp_chan_index++, val_ref))
     {
+feLog(std::string("Element::isurf_Eval(1)"));
       val_ref.SetObject(object);
     
       /*

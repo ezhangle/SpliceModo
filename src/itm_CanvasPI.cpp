@@ -78,6 +78,8 @@ namespace CanvasPI
     { feLogError("SurfDef::Prepare(): GetBaseInterface() returned NULL");
       return LXe_INVALIDARG; }
 
+feLog("SurfDef::Prepare( 0 )");
+
     // check.
     CLxUser_Item item(item_obj);
     if (!eval.test() || !item.test())   return LXe_NOINTERFACE;
@@ -99,6 +101,7 @@ namespace CanvasPI
       eval.AddChan(item, chnName, LXfECHAN_READ);
     }
 
+feLog("SurfDef::Prepare( 1 )");
     // collect all the user channels and add them to eval.
     ModoTools::usrChanCollect(item, m_usrChan);
     for (unsigned i = 0; i < m_usrChan.size(); i++)
@@ -122,6 +125,8 @@ namespace CanvasPI
     // nothing to do?
     if (!attr || !attr.test())
       return LXe_NOINTERFACE;
+
+feLog("SurfDef::EvaluateMain()");
 
     //
     if (!m_userData)
@@ -177,7 +182,7 @@ namespace CanvasPI
 
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_usrChan);
           if (!cd || cd->eval_index < 0)
-          { err  = "unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+          { err  = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
             break;  }
 
           // "DFG port value = item user channel".
@@ -332,7 +337,7 @@ namespace CanvasPI
           const char *portName = graph.getExecPortName(fi);
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_usrChan);
           if (!cd || cd->eval_index < 0)
-          { err = "unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+          { err = "(step 3/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
             break;  }
 
           // "item user channel = DFG port value".

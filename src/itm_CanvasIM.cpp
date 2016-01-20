@@ -276,7 +276,7 @@ namespace CanvasIM
 
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_usrChan);
           if (!cd || cd->eval_index < 0)
-          { err  = "unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+          { err  = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
             break;  }
 
           // "DFG port value = item user channel".
@@ -431,7 +431,7 @@ namespace CanvasIM
           const char *portName = graph.getExecPortName(fi);
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_usrChan);
           if (!cd || cd->eval_index < 0)
-          { err = "unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+          { err = "(step 3/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
             break;  }
 
           // "item user channel = DFG port value".

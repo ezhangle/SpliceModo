@@ -65,7 +65,7 @@ FabricDFGWidget::~FabricDFGWidget()
   }
 }
 
-FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound)
+FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound, bool callRefreshGraph)
 {
   if (!in_baseInterface)
     return NULL;
@@ -128,7 +128,9 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
     }
 
     if (it->second)
-      it->second->refreshGraph();
+      if (callRefreshGraph)
+        it->second->refreshGraph();
+
     return it->second;
   }
   catch (FabricCore::Exception e)

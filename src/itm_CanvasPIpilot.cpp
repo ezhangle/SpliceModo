@@ -101,7 +101,7 @@ struct emUserData
         try
         {
           // delete widget and base interface.
-          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface);
           if (w) delete w;
           delete baseInterface;
           baseInterface = NULL;
@@ -1231,7 +1231,7 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
       try
       {
         // delete only widget.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface);
         if (w) delete w;
       }
       catch (FabricCore::Exception e)

@@ -41,7 +41,7 @@ namespace CanvasIM
       {
         feLog("CanvasIM::Instance::~Instance() delete BaseInterface");
         // delete widget and base interface.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface, false);
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_baseInterface);
         if (w) delete w;
         delete m_baseInterface;
         m_baseInterface = NULL;

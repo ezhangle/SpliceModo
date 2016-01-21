@@ -62,6 +62,10 @@ void feLog(const std::string &s);
 void feLogError(void *userData, const char *s, unsigned int length);
 void feLogError(void *userData, const std::string &s);
 void feLogError(const std::string &s);
+void feLogDebug(void *userData, const char *s, unsigned int length);
+void feLogDebug(void *userData, const std::string &s);
+void feLogDebug(const std::string &s);
+void feLogDebug(const std::string &s, int number);
 
 #endif  // SRC_PLUGIN_H_
 

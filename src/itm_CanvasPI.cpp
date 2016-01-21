@@ -61,8 +61,8 @@ namespace CanvasPI
    public:
     SurfDef() { m_userData = NULL; }
     
-    LxResult Prepare     (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *eval_index);
-    LxResult EvaluateMain(CLxUser_Attributes &attr, unsigned eval_index);
+    LxResult Prepare     (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex);
+    LxResult EvaluateMain(CLxUser_Attributes &attr, unsigned evalIndex);
     LxResult Evaluate    (CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj);
     LxResult Copy        (SurfDef *other);
     int      Compare     (SurfDef *other);
@@ -70,7 +70,7 @@ namespace CanvasPI
     piUserData *m_userData;
   };
 
-  LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *eval_index)
+  LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex)
   {
     // init pointer at user data and get the base interface.
     m_userData = NULL;
@@ -82,7 +82,7 @@ namespace CanvasPI
     // check.
     CLxUser_Item item(item_obj);
     if (!eval.test() || !item.test())   return LXe_NOINTERFACE;
-    if (!eval_index)                    return LXe_INVALIDARG;
+    if (!evalIndex)                     return LXe_INVALIDARG;
     
     // set pointer at user data.
     m_userData = GetInstanceUserData(item_obj);
@@ -91,7 +91,7 @@ namespace CanvasPI
       return LXe_INVALIDARG; }
 
     // add the fixed input channels to eval.
-    *eval_index = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+    *evalIndex = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
     eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
     char chnName[128];
     for (int i=0;i<CHN_FabricJSON_NUM;i++)
@@ -118,7 +118,7 @@ namespace CanvasPI
     return LXe_OK;
   }
   
-  LxResult SurfDef::EvaluateMain(CLxUser_Attributes &attr, unsigned eval_index)
+  LxResult SurfDef::EvaluateMain(CLxUser_Attributes &attr, unsigned evalIndex)
   {
     // nothing to do?
     if (!attr || !attr.test())
@@ -151,12 +151,14 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): invalid graph");
       return LXe_OK; }
 
+    // make ud.polymesh a valid, empty mesh.
+    m_userData->polymesh.setEmptyMesh();
+
     // read the fixed input channels and return early if the FabricActive flag is disabled.
-    int FabricActive = attr.Bool(eval_index++, false);
-    int FabricEval   = attr.Int (eval_index++);
+    int FabricActive = attr.Bool(evalIndex++, false);
+    int FabricEval   = attr.Int (evalIndex++);
     if (!FabricActive)
       return LXe_OK;
-
 
     // Fabric Engine (step 1): loop through all the DFG's input ports and set
     //                         their values from the matching Modo user channels.
@@ -326,7 +328,9 @@ namespace CanvasPI
         for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
         {
           // if the port has the wrong type then skip it.
-          if (graph.getExecPortType(fi) != FabricCore::DFGPortType_Out)
+          std::string resolvedType = graph.getExecPortResolvedType(fi);
+          if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_Out
+              || resolvedType              == "PolygonMesh"  )
             continue;
 
           // get pointer at matching channel definition.
@@ -465,6 +469,58 @@ namespace CanvasPI
       }
     }
 
+    // Fabric Engine (step 4): find all the PolygonMesh output ports and merge
+    //                         them into m_userData->polymesh.
+    {
+      try
+      {
+        char        serr[256];
+        std::string err = "";
+
+        for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
+        {
+          // if the port has the wrong type then skip it.
+          std::string resolvedType = graph.getExecPortResolvedType(fi);
+          if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_Out
+              || resolvedType              != "PolygonMesh"  )
+            continue;
+
+          // put the port's polygon mesh in tmpMesh.
+          const char *portName = graph.getExecPortName(fi);
+          _polymesh tmpMesh;
+          int retGet = tmpMesh.setFromDFGArg(binding, portName);
+          if (retGet)
+          {
+            sprintf(serr, "%d", retGet);
+            err = "failed to get mesh from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
+            break;
+          }
+
+          // merge tmpMesh into m_userData->polymesh.
+          if (!m_userData->polymesh.merge(tmpMesh))
+          {
+            sprintf(serr, "%d", retGet);
+            err = "failed to merge current mesh with mesh from DFG port \"" + std::string(portName) + "\"";
+            break;
+          }
+        }
+
+        // error?
+        if (err != "")
+        {
+          m_userData->polymesh.clear();
+          feLogError(err);
+          return LXe_OK;
+        }
+      }
+      catch (FabricCore::Exception e)
+      {
+        m_userData->polymesh.clear();
+        std::string s = std::string("SurfDef::EvaluateMain()(step 4): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        feLogError(s);
+      }
+    }
+
     // done.
     return LXe_OK;
   }
@@ -481,7 +537,7 @@ namespace CanvasPI
     if (!m_userData)                        return LXe_NOINTERFACE;
     
     // collect the user channels on this item.
-    //ModoTools::usrChanCollect(item, m_usrChan);char si[128];
+    //ModoTools::usrChanCollect(item, m_usrChan);
 
     // read fixed channels.
     int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
@@ -1253,7 +1309,7 @@ namespace CanvasPI
       surface definition to it - then we evaluate it's channels.
     */
 
-feLog(std::string("Element::Eval()"));
+feLogDebug(std::string("Element::Eval()"));
     if (!eval || !attr)
       return;
     

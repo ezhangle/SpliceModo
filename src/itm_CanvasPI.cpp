@@ -537,7 +537,7 @@ namespace CanvasPI
     if (!m_userData)                        return LXe_NOINTERFACE;
     
     // collect the user channels on this item.
-    //ModoTools::usrChanCollect(item, m_usrChan);
+    //ModoTools::usrChanCollect(item, m_userData->usrChan);
 
     // read fixed channels.
     int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
@@ -1309,7 +1309,6 @@ namespace CanvasPI
       surface definition to it - then we evaluate it's channels.
     */
 
-feLogDebug(std::string("Element::Eval()"));
     if (!eval || !attr)
       return;
     

@@ -216,6 +216,14 @@ void ModoTools::usrChanCollect(CLxUser_Item &item, std::vector <ModoTools::UsrCh
   }
 }
 
+bool ModoTools::usrChanHasUnsetEvalIndex(const std::vector <UsrChnDef> &usrChan)
+{
+  for (unsigned i = 0; i < usrChan.size(); i++)
+    if (usrChan[i].eval_index < 0)
+      return true;
+  return false;
+}
+
 ModoTools::UsrChnDef *ModoTools::usrChanGetFromName(std::string channelName, std::vector <ModoTools::UsrChnDef> &usrChan)
 {
   // "normal" channel?

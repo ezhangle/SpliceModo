@@ -72,6 +72,7 @@ namespace CanvasPI
 
   LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex)
   {
+    feLogDebug("yay_prepare");
     // init pointer at user data and get the base interface.
     m_userData = NULL;
     BaseInterface *b = GetBaseInterface(item_obj);
@@ -90,6 +91,9 @@ namespace CanvasPI
     { feLogError("SurfDef::Prepare(): GetInstanceUserData(item_obj) returned NULL");
       return LXe_INVALIDARG; }
 
+    // collect all the user channels.
+    ModoTools::usrChanCollect(item, m_userData->usrChan);
+
     // add the fixed input channels to eval.
     *evalIndex = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
     eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
@@ -100,8 +104,7 @@ namespace CanvasPI
       eval.AddChan(item, chnName, LXfECHAN_READ);
     }
 
-    // collect all the user channels and add them to eval.
-    ModoTools::usrChanCollect(item, m_userData->usrChan);
+    // add the user channels to eval.
     for (unsigned i=0;i<m_userData->usrChan.size();i++)
     {
       ModoTools::UsrChnDef &c = m_userData->usrChan[i];
@@ -113,6 +116,7 @@ namespace CanvasPI
 
       c.eval_index = eval.AddChan(item, c.chan_index, type);
     }
+    feLogDebug("yay_prepare", m_userData->usrChan.size() * (ModoTools::usrChanHasUnsetEvalIndex(m_userData->usrChan) ? -1 : 1));
 
     // done.
     return LXe_OK;
@@ -133,6 +137,8 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
       return LXe_OK; }
 
+    feLogDebug("yay_SurfDef::EvaluateMain", m_userData->usrChan.size() * (ModoTools::usrChanHasUnsetEvalIndex(m_userData->usrChan) ? -1 : 1));
+
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
     FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
@@ -151,6 +157,21 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): invalid graph");
       return LXe_OK; }
 
+    // get item.
+    CLxUser_Item item((ILxUnknownID)m_userData->baseInterface->m_ILxUnknownID_CanvasPI);
+    if (!item.test())
+    { feLogError("SurfDef::EvaluateMain(): item.test() failed");
+      return LXe_OK; }
+{
+
+
+  //unsigned int count = 0;
+  //item.ChannelCount(&count);
+  //feLogDebug("yay_SurfDef::EvaluateMain  channel count", count);
+  //feLogDebug(m_userData->usrChan[m_userData->usrChan.size()-1].chan_name.c_str(), item.ChannelIndex(m_userData->usrChan[m_userData->usrChan.size()-1].chan_name.c_str()));
+
+  
+}
     // make ud.polymesh a valid, empty mesh.
     m_userData->polymesh.setEmptyMesh();
 
@@ -179,8 +200,11 @@ namespace CanvasPI
           bool storable = true;
 
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_userData->usrChan);
-          if (!cd || cd->eval_index < 0)
-          { err  = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+          if (!cd)
+          { err = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+            break;  }
+          if (cd->eval_index < 0)
+          { err = "(step 1/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
             break;  }
 
           // "DFG port value = item user channel".
@@ -336,8 +360,11 @@ namespace CanvasPI
           // get pointer at matching channel definition.
           const char *portName = graph.getExecPortName(fi);
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_userData->usrChan);
-          if (!cd || cd->eval_index < 0)
+          if (!cd)
           { err = "(step 3/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+            break;  }
+          if (cd->eval_index < 0)
+          { err = "(step 3/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
             break;  }
 
           // "item user channel = DFG port value".
@@ -538,6 +565,7 @@ namespace CanvasPI
     
     // collect the user channels on this item.
     //ModoTools::usrChanCollect(item, m_userData->usrChan);
+    feLogDebug("yay_SurfDef::Evaluate", m_userData->usrChan.size() * (ModoTools::usrChanHasUnsetEvalIndex(m_userData->usrChan) ? -1 : 1));
 
     // read fixed channels.
     int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
@@ -572,10 +600,10 @@ namespace CanvasPI
   {
     // This function is used to copy the cached channel values from one
     // surface definition to another. We also copy the cached user channels.
-    
     if (other)
+    {
       m_userData = other->m_userData;
-
+    }
     return LXe_OK;
   }
 
@@ -584,7 +612,7 @@ namespace CanvasPI
     // This function does a comparison of another SurfDef with this one. It
     // should work like strcmp and return 0 for identical, or -1/1 to imply
     // relative positioning.
-    
+    feLogDebug("yay_compare");
     if (other && m_userData != other->m_userData)
         return  1;
 
@@ -1163,6 +1191,7 @@ namespace CanvasPI
       at the same time.
     */
     
+    feLogDebug("Instance::isurf_Evaluate");
     CLxUser_Attributes attr(attr_obj);
     Surface *surface = m_surf_spawn.Alloc(ppvObj);
     if (surface)
@@ -1288,6 +1317,7 @@ namespace CanvasPI
       Definition and let that define any channels it needs.
     */
 
+    feLogDebug("yay_Element::Element");
     CLxUser_Item  item(item_obj);
     if (!item.test())
       return;
@@ -1309,6 +1339,7 @@ namespace CanvasPI
       surface definition to it - then we evaluate it's channels.
     */
 
+    feLogDebug("yay_Element::Eval");
     if (!eval || !attr)
       return;
     

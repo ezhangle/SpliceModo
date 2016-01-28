@@ -242,34 +242,27 @@ namespace ItemCommon
     return result;
   }
 
-  bool Test(ILxUnknownID item_obj, std::vector <ModoTools::UsrChnDef> &m_usrChan)
+  bool Test(ILxUnknownID item_obj, std::vector <ModoTools::UsrChnDef> &usrChan)
   {
     /* when the list of user channels for a particular item changes, the
        modifier will be invalidated. This function will be called to check
        if the modifier we allocated previously matches what we'd allocate
        if the Alloc function was called now. We return true if it does. */
 
-    CLxUser_Item             item(item_obj);
+    CLxUser_Item item(item_obj);
+    if (!item.test())
+      return false;
+
     std::vector <ModoTools::UsrChnDef> tmp;
+    ModoTools::usrChanCollect(item, tmp);
+    if (usrChan.size() != tmp.size())
+      return false;
 
-    if (item.test())
-    {
-      ModoTools::usrChanCollect(item, tmp);
+    for (size_t i=0;i<usrChan.size();i++)
+      if (usrChan[i].isUnequal(tmp[i]))
+        return false;
 
-      if (tmp.size() == m_usrChan.size())
-      {
-        bool foundDifference = false;
-        for (size_t i = 0; i < tmp.size(); i++)
-          if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
-          {
-            foundDifference = true;
-            break;
-          }
-        return !foundDifference;
-      }
-    }
-
-    return false;
+    return true;
   }
 };
 

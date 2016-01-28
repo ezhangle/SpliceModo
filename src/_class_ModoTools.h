@@ -61,6 +61,20 @@ class ModoTools
     UsrChnDef () : chan_index(-1), eval_index(-1), chan_name(""),
                    isSingleton(true),
                    isVec2x(false), isVec3x(false), isRGBr(false), isRGBAr(false) {}
+    bool isEqual(const UsrChnDef &cd)  const
+    {
+      return (   chan_index   == cd.chan_index
+              && chan_name    == cd.chan_name
+              && isSingleton  == cd.isSingleton
+              && isVec2x      == cd.isVec2x
+              && isVec3x      == cd.isVec3x
+              && isRGBr       == cd.isRGBr
+              && isRGBAr      == cd.isRGBAr);
+    }
+    bool isUnequal(const UsrChnDef &cd)  const
+    {
+      return !isEqual(cd);
+    }
   };
 
  public:
@@ -87,6 +101,9 @@ class ModoTools
   // fills the array io_usrChan with all usable user channels of the input item.
   // note: all members of UsrChnDef are set except for eval_index which is set to -1.
   static void usrChanCollect(CLxUser_Item &item, std::vector <UsrChnDef> &io_usrChan);
+
+  // returns true if one or more eval_index are not set.
+  static bool usrChanHasUnsetEvalIndex(const std::vector <UsrChnDef> &usrChan);
 
   // looks for a channel with the specified name and returns its pointer (or NULL if not found).
   static UsrChnDef *usrChanGetFromName(std::string channelName, std::vector <UsrChnDef> &usrChan);

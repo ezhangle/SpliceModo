@@ -72,7 +72,6 @@ namespace CanvasPI
 
   LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex)
   {
-    feLogDebug("yay_prepare");
     // init pointer at user data and get the base interface.
     m_userData = NULL;
     BaseInterface *b = GetBaseInterface(item_obj);
@@ -115,8 +114,12 @@ namespace CanvasPI
       else                                                type = LXfECHAN_READ | LXfECHAN_WRITE;
 
       c.eval_index = eval.AddChan(item, c.chan_index, type);
+
+char s[512];
+sprintf(s, "SurfDef::Prepare(): i = %ld  chan_name = \"%s\"  eval_index = %ld", i, c.chan_name.c_str(), c.eval_index);
+feLogDebug(s);
+
     }
-    feLogDebug("yay_prepare", m_userData->usrChan.size() * (ModoTools::usrChanHasUnsetEvalIndex(m_userData->usrChan) ? -1 : 1));
 
     // done.
     return LXe_OK;
@@ -137,7 +140,7 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
       return LXe_OK; }
 
-    feLogDebug("yay_SurfDef::EvaluateMain", m_userData->usrChan.size() * (ModoTools::usrChanHasUnsetEvalIndex(m_userData->usrChan) ? -1 : 1));
+    feLogDebug("yay_SurfDef::EvaluateMain    evalIndex", evalIndex);
 
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
@@ -162,16 +165,13 @@ namespace CanvasPI
     if (!item.test())
     { feLogError("SurfDef::EvaluateMain(): item.test() failed");
       return LXe_OK; }
-{
 
+    // get the channel reader.
+    CLxUser_ChannelRead channelRead;
+    if (!channelRead.from(item) || !channelRead.test())
+    { feLogError("SurfDef::EvaluateMain(): failed to create channel reader.");
+      return LXe_OK; }
 
-  //unsigned int count = 0;
-  //item.ChannelCount(&count);
-  //feLogDebug("yay_SurfDef::EvaluateMain  channel count", count);
-  //feLogDebug(m_userData->usrChan[m_userData->usrChan.size()-1].chan_name.c_str(), item.ChannelIndex(m_userData->usrChan[m_userData->usrChan.size()-1].chan_name.c_str()));
-
-  
-}
     // make ud.polymesh a valid, empty mesh.
     m_userData->polymesh.setEmptyMesh();
 
@@ -242,6 +242,13 @@ namespace CanvasPI
                    || port__resolvedType == "Float64" )   {
                                                             double val = 0;
                                                             retGet = ModoTools::GetChannelValueAsFloat(attr, cd->eval_index, val);
+
+                                                            if (retGet)
+                                                            {
+                                                              val = channelRead.FValue(item, cd->chan_index);
+                                                              retGet = 0;
+                                                            }
+
                                                             if (retGet == 0)    BaseInterface::SetValueOfArgFloat(*client, binding, portName, val);
                                                           }
           else if (   port__resolvedType == "String")     {
@@ -612,7 +619,6 @@ namespace CanvasPI
     // This function does a comparison of another SurfDef with this one. It
     // should work like strcmp and return 0 for identical, or -1/1 to imply
     // relative positioning.
-    feLogDebug("yay_compare");
     if (other && m_userData != other->m_userData)
         return  1;
 

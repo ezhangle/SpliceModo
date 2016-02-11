@@ -138,7 +138,8 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
       return LXe_OK; }
 
-    feLogDebug("yay_SurfDef::EvaluateMain    evalIndex", evalIndex);
+//feLogDebug("yay_SurfDef::EvaluateMain    evalIndex", evalIndex);
+feLogDebug("SurfDef::Evaluate() - num_user_channels -", m_userData->usrChan.size ());
 
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
@@ -1045,6 +1046,21 @@ namespace CanvasPI
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".inst", srv);
     }
     
+    Instance()
+    {
+      feLog("CanvasPI::Instance::Instance() new BaseInterface");
+      // init members and create base interface.
+      m_item_obj = NULL;
+      m_userData.zero();
+      m_userData.baseInterface = new BaseInterface();
+    }
+    ~Instance()
+    {
+      // note: for some reason this destructor doesn't get called,
+      //       so as a workaround the cleaning up, i.e. deleting the
+      //       base interface, is done in the function pins_Cleanup().
+    };
+
     LxResult    pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)  LXx_OVERRIDE;
     LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)         LXx_OVERRIDE  { return ItemCommon::pins_Newborn(original, flags, m_item_obj, m_userData.baseInterface); }
     LxResult    pins_AfterLoad(void)                                        LXx_OVERRIDE  { return ItemCommon::pins_AfterLoad(m_item_obj, m_userData.baseInterface); }
@@ -1135,6 +1151,7 @@ namespace CanvasPI
 
     if (attr.ObjectRO (index, val_ref))
     {
+feLogDebug("matt - Instance::isurf_Evaluate()");
       if (val_ref.Get(instanceable) && instanceable.test())
         return instanceable.GetSurface(ppvObj);
     }

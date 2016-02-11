@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.300   // note: version 0.021 was "FMX Demo", i.e. the last version before using Matt Cox' surfaceItem sample instead of my own emReader code.
+#define FABRICMODO_PLUGIN_VERSION   0.700
 
 // disable some annoying VS warnings.
 #ifdef _WIN32

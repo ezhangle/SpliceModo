@@ -32,6 +32,7 @@ namespace CanvasIM
     {
       feLog("CanvasIM::Instance::Instance() new BaseInterface");
       // init members and create base interface.
+      m_item_obj = NULL;
       m_baseInterface = new BaseInterface();
     };
     ~Instance()

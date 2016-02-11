@@ -251,6 +251,8 @@ LxResult SurfDef::Evaluate (CLxUser_Attributes &attr, unsigned index)
      *  in the ChannelDef object.
      */
 
+    feLogDebug("SurfDef::Evaluate() - num_user_channels -", _user_channels.size ());
+
     for (int i = 0; i < _user_channels.size (); i++)
     {
         ChannelDef      *channel = &_user_channels[i];
@@ -940,7 +942,10 @@ LxResult Instance::isurf_Evaluate (ILxUnknownID attr_obj, unsigned index, void *
 
     if (attr.ObjectRO (index, val_ref))
     {
-        if (val_ref.Get (instanceable) && instanceable.test ())
+
+      feLogDebug("matt - Instance::isurf_Evaluate()");
+
+      if (val_ref.Get (instanceable) && instanceable.test ())
             return instanceable.GetSurface (ppvObj);
         
     }

@@ -31,6 +31,9 @@
 #include <lxu_math.hpp>
 #include <lxu_modifier.hpp>
 
+#include "lxu_log.hpp"
+#include "lxlog.h"
+
 #include <map>
 #include <iterator>
 #include <vector>
@@ -45,7 +48,7 @@
 #define CHAN_INSTOBJ        "instObj"
 #define CHAN_DIMENSIONS     "dimensions"
 
-static CLxItemType   gItemType (SERVER_NAME);
+static CLxItemType   gItemTypeFix (SERVER_NAME);
 
 /*
  *  Disambiguate with a namespace.
@@ -53,6 +56,63 @@ static CLxItemType   gItemType (SERVER_NAME);
 
 namespace Surface_Sample_Fix
 {
+  // log system.
+  #define LOG_SYSTEM_NAME "surface.sample.fix.log"
+  class CItemLog : public CLxLogMessage
+  {
+   public:
+      CItemLog() : CLxLogMessage(LOG_SYSTEM_NAME) { }
+      const char *GetFormat()     { return "n.a."; }
+      const char *GetVersion()    { return "n.a."; }
+      const char *GetCopyright()  { return "n.a."; }
+  };
+  CItemLog gLog;
+  void feLog(void *userData, const char *s, unsigned int length)
+  {
+    const char *p = (s != NULL ? s : "s == NULL");
+    gLog.Message(LXe_INFO, "[SURF.SAMPLE.FIX]", p, " ");
+  }
+  void feLog(void *userData, const std::string &s)
+  {
+    feLog(userData, s.c_str(), s.length());
+  }
+  void feLog(const std::string &s)
+  {
+    feLog(NULL, s.c_str(), s.length());
+  }
+  void feLogError(void *userData, const char *s, unsigned int length)
+  {
+    const char *p = (s != NULL ? s : "s == NULL");
+    gLog.Message(LXe_FAILED, "[SURF.SAMPLE.FIX ERROR]", p, " ");
+  }
+  void feLogError(void *userData, const std::string &s)
+  {
+    feLogError(userData, s.c_str(), s.length());
+  }
+  void feLogError(const std::string &s)
+  {
+    feLogError(NULL, s.c_str(), s.length());
+  }
+  void feLogDebug(void *userData, const char *s, unsigned int length)
+  {
+    feLog(userData, s, length);
+  }
+  void feLogDebug(void *userData, const std::string &s)
+  {
+    feLog(userData, s);
+  }
+  void feLogDebug(const std::string &s)
+  {
+    feLog(s);
+  }
+  void feLogDebug(const std::string &s, int number)
+  {
+    char t[64];
+    sprintf(t, " number = %ld", number);
+    feLog(s + t);
+  }
+
+
 
 /*
  *  First we define a structure that can be used to store a single user channel. It
@@ -980,7 +1040,7 @@ void Package::sil_ItemAddChannel (ILxUnknownID item_obj)
     CLxUser_Item         item (item_obj);
     CLxUser_Scene        scene;
     
-    if (item.test () && item.IsA (gItemType.Type ()))
+    if (item.test () && item.IsA (gItemTypeFix.Type ()))
     {
         if (item.GetContext (scene))
             scene.EvalModInvalidate (SERVER_NAME".mod");
@@ -992,6 +1052,7 @@ LXtTagInfoDesc Package::descInfo[] =
     { LXsPKG_SUPERTYPE,     LXsITYPE_LOCATOR },
     { LXsPKG_IS_MASK,       "."      },
     { LXsPKG_INSTANCEABLE_CHANNEL,  CHAN_INSTOBJ     },
+    { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
     { 0 }
 };
 
@@ -1171,7 +1232,7 @@ void initialize ()
 
 };  // End Namespace.
 
-void initialize ()
-{
-    Surface_Sample::initialize ();
-}
+//void initialize ()
+//{
+//    Surface_Sample_Fix::initialize ();
+//}

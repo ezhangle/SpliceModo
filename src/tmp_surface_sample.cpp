@@ -125,6 +125,7 @@ struct ChannelDef
 	int			 chan_index;
 	int			 eval_index;
 	
+
 	ChannelDef () : chan_index (-1), eval_index (-1) {}
 };
 

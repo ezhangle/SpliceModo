@@ -138,9 +138,6 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
       return LXe_OK; }
 
-//feLogDebug("yay_SurfDef::EvaluateMain    evalIndex", evalIndex);
-feLogDebug("SurfDef::Evaluate() - num_user_channels -", m_userData->usrChan.size ());
-
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
     FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
@@ -1151,7 +1148,6 @@ feLogDebug("SurfDef::Evaluate() - num_user_channels -", m_userData->usrChan.size
 
     if (attr.ObjectRO (index, val_ref))
     {
-feLogDebug("matt - Instance::isurf_Evaluate()");
       if (val_ref.Get(instanceable) && instanceable.test())
         return instanceable.GetSurface(ppvObj);
     }

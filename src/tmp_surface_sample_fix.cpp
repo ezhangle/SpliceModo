@@ -124,6 +124,8 @@ struct ChannelDef
 {
     int          chan_index;
     int          eval_index;
+
+    /* [EM] this is done differently (or not yet included) in CanvasPI. */
     CLxUser_Value        chan_value;
     
     ChannelDef () : chan_index (-1), eval_index (-1) {}
@@ -253,6 +255,7 @@ LxResult SurfDef::Evaluate (CLxUser_Attributes &attr, unsigned index)
 
     feLogDebug("SurfDef::Evaluate() - num_user_channels -", _user_channels.size ());
 
+/* [EM] this is done differently (or not yet included) in CanvasPI. */
     for (int i = 0; i < _user_channels.size (); i++)
     {
         ChannelDef      *channel = &_user_channels[i];

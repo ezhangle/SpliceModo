@@ -52,7 +52,6 @@ class ModoTools
   {
     int           chan_index;   // item channel index.
     int           eval_index;   // channel evaluation index.
-    CLxUser_Value chan_value;   // cached channnel vallue.
     std::string   chan_name;    // name of the channnel.
     bool isSingleton;           // true: all other "is*" flags are equal false.
     bool isVec2x;               // true: this is the first channel of a 2D vector.

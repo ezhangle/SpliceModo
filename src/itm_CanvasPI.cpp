@@ -48,30 +48,33 @@ namespace CanvasPI
     }
   };
 
-  /*
-    The procedural geometry that we're generating can be evaluated in multiple
-    ways. It could be evaluated as a Surface when rendering or displaying in the
-    GL viewport, but when drawing for the item, we may want to draw a highlighted
-    wireframe or a bounding box. We define a class here that allows us to read the
-    channels we need for evaluating our surface, and cache them for future use.
-  */
+/*
+ *  We define a class here that defines the channels used to evaluate our surface.
+ *  It has some helper functions for reading the channels, but ultimately is just
+ *  an object that can be passed around between the modifier and the surface.
+ */
  
   class SurfDef
   {
    public:
     SurfDef() { m_userData = NULL; }
     
-    LxResult Prepare     (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex);
-    LxResult EvaluateMain(CLxUser_Attributes &attr, unsigned evalIndex);
-    LxResult Evaluate    (CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj);
-    LxResult Copy        (SurfDef *other);
-    int      Compare     (SurfDef *other);
+    LxResult Prepare (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex);
+    LxResult Evaluate(CLxUser_Attributes &attr, unsigned evalIndex);
+    LxResult Copy    (SurfDef *other);
+    int      Compare (SurfDef *other);
     
     piUserData *m_userData;
   };
 
   LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex)
   {
+    /*
+     *  This function is used to add channels and user channels to a modifier.
+     *  The modifier will then call the evaluate function and read the channel
+     *  values.
+     */
+
     // init pointer at user data and get the base interface.
     m_userData = NULL;
     BaseInterface *b = GetBaseInterface(item_obj);
@@ -114,18 +117,13 @@ namespace CanvasPI
       else                                                type = LXfECHAN_READ | LXfECHAN_WRITE;
 
       c.eval_index = eval.AddChan(item, c.chan_index, type);
-
-char s[512];
-sprintf(s, "SurfDef::Prepare(): i = %ld  chan_name = \"%s\"  eval_index = %ld", i, c.chan_name.c_str(), c.eval_index);
-feLogDebug(s);
-
     }
 
     // done.
     return LXe_OK;
   }
   
-  LxResult SurfDef::EvaluateMain(CLxUser_Attributes &attr, unsigned evalIndex)
+  LxResult SurfDef::Evaluate(CLxUser_Attributes &attr, unsigned evalIndex)
   {
     // nothing to do?
     if (!attr || !attr.test())
@@ -146,7 +144,7 @@ feLogDebug(s);
     // process notifications while the element is being evaluated.
     FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
 
-    // refs 'n pointers.
+    // refs and pointers.
     FabricCore::Client *client  = b->getClient();
     if (!client)
     { feLogError("SurfDef::EvaluateMain(): getClient() returned NULL");
@@ -164,12 +162,6 @@ feLogDebug(s);
     CLxUser_Item item((ILxUnknownID)m_userData->baseInterface->m_ILxUnknownID_CanvasPI);
     if (!item.test())
     { feLogError("SurfDef::EvaluateMain(): item.test() failed");
-      return LXe_OK; }
-
-    // get the channel reader.
-    CLxUser_ChannelRead channelRead;
-    if (!channelRead.from(item) || !channelRead.test())
-    { feLogError("SurfDef::EvaluateMain(): failed to create channel reader.");
       return LXe_OK; }
 
     // make ud.polymesh a valid, empty mesh.
@@ -242,13 +234,6 @@ feLogDebug(s);
                    || port__resolvedType == "Float64" )   {
                                                             double val = 0;
                                                             retGet = ModoTools::GetChannelValueAsFloat(attr, cd->eval_index, val);
-
-                                                            if (retGet)
-                                                            {
-                                                              val = channelRead.FValue(item, cd->chan_index);
-                                                              retGet = 0;
-                                                            }
-
                                                             if (retGet == 0)    BaseInterface::SetValueOfArgFloat(*client, binding, portName, val);
                                                           }
           else if (   port__resolvedType == "String")     {
@@ -559,50 +544,6 @@ feLogDebug(s);
     return LXe_OK;
   }
 
-  LxResult SurfDef::Evaluate(CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj)
-  {
-    CLxUser_Item item(item_obj);
-
-    // In some instances, the surface may be evaluated using a channel read
-    // object to simply evaluate the surface directly. This function is used
-    // to read the channels and cache them.
-    
-    if (!chan_read.test() || !item.test())  return LXe_NOINTERFACE;
-    if (!m_userData)                        return LXe_NOINTERFACE;
-    
-    // collect the user channels on this item.
-    //ModoTools::usrChanCollect(item, m_userData->usrChan);
-    feLogDebug("yay_SurfDef::Evaluate", m_userData->usrChan.size() * (ModoTools::usrChanHasUnsetEvalIndex(m_userData->usrChan) ? -1 : 1));
-
-    // read fixed channels.
-    int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
-    int FabricEval   = chan_read.IValue(item, CHN_NAME_IO_FabricEval);
-    
-    /*
-      Enumerate over the user channels and read them here. We don't do
-      anything with these - but for them to be useful, we should.
-    
-      FETODO: Add support for the other channel types and do something with
-      the channels.
-    */
-    for (size_t i=0;i<m_userData->usrChan.size();i++)
-    {
-      ModoTools::UsrChnDef *channel = &m_userData->usrChan[i];
-      unsigned              type    = 0;
-        
-      if (channel->eval_index < 0)
-        continue;
-        
-      item.ChannelType(channel->chan_index, &type);
-
-      //if (type == LXi_TYPE_INTEGER)     m_size += 0.1 * chan_read.IValue(item, (unsigned)channel->eval_index);
-      //else if (type == LXi_TYPE_FLOAT)  m_size += 0.1 * chan_read.FValue(item, (unsigned)channel->eval_index);
-    }
-
-    // done.
-    return LXe_OK;
-  }
-
   LxResult SurfDef::Copy(SurfDef *other)
   {
     // This function is used to copy the cached channel values from one
@@ -610,8 +551,9 @@ feLogDebug(s);
     if (other)
     {
       m_userData = other->m_userData;
+      return LXe_OK;
     }
-    return LXe_OK;
+    return LXe_INVALIDARG;
   }
 
   int SurfDef::Compare(SurfDef *other)
@@ -730,7 +672,7 @@ feLogDebug(s);
     if (!vertex.set(vdesc_obj))
       return LXe_NOINTERFACE;
 
-    for (int i = 0; i < 4; i++)
+    for (int i=0;i<4;i++)
     {
       tsrf_FeatureByIndex(LXiTBLX_BASEFEATURE, i, &name);
         

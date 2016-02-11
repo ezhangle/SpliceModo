@@ -74,10 +74,8 @@ void feLogDebug(const std::string &s, int number)
   feLog(s + t);
 }
 
-namespace Surface_Sample
-{
-  void initialize();
-};
+namespace Surface_Sample      { void initialize(); };
+namespace Surface_Sample_Fix  { void initialize(); };
 
 // plugin initialization.
 void initialize()
@@ -102,6 +100,7 @@ void initialize()
     CanvasPIpilot                     :: initialize();
     //
     Surface_Sample                    :: initialize();
+    Surface_Sample_Fix                :: initialize();
     //
     JSONValue                         :: initialize();
     FabricView                        :: initialize();

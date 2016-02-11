@@ -14,22 +14,22 @@
  *
  */
 
-#include <lxsdk/lxidef.h>
+#include <lxidef.h>
 
-#include <lxsdk/lx_channelui.hpp>
-#include <lxsdk/lx_draw.hpp>
-#include <lxsdk/lx_item.hpp>
-#include <lxsdk/lx_listener.hpp>
-#include <lxsdk/lx_mesh.hpp>
-#include <lxsdk/lx_package.hpp>
-#include <lxsdk/lx_plugin.hpp>
-#include <lxsdk/lx_surface.hpp>
-#include <lxsdk/lx_tableau.hpp>
-#include <lxsdk/lx_vertex.hpp>
-#include <lxsdk/lx_vmodel.hpp>
+#include <lx_channelui.hpp>
+#include <lx_draw.hpp>
+#include <lx_item.hpp>
+#include <lx_listener.hpp>
+#include <lx_mesh.hpp>
+#include <lx_package.hpp>
+#include <lx_plugin.hpp>
+#include <lx_surface.hpp>
+#include <lx_tableau.hpp>
+#include <lx_vertex.hpp>
+#include <lx_vmodel.hpp>
 
-#include <lxsdk/lxu_math.hpp>
-#include <lxsdk/lxu_modifier.hpp>
+#include <lxu_math.hpp>
+#include <lxu_modifier.hpp>
 
 #include <map>
 #include <iterator>
@@ -51,7 +51,7 @@ static CLxItemType   gItemType (SERVER_NAME);
  *  Disambiguate with a namespace.
  */
 
-namespace Surface_Sample
+namespace Surface_Sample_Fix
 {
 
 /*

@@ -687,6 +687,13 @@ namespace CanvasPI
 
   LxResult SurfElement::tsrf_Sample(const LXtTableauBox bbox, float scale, ILxUnknownID trisoup_obj)
   {
+    /*
+     *  The Sample function is used to generate the geometry for this Surface
+     *  Element. We basically just insert points directly into the triangle
+     *  soup feature array and then build polygons/triangles from points at
+     *  specific positions in the array.
+     */
+
     // init ref at user data.
     if (!m_surf_def.m_userData)
       return LXe_FAILED;
@@ -994,7 +1001,7 @@ namespace CanvasPI
     */
 
     CLxSpawner<Surface> spawner(SERVER_NAME_CanvasPI ".surf");
-    Surface *surface = spawner.Alloc(ppvObj);
+    Surface  *surface = spawner.Alloc(ppvObj);
     if (surface)
     {
       surface->m_surf_def.Copy(&m_surf_def);
@@ -1038,20 +1045,6 @@ namespace CanvasPI
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".inst", srv);
     }
     
-    Instance() : m_surf_spawn(SERVER_NAME_CanvasPI ".surf")
-    {
-      feLog("CanvasPI::Instance::Instance() new BaseInterface");
-      // init members and create base interface.
-      m_userData.zero();
-      m_userData.baseInterface = new BaseInterface();
-    }
-    ~Instance()
-    {
-      // note: for some reason this destructor doesn't get called.
-      //       as a workaround the cleaning up, i.e. deleting the base interface, is done
-      //       in the function pins_Cleanup().
-    };
-
     LxResult    pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)  LXx_OVERRIDE;
     LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)         LXx_OVERRIDE  { return ItemCommon::pins_Newborn(original, flags, m_item_obj, m_userData.baseInterface); }
     LxResult    pins_AfterLoad(void)                                        LXx_OVERRIDE  { return ItemCommon::pins_AfterLoad(m_item_obj, m_userData.baseInterface); }
@@ -1065,10 +1058,6 @@ namespace CanvasPI
    public:
     ILxUnknownID        m_item_obj;
     piUserData          m_userData;
-
-   private:
-    CLxSpawner<Surface> m_surf_spawn;
-    SurfDef             m_surf_def;
   };
 
   LxResult Instance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)
@@ -1090,20 +1079,24 @@ namespace CanvasPI
   LxResult Instance::isurf_GetSurface(ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)
   {
     /*
-      This function is used to allocate a surface for displaying in the
-      GL viewport. We're given a channel read object and we're expected to
-      read the channels needed to generate the surface and then return the
-      spawned surface. We basically redirect the calls to the SurfDef
-      helper functions.
-    */
+     *  This function is used to allocate a surface for displaying in the GL
+     *  viewport. We're given a channel read object and we're expected to
+     *  read the channels needed to generate the surface and then return the
+     *  spawned surface. We simply read the instanceable channel and call
+     *  its GetSurface function.
+     */
 
     CLxUser_Item item(m_item_obj);
     if (item.test())
     {
-      CLxUser_ChannelRead chan_read(chanRead_obj);
-      Surface *surface = m_surf_spawn.Alloc(ppvObj);
-      if (surface)
-        return surface->m_surf_def.Evaluate(chan_read, item);
+      CLxUser_ChannelRead     chan_read(chanRead_obj);
+      CLxUser_ValueReference  val_ref;
+      CLxLoc_Instanceable     instanceable;
+      if (chan_read.Object(item, CHN_NAME_INSTOBJ, val_ref))
+      {
+        if (val_ref.Get(instanceable) && instanceable.test())
+          return instanceable.GetSurface (ppvObj);
+      }
     }
 
     return LXe_FAILED;
@@ -1112,40 +1105,38 @@ namespace CanvasPI
   LxResult Instance::isurf_Prepare(ILxUnknownID eval_obj, unsigned *index)
   {
     /*
-      This function is used to allocate a surface in an evaluated context.
-      We don't allocate the surface here, but just add the required channels
-      to the eval object that we're passed. We cache the channel values on
-      a locally stored SurfDef and then copy them to a new one that's
-      allocated with the surface.
-     
-      NOTE: This may cause issues if multiple things call Prepare->Evaluate
-      at the same time.
-    */
+     *  This function is used to allocate the channels needed to evaluate a
+     *  surface. We just add a single channel; the instanceable. This can be
+     *  used to generate the surface.
+     */
 
-    CLxUser_Evaluation eval(eval_obj);
-    
-    return m_surf_def.Prepare(eval, m_item_obj, index);
+    CLxUser_Item item(m_item_obj);
+    if (item.test())
+    {
+      CLxUser_Evaluation eval(eval_obj);
+      index[0] = eval.AddChan(item, CHN_NAME_INSTOBJ, LXfECHAN_READ);
+      return LXe_OK;
+    }
+
+    return LXe_FAILED;
   }
 
   LxResult Instance::isurf_Evaluate(ILxUnknownID attr_obj, unsigned index, void **ppvObj)
   {
     /*
-      This function is used to allocate a surface in an evaluated context.
-      We have a SurfDef that was used to allocate the input channels for
-      the modifier. We copy this surf def to the Surface and then evaluate
-      the channels allocated for the surface.
-     
-      NOTE: This may cause issues if multiple things call Prepare->Evaluate
-      at the same time.
-    */
+     *  This function is used to generate a surface in an evaluated context.
+     *  We have a single input channel to the modifier which is the instanceable,
+     *  so we read the object and call the GetSurface function.
+     */
     
-    feLogDebug("Instance::isurf_Evaluate");
-    CLxUser_Attributes attr(attr_obj);
-    Surface *surface = m_surf_spawn.Alloc(ppvObj);
-    if (surface)
+    CLxUser_Attributes      attr(attr_obj);
+    CLxUser_ValueReference  val_ref;
+    CLxLoc_Instanceable     instanceable;
+
+    if (attr.ObjectRO (index, val_ref))
     {
-      surface->m_surf_def.Copy(&m_surf_def);
-      return surface->m_surf_def.EvaluateMain(attr, index);
+      if (val_ref.Get(instanceable) && instanceable.test())
+        return instanceable.GetSurface(ppvObj);
     }
     
     return LXe_FAILED;
@@ -1265,13 +1256,11 @@ namespace CanvasPI
       Definition and let that define any channels it needs.
     */
 
-    feLogDebug("yay_Element::Element");
     CLxUser_Item  item(item_obj);
     if (!item.test())
       return;
 
-    // the first channel we add is the instanceable
-    // object channel as an output.
+    // the first channel we add is the instanceable object channel as an output.
     m_eval_index_InstObj = eval.AddChan(item, CHN_NAME_INSTOBJ, LXfECHAN_WRITE);
     
     // call the prepare function on the surface definition to add the channels it needs.
@@ -1287,7 +1276,6 @@ namespace CanvasPI
       surface definition to it - then we evaluate it's channels.
     */
 
-    feLogDebug("yay_Element::Eval");
     if (!eval || !attr)
       return;
     
@@ -1317,7 +1305,7 @@ namespace CanvasPI
         Call Evaluate on the Surface Defintion to get the
         channels required for evaluation.
       */
-      instObj->m_surf_def.EvaluateMain(attr, temp_chan_index);
+      instObj->m_surf_def.Evaluate(attr, temp_chan_index);
     }
   }
 

@@ -6,7 +6,6 @@
 #include "cmd_FabricCanvasIncEval.h"
 #include "itm_CanvasIM.h"
 #include "itm_CanvasPI.h"
-#include "itm_CanvasPIpilot.h"
 
 #include <fstream>
 #include <streambuf>
@@ -71,7 +70,6 @@ void FabricCanvasIncEval::Command::cmd_Execute(unsigned flags)
   BaseInterface *b = NULL;
   if (!b) b = CanvasIM::GetBaseInterface(item);
   if (!b) b = CanvasPI::GetBaseInterface(item);
-  if (!b) b = CanvasPIpilot::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);

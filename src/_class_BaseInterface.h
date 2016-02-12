@@ -26,7 +26,6 @@ class BaseInterface
 
   void *m_ILxUnknownID_CanvasIM;       // ILxUnknownID of the Modo item modifier node   "CanvasIM").      Cast this to ILxUnknownID.
   void *m_ILxUnknownID_CanvasPI;       // ILxUnknownID of the Modo procedural item node "CanvasPI").      Cast this to ILxUnknownID.
-  void *m_ILxUnknownID_CanvasPIpilot;  // ILxUnknownID of the Modo procedural item node "CanvasPIpilot"). Cast this to ILxUnknownID.
   
   bool  m_evaluating;
 

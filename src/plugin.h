@@ -25,7 +25,6 @@
 #define SERVER_NAME_JSONValue       "dfgJSONValue"      // the JSON custom type (used by the channels "FabricJSON").
 #define SERVER_NAME_CanvasIM        "CanvasIM"          // Canvas "item modifier".
 #define SERVER_NAME_CanvasPI        "CanvasPI"          // Canvas "procedural item".
-#define SERVER_NAME_CanvasPIpilot   "CanvasPIpilot"     // Canvas "procedural item" (old version based on emReader).
 
 // constants: fixed channels' names & co.
 #define CHN_NAME_INSTOBJ            "instObj"           // out: (CanvasPI only) objref channel.

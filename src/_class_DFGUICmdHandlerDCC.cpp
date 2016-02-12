@@ -4,7 +4,6 @@
 #include "_class_ModoTools.h"
 #include "itm_CanvasIM.h"
 #include "itm_CanvasPI.h"
-#include "itm_CanvasPIpilot.h"
 
 #include <sstream>
 
@@ -925,7 +924,6 @@ FabricCore::DFGBinding DFGUICmdHandlerDCC::getBindingFromDCCObjectName(std::stri
       BaseInterface *b = NULL;
       if (!b) b = CanvasIM::GetBaseInterface(item);
       if (!b) b = CanvasPI::GetBaseInterface(item);
-      if (!b) b = CanvasPIpilot::GetBaseInterface(item);
       if (b)   return b->getBinding();
     }
   }

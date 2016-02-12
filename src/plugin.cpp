@@ -13,7 +13,6 @@
 #include "cmd_FabricCanvasOpenCanvas.h"
 #include "itm_CanvasIM.h"
 #include "itm_CanvasPI.h"
-#include "itm_CanvasPIpilot.h"
 
 // log system.
 class CItemLog : public CLxLogMessage
@@ -74,9 +73,6 @@ void feLogDebug(const std::string &s, int number)
   feLog(s + t);
 }
 
-//namespace Surface_Sample      { void initialize(); };
-//namespace Surface_Sample_Fix  { void initialize(); };
-
 // plugin initialization.
 void initialize()
 {
@@ -97,10 +93,6 @@ void initialize()
     //
     CanvasIM                          :: initialize();
     CanvasPI                          :: initialize();
-    CanvasPIpilot                     :: initialize();
-    //
-    //Surface_Sample                  :: initialize();
-    //Surface_Sample_Fix              :: initialize();
     //
     JSONValue                         :: initialize();
     FabricView                        :: initialize();

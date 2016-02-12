@@ -24,7 +24,6 @@ BaseInterface::BaseInterface()
   m_id                          = s_maxId++;
   m_ILxUnknownID_CanvasIM       = NULL;
   m_ILxUnknownID_CanvasPI       = NULL;
-  m_ILxUnknownID_CanvasPIpilot  = NULL;
   m_evaluating                  = false;
 
   // construct the client
@@ -269,7 +268,6 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
     void             *unknownID = NULL;
     if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasIM;
     if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasPI;
-    if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasPIpilot;
 
     // handle notification.
     std::string err = "";
@@ -487,7 +485,6 @@ std::string BaseInterface::GetItemName(void)
 
   if      (m_ILxUnknownID_CanvasIM)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasIM);
   else if (m_ILxUnknownID_CanvasPI)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasPI);
-  else if (m_ILxUnknownID_CanvasPIpilot)  item.set((ILxUnknownID)m_ILxUnknownID_CanvasPIpilot);
   else                                    return "";
 
   if (!item.test())                       return "";
@@ -1738,7 +1735,6 @@ bool BaseInterface::CreateModoUserChannelForPort(FabricCore::DFGBinding const &b
 
     if      (m_ILxUnknownID_CanvasIM)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasIM);
     else if (m_ILxUnknownID_CanvasPI)       item.set((ILxUnknownID)m_ILxUnknownID_CanvasPI);
-    else if (m_ILxUnknownID_CanvasPIpilot)  item.set((ILxUnknownID)m_ILxUnknownID_CanvasPIpilot);
     else                        {   err = "m_ILxUnknownID_Canvas? == NULL";
                                     logErrorFunc(0, err.c_str(), err.length());
                                     return false;   }

@@ -18,12 +18,9 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
   if (!other_data)
     return LXe_FAILED;
   
-  if (m_data != other_data)
-  {
-    m_data->chnIndex = other_data->chnIndex;
-    memcpy(m_data->str, other_data->str, str_JSONValue_MAX_BYTES);
-    m_data->baseInterface = other_data->baseInterface;
-  }
+  m_data->chnIndex      = other_data->chnIndex;
+  m_data->s             = other_data->s;
+  m_data->baseInterface = other_data->baseInterface;
 
   return LXe_OK;
 }
@@ -42,10 +39,11 @@ LxResult JSONValue::val_GetString(char *buf, unsigned len)
   if (!m_data || !buf)
     return LXe_FAILED;
 
-  if (strlen(m_data->str) >= len)
+  if (m_data->s.size() >= len)
     return LXe_SHORTBUFFER;
 
-  strncpy(buf, m_data->str, len);
+  if (!m_data->s.empty())
+    strcpy(buf, m_data->s.c_str());
 
   return LXe_OK;
 }
@@ -59,10 +57,7 @@ LxResult JSONValue::val_SetString(const char *val)
   if (!m_data || !val)
     return LXe_FAILED;
 
-  if (strlen(val) > CHN_FabricJSON_MAX_BYTES)
-    return LXe_FAILED;
-
-  strcpy(m_data->str, val);
+  m_data->s = val;
 
   return LXe_OK;
 }
@@ -175,23 +170,21 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
   char preLog[128];
   sprintf(preLog, "JSONValue::io_Read()");
 
-  std::string s;
-  if (read.test() && read.Read(s))
+  if (read.test() && read.Read(m_data->s))
   {
-    if (JSONVALUE_DEBUG_LOG && s.length() > 1)
+    if (JSONVALUE_DEBUG_LOG && m_data->s.length() > 1)
     {
       char log[128];
-      sprintf(log, ": read %.1f kilobytes (%ld bytes)", (float)s.length() / 1024.0, (long)s.length());
+      sprintf(log, ": read %.1f kilobytes (%ld bytes)", (float)m_data->s.length() / 1024.0, (long)m_data->s.length());
       feLog(std::string(preLog) + log);
     }
-    strcpy(m_data->str, s.c_str());
     return LXe_OK;
   }
   else
   {
     if (JSONVALUE_DEBUG_LOG)
       feLog(std::string(preLog) + ": read error");
-    strcpy(m_data->str, " ");
+    m_data->s = " ";
     return LXe_FAILED;
   }
 }

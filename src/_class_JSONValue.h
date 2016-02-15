@@ -33,15 +33,13 @@ class BaseInterface;
 // manipulating the value. We also implement a StreamIO interface, allowing us
 // to read and write the custom value to the scene file.
 
-#define str_JSONValue_MAX_BYTES (CHN_FabricJSON_MAX_BYTES + 4)
-
 class _JSONValue
 {
  public:
-  _JSONValue() : chnIndex(-1), baseInterface(NULL) { memset(str, '\0', str_JSONValue_MAX_BYTES); }
+  _JSONValue() : chnIndex(-1), s(" "), baseInterface(NULL) { }
 
   int            chnIndex;
-  char           str[str_JSONValue_MAX_BYTES];  // [FE-6090] using a std::string causes the JSONValue::Copy() function to crash, beats me why.
+  std::string    s;
   BaseInterface *baseInterface;
 };
 

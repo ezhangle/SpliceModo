@@ -135,8 +135,8 @@ namespace ItemCommon
         jv->baseInterface = baseInterface;
 
         // add s to sJSON.
-        if (jv->str[0] != '\0')
-          sJSON += jv->str;
+        if (jv->s.length() > 0)
+          sJSON += jv->s;
       }
     }
 

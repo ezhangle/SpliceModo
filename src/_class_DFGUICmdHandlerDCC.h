@@ -287,6 +287,11 @@ protected:
     FabricCore::DFGExec const &exec,
     const std::vector<unsigned int> &indices
     );
+  
+  virtual void dfgDoDismissLoadDiags(
+    FabricCore::DFGBinding const &binding,
+    QList<int> diagIndices
+    );
 
 protected:
     
@@ -329,6 +334,7 @@ public:
   static FabricUI::DFG::DFGUICmd_SetRefVarPath *createAndExecuteDFGCommand_SetRefVarPath(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_SplitFromPreset *createAndExecuteDFGCommand_SplitFromPreset(std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_ReorderPorts *createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_DismissLoadDiags *createAndExecuteDFGCommand_DismissLoadDiags(std::vector<std::string> &args);
 };
 
 class UndoDFGUICmd : public CLxImpl_Undo
@@ -626,6 +632,14 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
+    else if (cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags       ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_DismissLoadDiags T;
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
+                                             cmd = NULL; }
+    }
   }
 };
 
@@ -833,6 +847,12 @@ public:
 
 #define __CanvasCmdClass__   FabricCanvasReorderPorts
 #define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_ReorderPorts::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
+
+#define __CanvasCmdClass__   FabricCanvasDismissLoadDiags
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_DismissLoadDiags::CmdName()
         __CanvasCmd__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__

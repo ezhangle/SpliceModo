@@ -583,6 +583,32 @@ std::string DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   return result;
 }
 
+std::string DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
+  FabricCore::DFGBinding const &binding,
+  QList<int> diagIndices
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+
+  char n[64];
+  std::string indicesStr = "[";
+  for(int i=0;i<indices.size();i++)
+  {
+    if(i > 0)
+      indicesStr += ", ";
+    sprintf(n, "%d", diagIndices[i]);
+    indicesStr += n;
+  }
+  indicesStr += "]";
+  args.push_back(indicesStr);
+
+  std::string output;
+  execCmd(cmdName, args, output);
+}
+
 std::vector<std::string> DFGUICmdHandlerDCC::dfgDoExplodeNode(
   FabricCore::DFGBinding const &binding,
   FTL::CStrRef execPath,
@@ -968,6 +994,7 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath::      CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset::    CmdName().c_str())    cmd = createAndExecuteDFGCommand_SplitFromPreset    (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_ReorderPorts       (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_DismissLoadDiags       (in_args);
   return cmd;
 }
 
@@ -2272,6 +2299,49 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
   return cmd;
 }
 
+FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_DismissLoadDiags(std::vector<std::string> &args)
+{
+  FabricUI::DFG::DFGUICmd_DismissLoadDiags *cmd = NULL;
+  {
+    unsigned int ai = 0;
+
+    FabricCore::DFGBinding binding;
+    if (!DecodeBinding(args, ai, binding))
+      return cmd;
+
+    std::vector<unsigned int> indices;
+    try
+    {
+      FTL::JSONStrWithLoc jsonStrWithLoc( indicesStr.c_str() );
+      FTL::OwnedPtr<FTL::JSONArray> jsonArray(
+        FTL::JSONValue::Decode( jsonStrWithLoc )->cast<FTL::JSONArray>()
+        );
+      for( size_t i=0; i < jsonArray->size(); i++ )
+      {
+        indices.push_back ( jsonArray->get(i)->getSInt32Value() );
+      }
+    }
+    catch ( FabricCore::Exception e )
+    {
+      feLogError("indices argument not valid json.");
+      return cmd;
+    }
+
+    cmd = new FabricUI::DFG::DFGUICmd_DismissLoadDiags(binding,
+                                                    indices);
+    try
+    {
+      cmd->doit();
+    }
+    catch(FabricCore::Exception e)
+    {
+      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    }
+  }
+
+  return cmd;
+}
+
 
 
 
@@ -2819,6 +2889,20 @@ __CanvasCmd_constructor_begin__
     addArgStr("binding");
     addArgStr("execPath");
     addArgStr("indices");
+  }
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
+
+#define __CanvasCmdNumArgs__     2
+#define __CanvasCmdClass__  FabricCanvasDismissLoadDiags
+#define __CanvasCmdName__  "FabricCanvasDismissLoadDiags"
+__CanvasCmd_constructor_begin__
+  {
+    addArgStr("binding");
+    addArgStr("diagIndices");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

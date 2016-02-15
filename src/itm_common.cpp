@@ -39,7 +39,7 @@ namespace ItemCommon
           sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
           if (chanWrite.Object(item, chnName, value_json) && value_json.test())
           {
-            JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
+            _JSONValue *jv = (_JSONValue *)value_json.Intrinsic();
             if (!jv)
             {
               err |= true;
@@ -120,7 +120,7 @@ namespace ItemCommon
         }
 
         //
-        JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+        _JSONValue *jv = (_JSONValue *)value.Intrinsic();
         if (!jv)
         { err += "channel \"";
           err += chnName;
@@ -135,8 +135,8 @@ namespace ItemCommon
         jv->baseInterface = baseInterface;
 
         // add s to sJSON.
-        if (jv->s.length() > 0)
-          sJSON += jv->s;
+        if (jv->str[0] != '\0')
+          sJSON += jv->str;
       }
     }
 

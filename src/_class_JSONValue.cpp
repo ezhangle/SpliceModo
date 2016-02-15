@@ -11,18 +11,18 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     Copy another instance of our custom value to this one. We just cast
     the object to our internal structure and then copy the data.
   */
-  if (!other)
+  if (!other || !m_data)
     return LXe_FAILED;
 
-  _JSONValue *otherData = static_cast <_JSONValue *>((void *)other);
-  if (!otherData)
+  _JSONValue *other_data = static_cast <_JSONValue *>((void *)other);
+  if (!other_data)
     return LXe_FAILED;
   
-  if (otherData != &m_data)
+  if (m_data != other_data)
   {
-    m_data.chnIndex      = otherData->chnIndex;
-    m_data.s             = otherData->s;
-    m_data.baseInterface = otherData->baseInterface;
+    m_data->chnIndex = other_data->chnIndex;
+    memcpy(m_data->str, other_data->str, str_JSONValue_MAX_BYTES);
+    m_data->baseInterface = other_data->baseInterface;
   }
 
   return LXe_OK;
@@ -39,11 +39,13 @@ LxResult JSONValue::val_GetString(char *buf, unsigned len)
     copy the string into.
   */
   
-  if (!buf)                     return LXe_FAILED;
+  if (!m_data || !buf)
+    return LXe_FAILED;
 
-  if (m_data.s.size() >= len)   return LXe_SHORTBUFFER;
+  if (strlen(m_data->str) >= len)
+    return LXe_SHORTBUFFER;
 
-  if (!m_data.s.empty())  strcpy(buf, m_data.s.c_str());
+  strncpy(buf, m_data->str, len);
 
   return LXe_OK;
 }
@@ -54,8 +56,13 @@ LxResult JSONValue::val_SetString(const char *val)
     Similar to the get string function, this function sets the string.
   */
 
-  if (val)    m_data.s = val;
-  else        m_data.s.clear();
+  if (!m_data || !val)
+    return LXe_FAILED;
+
+  if (strlen(val) > CHN_FabricJSON_MAX_BYTES)
+    return LXe_FAILED;
+
+  strcpy(m_data->str, val);
 
   return LXe_OK;
 }
@@ -66,7 +73,7 @@ void *JSONValue::val_Intrinsic()
     The Intrinsic function is the important one. This returns a pointer
     to the custom value's class, allowing callers to interface with it directly.
   */
-  return (void *)&m_data;
+  return m_data;
 }
 
 LxResult JSONValue::io_Write(ILxUnknownID stream)
@@ -86,10 +93,11 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   */
   CLxUser_BlockWrite write(stream);
   char preLog[128];
-  sprintf(preLog, "JSONValue::io_Write(m_data.chnIndex = %ld)", m_data.chnIndex);
+  sprintf(preLog, "JSONValue::io_Write(m_data.chnIndex = %ld)", m_data->chnIndex);
 
-  if (!write.test())        return LXe_FAILED;
-  if (m_data.chnIndex < 0)  return LXe_FAILED;
+  if (!write.test())          return LXe_FAILED;
+  if (!m_data)                return LXe_FAILED;
+  if (m_data->chnIndex < 0)   return LXe_FAILED;
 
   // note: we never write 'nothing' (zero bytes) or else
   // the CHN_NAME_IO_FabricJSON channels won't get properly
@@ -97,23 +105,23 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   char pseudoNothing[8] = " ";  // one byte of data.
 
   // write the JSON string.
-  if (!m_data.baseInterface)
+  if (!m_data->baseInterface)
   { feLogError(std::string(preLog) + ": pointer at BaseInterface is NULL!");
     return LXe_FAILED;  }
   try
   {
     // get the JSON string and its length.
-    std::string json = m_data.baseInterface->getJSON();
+    std::string json = m_data->baseInterface->getJSON();
     uint32_t len = json.length();
 
     // trivial case, i.e. nothing to write?
-    if ((uint32_t)m_data.chnIndex * CHN_FabricJSON_MAX_BYTES >= len)
+    if ((uint32_t)m_data->chnIndex * CHN_FabricJSON_MAX_BYTES >= len)
       return write.WriteString(pseudoNothing);
 
     // string too long?
     if (len > (uint32_t)CHN_FabricJSON_NUM * CHN_FabricJSON_MAX_BYTES)
     {
-      if (m_data.chnIndex == 0)
+      if (m_data->chnIndex == 0)
       {
         char log[256];
         sprintf(log, ": the JSON string is %ld long!", len);
@@ -126,7 +134,7 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
 
     // extract the part that will be saved for this channel.
     std::string part;
-    part = json.substr((uint32_t)m_data.chnIndex * CHN_FabricJSON_MAX_BYTES, CHN_FabricJSON_MAX_BYTES);
+    part = json.substr((uint32_t)m_data->chnIndex * CHN_FabricJSON_MAX_BYTES, CHN_FabricJSON_MAX_BYTES);
     if (part.length() == 1)
       part += " ";
 
@@ -160,25 +168,30 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
           via BaseInterface::setFromJSON().
   */
 
+  if (!m_data)
+    return LXe_FAILED;
+
   CLxUser_BlockRead read(stream);
   char preLog[128];
   sprintf(preLog, "JSONValue::io_Read()");
 
-  if (read.test() && read.Read(m_data.s))
+  std::string s;
+  if (read.test() && read.Read(s))
   {
-    if (JSONVALUE_DEBUG_LOG && m_data.s.length() > 1)
+    if (JSONVALUE_DEBUG_LOG && s.length() > 1)
     {
       char log[128];
-      sprintf(log, ": read %.1f kilobytes (%ld bytes)", (float)m_data.s.length() / 1024.0, (long)m_data.s.length());
+      sprintf(log, ": read %.1f kilobytes (%ld bytes)", (float)s.length() / 1024.0, (long)s.length());
       feLog(std::string(preLog) + log);
     }
+    strcpy(m_data->str, s.c_str());
     return LXe_OK;
   }
   else
   {
     if (JSONVALUE_DEBUG_LOG)
       feLog(std::string(preLog) + ": read error");
-    m_data.s = " ";
+    strcpy(m_data->str, " ");
     return LXe_FAILED;
   }
 }

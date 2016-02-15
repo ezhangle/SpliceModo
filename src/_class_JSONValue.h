@@ -33,6 +33,18 @@ class BaseInterface;
 // manipulating the value. We also implement a StreamIO interface, allowing us
 // to read and write the custom value to the scene file.
 
+#define str_JSONValue_MAX_BYTES (CHN_FabricJSON_MAX_BYTES + 4)
+
+class _JSONValue
+{
+ public:
+  _JSONValue() : chnIndex(-1), baseInterface(NULL) { memset(str, '\0', str_JSONValue_MAX_BYTES); }
+
+  int            chnIndex;
+  char           str[str_JSONValue_MAX_BYTES];  // [FE-6090] using a std::string causes the JSONValue::Copy() function to crash, beats me why.
+  BaseInterface *baseInterface;
+};
+
 class JSONValue : public CLxImpl_Value,
                   public CLxImpl_StreamIO
 {
@@ -48,26 +60,14 @@ class JSONValue : public CLxImpl_Value,
 
     lx::AddServer(SERVER_NAME_JSONValue, srv);
   }
-  
-  struct _JSONValue
-  {
-    int            chnIndex;
-    std::string    s;
-    BaseInterface *baseInterface;
-    void init()
-    {
-      chnIndex = -1;
-      s.clear();
-      baseInterface = NULL;
-    }
-  };
+
+  JSONValue()   { m_data = new _JSONValue;   }
+  ~JSONValue()  { if (m_data) delete m_data; }
 
   static LXtTagInfoDesc descInfo[];
-  _JSONValue m_data;
 
-  JSONValue()   { m_data.init(); }
-  ~JSONValue()  { m_data.init(); }
-  
+  _JSONValue *m_data;
+
   unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
   LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
   LxResult     val_GetString(char *buf, unsigned len)   LXx_OVERRIDE;

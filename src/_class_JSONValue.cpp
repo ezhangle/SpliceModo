@@ -11,18 +11,29 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     Copy another instance of our custom value to this one. We just cast
     the object to our internal structure and then copy the data.
   */
-  if (!other || !m_data)
-    return LXe_FAILED;
 
-  _JSONValue *other_data = static_cast <_JSONValue *>((void *)other);
-  if (!other_data)
-    return LXe_FAILED;
-  
-  m_data->chnIndex      = other_data->chnIndex;
-  m_data->s             = other_data->s;
-  m_data->baseInterface = other_data->baseInterface;
+  //char t[256];
+  //sprintf(t, "JSONValue::val_Copy, m_data = %ld, other = %ld, *other = %ld", (int)m_data, (int)other, other ? (int)(*other) : 0);
+  //feLog(t);
 
-  return LXe_OK;
+  _JSONValue *other_data = NULL;
+  if (other && m_data)
+  {
+    other_data = static_cast <_JSONValue *>((void *)other);
+    if (other_data)
+    {
+      if (   other_data->chnIndex >= -1
+          && other_data->chnIndex <  CHN_FabricJSON_NUM)  // QUICK HACK to prevent crash from FE-6090!
+      {
+        m_data->chnIndex      = other_data->chnIndex;
+        m_data->s             = other_data->s;
+        m_data->baseInterface = other_data->baseInterface;
+      }
+      return LXe_OK;
+    }
+  }
+
+  return LXe_FAILED;
 }
 
 LxResult JSONValue::val_GetString(char *buf, unsigned len)

@@ -24,6 +24,8 @@
 #include <lxvmath.h>
 #include "lx_wrap.hpp"
 
+#include "plugin.h"
+
 class BaseInterface;
 
 // The Value class implements the custom value type. The base interface for this

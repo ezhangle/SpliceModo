@@ -11,13 +11,19 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     Copy another instance of our custom value to this one. We just cast
     the object to our internal structure and then copy the data.
   */
-  if (!other) return LXe_FAILED;
+  if (!other)
+    return LXe_FAILED;
 
-  _JSONValue *otherData = (_JSONValue *)((void *)other);
-  if (!otherData) return LXe_FAILED;
+  _JSONValue *otherData = static_cast <_JSONValue *>((void *)other);
+  if (!otherData)
+    return LXe_FAILED;
   
-  m_data.s             = otherData->s;
-  m_data.baseInterface = otherData->baseInterface;
+  if (otherData != &m_data)
+  {
+    m_data.chnIndex      = otherData->chnIndex;
+    m_data.s             = otherData->s;
+    m_data.baseInterface = otherData->baseInterface;
+  }
 
   return LXe_OK;
 }
@@ -33,12 +39,11 @@ LxResult JSONValue::val_GetString(char *buf, unsigned len)
     copy the string into.
   */
   
-  if (!buf)       return LXe_FAILED;
+  if (!buf)                     return LXe_FAILED;
 
-  if (m_data.s.size() >= len)
-    return LXe_SHORTBUFFER;
+  if (m_data.s.size() >= len)   return LXe_SHORTBUFFER;
 
-  strncpy(buf, m_data.s.c_str(), len);
+  if (!m_data.s.empty())  strcpy(buf, m_data.s.c_str());
 
   return LXe_OK;
 }
@@ -51,7 +56,7 @@ LxResult JSONValue::val_SetString(const char *val)
 
   if (val)    m_data.s = val;
   else        m_data.s.clear();
-    
+
   return LXe_OK;
 }
 
@@ -122,6 +127,8 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
     // extract the part that will be saved for this channel.
     std::string part;
     part = json.substr((uint32_t)m_data.chnIndex * CHN_FabricJSON_MAX_BYTES, CHN_FabricJSON_MAX_BYTES);
+    if (part.length() == 1)
+      part += " ";
 
     // write.
     if (JSONVALUE_DEBUG_LOG)

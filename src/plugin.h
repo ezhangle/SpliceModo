@@ -48,6 +48,9 @@
   - rather than storing the entire JSON string in a single channel it is split
     into chunks of CHN_FabricJSON_MAX_BYTES bytes and divided amongst all the
     CHN_NAME_IO_FabricJSON channels.
+
+  KNOWN LIMITATION:
+
   - if a JSON string is larger than CHN_FabricJSON_MAX_BYTES * CHN_FabricJSON_NUM
     bytes then the scene is not correctly saved.
 

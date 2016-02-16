@@ -582,7 +582,7 @@ std::string DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
+void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
   FabricCore::DFGBinding const &binding,
   QList<int> diagIndices
   )
@@ -594,7 +594,7 @@ std::string DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
 
   char n[64];
   std::string indicesStr = "[";
-  for(int i=0;i<indices.size();i++)
+  for(int i=0;i<diagIndices.size();i++)
   {
     if(i > 0)
       indicesStr += ", ";
@@ -2307,7 +2307,11 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
     if (!DecodeBinding(args, ai, binding))
       return cmd;
 
-    std::vector<unsigned int> indices;
+    std::string indicesStr;
+    if (!DecodeName(args, ai, indicesStr))
+      return cmd;
+
+    QList<int> indices;
     try
     {
       FTL::JSONStrWithLoc jsonStrWithLoc( indicesStr.c_str() );
@@ -2325,8 +2329,7 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
       return cmd;
     }
 
-    cmd = new FabricUI::DFG::DFGUICmd_DismissLoadDiags(binding,
-                                                    indices);
+    cmd = new FabricUI::DFG::DFGUICmd_DismissLoadDiags(binding, indices);
     try
     {
       cmd->doit();

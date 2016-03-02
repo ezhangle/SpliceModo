@@ -79,6 +79,12 @@ class ModoTools
 
  public:
 
+  // gets the value of an environment variable.
+  static std::string getEnvironmentVariable(const std::string varName);
+
+  // gets the value of an environment variable.
+  static void setEnvironmentVariable(const std::string varName, const std::string varValue);
+
   // checks if the Fabric environment variables are set and outputs errors in the event log if one or more env. variables are missing.
   // params:  showMsgbox    true: display a message box informing the user about the missing env. variables.
    static void checkFabricEnvVariables(bool showMsgbox);

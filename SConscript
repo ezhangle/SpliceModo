@@ -172,7 +172,7 @@ else:
 
 installedModule = env.Install(installDir, modoModule)
 
-FABRIC_CORE_VERSION = '2.0'
+FABRIC_CORE_VERSION = '2.1'
 
 modoFiles = []
 modoFiles.append(installedModule)

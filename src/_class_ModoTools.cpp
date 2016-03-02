@@ -17,9 +17,56 @@ LXtTextValueHint hint_FabricOpacity[] =
   -1,         NULL
 };
 
+std::string ModoTools::getEnvironmentVariable(const std::string varName)
+{
+  char const *varValue = NULL;
+  if (!varName.empty())
+    varValue = ::getenv( varName.c_str() );
+  return (varValue ? varValue : "");
+}
+
+void ModoTools::setEnvironmentVariable(const std::string varName, const std::string varValue)
+{
+  if (!varName.empty())
+    _putenv(std::string(varName + "=" + (varValue.empty() ? "" : varValue.c_str())).c_str());
+}
+
 void ModoTools::checkFabricEnvVariables(bool showMsgbox)
 {
   static bool _showMsgbox = true;
+
+
+
+    //// the possible Fabric path.
+    //std::string possibleFabricPath = "T:\\fabricdev\\pablo\\stage\\Windows\\x86_64\\Release";
+
+    //// check the Fabric environment variables and set them automatically if needed.
+    //{
+    //  std::string var;
+    //  std::string fabricPath = "";
+
+    //  var = "FABRIC_DIR";
+    //  fabricPath = ModoTools::getEnvironmentVariable(var);
+    //  if (fabricPath.empty())
+    //  {
+    //    fabricPath = possibleFabricPath;
+    //    ModoTools::setEnvironmentVariable(var, fabricPath);
+    //  }
+
+    //  var = "FABRIC_EXTS_PATH";
+    //  if (ModoTools::getEnvironmentVariable(var).empty())
+    //  {
+    //    ModoTools::setEnvironmentVariable(var, fabricPath + "\\" + "Exts");
+    //  }
+
+    //  var = "FABRIC_DFG_PATH";
+    //  if (ModoTools::getEnvironmentVariable(var).empty())
+    //  {
+    //    ModoTools::setEnvironmentVariable(var, fabricPath + "\\" + "Presets" + "\\" + "DFG");
+    //  }
+    //}
+
+
 
   const int numEnvVars = 3;
   std::string envVarNames   [numEnvVars];

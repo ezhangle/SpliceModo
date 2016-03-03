@@ -81,6 +81,10 @@ void initialize()
     // set log function pointers.
     BaseInterface::setLogFunc(feLog);
     BaseInterface::setLogErrorFunc(feLogError);
+
+    // set the client persistence flag.
+    char const *no_client_persistence = ::getenv( "FABRIC_DISABLE_CLIENT_PERSISTENCE" );
+    BaseInterface::setPersistClient(!no_client_persistence || no_client_persistence[0] == '\0');
   }
 
   // Modo.

@@ -17,6 +17,7 @@ unsigned int                              BaseInterface::s_maxId = 0;
 void (*BaseInterface::s_logFunc)(void *, const char *, unsigned int) = NULL;
 void (*BaseInterface::s_logErrorFunc)(void *, const char *, unsigned int) = NULL;
 std::map <unsigned int, BaseInterface*>   BaseInterface::s_instances;
+bool                                      BaseInterface::s_persistClient = true;
 
 BaseInterface::BaseInterface()
 {
@@ -105,10 +106,22 @@ BaseInterface::~BaseInterface()
     {
       try
       {
-        // [FE-5802] only remove the singleton objects
-        // instead of destroying the client entirely.
-        FabricCore::RTVal handleVal = FabricCore::RTVal::Construct(s_client, "SingletonHandle", 0, NULL);
-        handleVal.callMethod("", "removeAllObjects", 0, NULL);
+        if (s_persistClient)
+        {
+          // [FE-5802] only remove the singleton objects
+          // instead of destroying the client entirely.
+          FabricCore::RTVal handleVal = FabricCore::RTVal::Construct(s_client, "SingletonHandle", 0, NULL);
+          handleVal.callMethod("", "removeAllObjects", 0, NULL);
+        }
+        else
+        {
+          // [FE-5944] old behavior: destroy the client.
+          std::string info = "destructing client";
+          logFunc(NULL, info.c_str(), info.length());
+          delete(s_manager);
+          s_host = FabricCore::DFGHost();
+          s_client = FabricCore::Client();
+        }
       }
       catch (FabricCore::Exception e)
       {

@@ -54,6 +54,9 @@ class BaseInterface
   // binding notifications.
   static void bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength);
 
+  // client persistence
+  static void setPersistClient(bool persist)  { BaseInterface::s_persistClient = persist; }
+
  private:
 
   // logging.
@@ -62,6 +65,9 @@ class BaseInterface
   static void reportFunc(void *reportUserdata, FEC_ReportSource source, FEC_ReportLevel level, char const *lineCStr, uint32_t lineSize);
   static void (*s_logFunc)(void *, const char *, unsigned int);
   static void (*s_logErrorFunc)(void *, const char *, unsigned int);
+
+  // client persistence.
+  static bool s_persistClient;
 
   // member vars.
   unsigned int        m_id;

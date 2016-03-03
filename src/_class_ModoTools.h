@@ -79,15 +79,11 @@ class ModoTools
 
  public:
 
-  // gets the value of an environment variable.
-  static std::string getEnvironmentVariable(const std::string varName);
-
-  // gets the value of an environment variable.
-  static void setEnvironmentVariable(const std::string varName, const std::string varValue);
-
-  // checks if the Fabric environment variables are set and outputs errors in the event log if one or more env. variables are missing.
-  // params:  showMsgbox    true: display a message box informing the user about the missing env. variables.
-   static void checkFabricEnvVariables(bool showMsgbox);
+  // checks if the Fabric environment variables are set. If they are not set then
+  // the function will attempt to find the paths and store them in out_dfg_path
+  // and out_dfg_path (that can then be used in the FabricCore::Client::CreateOptions).
+  // returns: true if they are all set else false.
+   static bool checkFabricEnvVariables(char *out_dfg_path, char *out_exts_path, bool showMsgbox);
 
   // executes a command string.
   // params:  command                 command to execute, e.g. "channel.create bla item:myItem username:blabla".

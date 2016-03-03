@@ -31,14 +31,29 @@ BaseInterface::BaseInterface()
   {
     try
     {
-      // create a client
+      // setup options for creation of client
       FabricCore::Client::CreateOptions options;
       memset(&options, 0, sizeof(options));
       options.guarded = 1;
+      char fabric_dfg_path[512];
+      char fabric_exts_path[512];
+      char *ptr_fabric_dfg_path  = fabric_dfg_path;
+      char *ptr_fabric_exts_path = fabric_exts_path;
+      if (!ModoTools::checkFabricEnvVariables(ptr_fabric_dfg_path, ptr_fabric_exts_path, true))
+      {
+        if (*ptr_fabric_dfg_path != '\0')
+        { options.canvasPresetDirCStrs = &ptr_fabric_dfg_path;
+          options.canvasPresetDirCount = 1; }
+        if (*ptr_fabric_exts_path != '\0')
+        { options.extPaths    = &ptr_fabric_exts_path;
+          options.numExtPaths = 1; }
+      }
       CLxUser_PlatformService platformService;
       if (platformService.IsHeadless())   options.licenseType = FabricCore::ClientLicenseType_Compute;
       else                                options.licenseType = FabricCore::ClientLicenseType_Interactive;
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
+
+      // create a client
       s_client = FabricCore::Client(reportFunc, NULL, &options);
 
       // load basic extensions

@@ -17,100 +17,81 @@ LXtTextValueHint hint_FabricOpacity[] =
   -1,         NULL
 };
 
-std::string ModoTools::getEnvironmentVariable(const std::string varName)
+bool ModoTools::checkFabricEnvVariables(char *out_dfg_path, char *out_exts_path, bool showMsgbox)
 {
-  char const *varValue = NULL;
-  if (!varName.empty())
-    varValue = ::getenv( varName.c_str() );
-  return (varValue ? varValue : "");
-}
+  // init outputs.
+  if (out_dfg_path)   *out_dfg_path  = '\0';
+  if (out_exts_path)  *out_exts_path = '\0';
 
-void ModoTools::setEnvironmentVariable(const std::string varName, const std::string varValue)
-{
-  if (!varName.empty())
-    _putenv(std::string(varName + "=" + (varValue.empty() ? "" : varValue.c_str())).c_str());
-}
+  // get the current values of the FABRIC environment variables.
+  char *envVar_dfg_path  = getenv("FABRIC_DFG_PATH");
+  char *envVar_exts_path = getenv("FABRIC_EXTS_PATH");
 
-void ModoTools::checkFabricEnvVariables(bool showMsgbox)
-{
-  static bool _showMsgbox = true;
+  // all environment variables set?
+  if (   envVar_dfg_path  && *envVar_dfg_path  != '\0'
+      && envVar_exts_path && *envVar_exts_path != '\0')
+    return true;
 
-
-
-    //// the possible Fabric path.
-    //std::string possibleFabricPath = "T:\\fabricdev\\pablo\\stage\\Windows\\x86_64\\Release";
-
-    //// check the Fabric environment variables and set them automatically if needed.
-    //{
-    //  std::string var;
-    //  std::string fabricPath = "";
-
-    //  var = "FABRIC_DIR";
-    //  fabricPath = ModoTools::getEnvironmentVariable(var);
-    //  if (fabricPath.empty())
-    //  {
-    //    fabricPath = possibleFabricPath;
-    //    ModoTools::setEnvironmentVariable(var, fabricPath);
-    //  }
-
-    //  var = "FABRIC_EXTS_PATH";
-    //  if (ModoTools::getEnvironmentVariable(var).empty())
-    //  {
-    //    ModoTools::setEnvironmentVariable(var, fabricPath + "\\" + "Exts");
-    //  }
-
-    //  var = "FABRIC_DFG_PATH";
-    //  if (ModoTools::getEnvironmentVariable(var).empty())
-    //  {
-    //    ModoTools::setEnvironmentVariable(var, fabricPath + "\\" + "Presets" + "\\" + "DFG");
-    //  }
-    //}
-
-
-
-  const int numEnvVars = 3;
-  std::string envVarNames   [numEnvVars];
-  std::string envVarExamples[numEnvVars];
-  envVarNames   [0] = "FABRIC_DIR";
-  envVarNames   [1] = "FABRIC_DFG_PATH";
-  envVarNames   [2] = "FABRIC_EXTS_PATH";
-  #ifdef _WIN32
-    envVarExamples[0] = "<Fabric-Installation-Path>";
-    envVarExamples[1] = "<Fabric-Installation-Path>\\Presets\\DFG";
-    envVarExamples[2] = "<Fabric-Installation-Path>\\Exts";
-  #else
-    envVarExamples[0] = "<Fabric-Installation-Path>";
-    envVarExamples[1] = "<Fabric-Installation-Path>/Presets/DFG";
-    envVarExamples[2] = "<Fabric-Installation-Path>/Exts";
-  #endif
-  for (int i=0;i<numEnvVars;i++)
+  // try to find the Fabric directory.
+  char fabric_dir[512] = "";
+  char *envVar_fabric_dir = getenv("FABRIC_DIR");
+  if (envVar_fabric_dir && *envVar_fabric_dir != '\0')
   {
-    // get the environment variable's value.
-    char *envVarValue  = getenv(envVarNames[i].c_str());
-
-    // no value found?
-    if (!envVarValue || envVarValue[0] == '\0')
+    // the FABRIC_DIR environment variable is set so we use that.
+    strcpy(fabric_dir, envVar_fabric_dir);
+  }
+  else
+  {
+    // display a message box to inform that the
+    // FABRIC_DIR environment variable is not set.
+    if (showMsgbox)
     {
-      // display message box.
-      if (_showMsgbox && showMsgbox)
-      {
-        _showMsgbox = false;
-        std::string dummy;
-        std::string out_err;
-        ExecuteCommand("dialog.setup {warning}", dummy, out_err);
-        ExecuteCommand("dialog.title {Fabric}", dummy, out_err);
-        ExecuteCommand("dialog.msg {One or more Fabric environment variables have not been set.}", dummy, out_err);
-        ExecuteCommand("dialog.open", dummy, out_err);
-        ExecuteCommand("dialog.setup {info}", dummy, out_err);
-        ExecuteCommand("dialog.msg {Please check the Event Log for more details.}", dummy, out_err);
-        ExecuteCommand("dialog.open", dummy, out_err);
-      }
+      std::string dummy;
+      std::string out_err;
+      ExecuteCommand("dialog.setup {warning}", dummy, out_err);
+      ExecuteCommand("dialog.title {Fabric}", dummy, out_err);
+      ExecuteCommand("dialog.msg {The environment variable FABRIC_DIR is not set.\n\nFabric will try to set it automatically for this session,\nbut it is highly recommended to set the FABRIC_DIR\variable on your system.}", dummy, out_err);
+      ExecuteCommand("dialog.open", dummy, out_err);
+    }
 
-      // log error.
-      feLogError("The environment variable " + envVarNames[i] + " is not set.");
-      feLogError("Please make sure that " + envVarNames[i] + " is set and points to \"" + envVarExamples[i] + "\".");
+    // go through Modo's import paths and try to find the Fabric one.
+    CLxUser_PlatformService platformService;
+    int count = 0;
+    platformService.ImportPathCount(&count);
+    for (int i=0;i<count;i++)
+    {
+      const char *path = platformService.GetImportPath(i);
+      if (!path)
+        continue;
+      if (strstr(path, "/DCCIntegrations") || strstr(path, "\\DCCIntegrations"))
+      {
+        strcpy(fabric_dir, path);
+        char *crop = strstr(fabric_dir, "/DCCIntegrations");
+        if (!crop)  crop = strstr(fabric_dir, "\\DCCIntegrations");
+        *crop = '\0';
+        break;
+      }
     }
   }
+
+  // set the output dfg path.
+  if (!envVar_dfg_path || *envVar_dfg_path == '\0')
+    if (out_dfg_path)
+    {
+      sprintf(out_dfg_path, "%s/Presets/DFG", fabric_dir);
+      feLog(std::string("the environment variable FABRIC_DFG_PATH is not set, using \"") + std::string(out_dfg_path) + std::string("\" instead."));
+    }
+
+  // set the output exts path.
+  if (!envVar_exts_path || *envVar_exts_path == '\0')
+    if (out_exts_path)
+    {
+      sprintf(out_exts_path, "%s/Exts", fabric_dir);
+      feLog(std::string("the environment variable FABRIC_EXTS_PATH is not set, using \"") + std::string(out_exts_path) + std::string("\" instead."));
+    }
+
+  // done.
+  return false;
 }
 
 bool ModoTools::ExecuteCommand(const std::string &command, std::string &io_result, std::string &out_err)

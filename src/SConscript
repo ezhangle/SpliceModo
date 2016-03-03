@@ -21,6 +21,7 @@ installDir = STAGE_DIR.Dir('FabricModo').Dir('win64')
 
 installedPlugin  = env.Install(installDir, plugin[0])
 installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('index.cfg'))
+installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('startup_script.py'))
 installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_FabricCanvasExportGraph.pl'))
 installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_FabricCanvasImportGraph.pl'))
 installedPlugin += env.Install(STAGE_DIR.Dir('FabricModo'), env.File('btn_FabricCanvasOpenCanvas.pl'))

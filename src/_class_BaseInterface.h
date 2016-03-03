@@ -67,7 +67,7 @@ class BaseInterface
   static void (*s_logErrorFunc)(void *, const char *, unsigned int);
 
   // client persistence.
-  static bool s_persistClient;
+  static bool s_persistClient;  // [FE-5944]
 
   // member vars.
   unsigned int        m_id;

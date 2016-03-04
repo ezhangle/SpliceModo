@@ -24,12 +24,24 @@
 #include <lxvmath.h>
 #include "lx_wrap.hpp"
 
+#include "plugin.h"
+
 class BaseInterface;
 
 // The Value class implements the custom value type. The base interface for this
 // object is the Value Interface. This provides the basic functions for
 // manipulating the value. We also implement a StreamIO interface, allowing us
 // to read and write the custom value to the scene file.
+
+class _JSONValue
+{
+ public:
+  _JSONValue() : chnIndex(-1), s(" "), baseInterface(NULL) { }
+
+  int            chnIndex;
+  std::string    s;
+  BaseInterface *baseInterface;
+};
 
 class JSONValue : public CLxImpl_Value,
                   public CLxImpl_StreamIO
@@ -46,24 +58,14 @@ class JSONValue : public CLxImpl_Value,
 
     lx::AddServer(SERVER_NAME_JSONValue, srv);
   }
-  
-  struct _JSONValue
-  {
-    std::string    s;
-    BaseInterface *baseInterface;
-    void zero()
-    {
-      s.clear();
-      baseInterface = NULL;
-    }
-  };
+
+  JSONValue()   { m_data = new _JSONValue;   }
+  ~JSONValue()  { if (m_data) delete m_data; }
 
   static LXtTagInfoDesc descInfo[];
-  _JSONValue m_data;
 
-  JSONValue()   { m_data.zero(); }
-  ~JSONValue()  { m_data.zero(); }
-  
+  _JSONValue *m_data;
+
   unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
   LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
   LxResult     val_GetString(char *buf, unsigned len)   LXx_OVERRIDE;

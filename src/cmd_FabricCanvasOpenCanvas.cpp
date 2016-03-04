@@ -6,7 +6,6 @@
 #include "cmd_FabricCanvasOpenCanvas.h"
 #include "itm_CanvasIM.h"
 #include "itm_CanvasPI.h"
-#include "itm_CanvasPIpilot.h"
 
 // static tag description interface.
 LXtTagInfoDesc FabricCanvasOpenCanvas::Command::descInfo[] =
@@ -62,7 +61,6 @@ void FabricCanvasOpenCanvas::Command::cmd_Execute(unsigned flags)
   BaseInterface *b = NULL;
   if (!b) b = CanvasIM::GetBaseInterface(item);
   if (!b) b = CanvasPI::GetBaseInterface(item);
-  if (!b) b = CanvasPIpilot::GetBaseInterface(item);
   if (!b)
   { err += "failed to get BaseInterface, item probably has the wrong type";
     feLogError(err);
@@ -71,7 +69,7 @@ void FabricCanvasOpenCanvas::Command::cmd_Execute(unsigned flags)
   // get/display DFG widget.
   try
   {
-    FabricDFGWidget::getWidgetforBaseInterface(b);
+    FabricDFGWidget::getWidgetforBaseInterface(b, true, true);
   }
   catch (FabricCore::Exception e)
   {

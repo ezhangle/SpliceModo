@@ -14,11 +14,10 @@
 
 #include <FabricUI/DFG/DFGUI.h>
 #include <FabricUI/DFG/DFGLogWidget.h>
-#include <FabricUI/DFG/DFGCombinedWidget.h>
 #include <FabricUI/DFG/DFGValueEditor.h>
-//#include <FabricUI/DFG/Dialogs/DFGBaseDialog.h>
+#include <FabricUI/DFG/DFGCombinedWidget.h>
+#include <FabricUI/DFG/DFGKLEditorWidget.h>
 
-//#include <FabricSplice.h>
 #include "_class_BaseInterface.h"
 #include "_class_FabricView.h"
 
@@ -30,7 +29,7 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
   FabricDFGWidget(QWidget *in_parent, BaseInterface *in_baseInterface);
   ~FabricDFGWidget();
 
-  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound = true);
+  static FabricDFGWidget *getWidgetforBaseInterface(BaseInterface *in_baseInterface, bool createNewIfNoneFound = false, bool callRefreshGraph = false);
 
  public slots:
   virtual void onUndo();

@@ -73,227 +73,6 @@ struct localModoStuff
     }
 };
 
-// baked/cached polymesh.
-struct _polymesh
-{
-    unsigned int            numVertices;
-    unsigned int            numPolygons;
-    unsigned int            numSamples;
-    std::vector <float>     vertPositions;
-    std::vector <float>     vertNormals;
-    std::vector <uint32_t>  polyNumVertices;
-    std::vector <uint32_t>  polyVertices;
-    std::vector <float>     polyNodeNormals;
-
-    //
-    LXtTableauBox           bbox; // geo's bounding box.
-
-    //
-    _polymesh()   {  clear();  }
-    ~_polymesh()  {  clear();  }
-
-    //
-    void clear(void)
-    {
-      numVertices     = -1;
-      numPolygons     = -1;
-      numSamples      = -1;
-      vertPositions   .clear();
-      vertNormals     .clear();
-      polyNumVertices .clear();
-      polyVertices    .clear();
-      polyNodeNormals .clear();
-      for (int i = 0; i < 6; i++)
-        bbox[i] = 0;
-    }
-    void setMesh(const _polymesh &inMesh)
-    {
-        numVertices    = inMesh.numVertices;
-        numPolygons    = inMesh.numPolygons;
-        numSamples     = inMesh.numSamples;
-        vertPositions  .resize(inMesh.vertPositions  .size());  memcpy(vertPositions  .data(), inMesh.vertPositions  .data(), vertPositions  .size() * sizeof(float)   );
-        vertNormals    .resize(inMesh.vertNormals    .size());  memcpy(vertNormals    .data(), inMesh.vertNormals    .data(), vertNormals    .size() * sizeof(float)   );
-        polyNumVertices.resize(inMesh.polyNumVertices.size());  memcpy(polyNumVertices.data(), inMesh.polyNumVertices.data(), polyNumVertices.size() * sizeof(uint32_t));
-        polyVertices   .resize(inMesh.polyVertices   .size());  memcpy(polyVertices   .data(), inMesh.polyVertices   .data(), polyVertices   .size() * sizeof(uint32_t));
-        polyNodeNormals.resize(inMesh.polyNodeNormals.size());  memcpy(polyNodeNormals.data(), inMesh.polyNodeNormals.data(), polyNodeNormals.size() * sizeof(float)   );
-        for (int i = 0; i < 6; i++)
-          bbox[i] = inMesh.bbox[i];
-    }
-    void setEmptyMesh(void)
-    {
-      clear();
-      numVertices = 0;
-      numPolygons = 0;
-      numSamples  = 0;
-    }
-    bool isValid(void) const
-    {
-      return (   numVertices >= 0
-              && numPolygons >= 0
-              && numSamples  >= 0
-              && vertPositions  .size() == 3 * numVertices
-              && vertNormals    .size() == 3 * numVertices
-              && polyNumVertices.size() ==     numPolygons
-              && polyVertices   .size() ==     numSamples
-              && polyNodeNormals.size() == 3 * numSamples
-             );
-    }
-    bool isEmpty(void) const
-    {
-      return (numVertices == 0);
-    }
-    void calcBBox(void)
-    {
-      for (int i = 0; i < 6; i++)
-        bbox[i] = 0;
-      if (isValid() && !isEmpty())
-      {
-        float *pv = vertPositions.data();
-        bbox[0] = pv[0];
-        bbox[1] = pv[1];
-        bbox[2] = pv[2];
-        bbox[3] = pv[0];
-        bbox[4] = pv[1];
-        bbox[5] = pv[2];
-        for (unsigned int i=0;i<numVertices;i++,pv+=3)
-        {
-          bbox[0] = std::min(bbox[0], pv[0]);
-          bbox[1] = std::min(bbox[1], pv[1]);
-          bbox[2] = std::min(bbox[2], pv[2]);
-          bbox[3] = std::max(bbox[3], pv[0]);
-          bbox[4] = std::max(bbox[4], pv[1]);
-          bbox[5] = std::max(bbox[5], pv[2]);
-        }
-      }
-    }
-
-    // set from DFG port.
-    // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
-    int setFromDFGPort(FabricCore::DFGBinding &binding, char const *argName)
-    {
-      // clear current.
-      clear();
-
-      // get RTVal.
-      //FabricCore::RTVal rtMesh = port->getArgValue();
-
-      // get the mesh data (except for the vertex normals).
-      int retGet = BaseInterface::GetArgValuePolygonMesh( binding,
-                                                          argName,
-                                                          numVertices,
-                                                          numPolygons,
-                                                          numSamples,
-                                                         &vertPositions,
-                                                         &polyNumVertices,
-                                                         &polyVertices,
-                                                         &polyNodeNormals
-                                                        );
-      // error?
-      if (retGet)
-      { clear();
-        return retGet;  }
-
-      // create vertex normals from the polygon node normals.
-      if (numPolygons > 0 && polyNodeNormals.size() > 0)
-      {
-          // resize and zero-out.
-          vertNormals.resize       (3 * numVertices, 0.0f);
-          if (vertNormals.size() != 3 * numVertices)
-          { clear();
-            return -3;  }
-
-          // fill.
-          uint32_t *pvi = polyVertices.data();
-          float    *pnn = polyNodeNormals.data();
-          for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
-          {
-              float *vn = vertNormals.data() + (*pvi) * 3;
-              vn[0] += pnn[0];
-              vn[1] += pnn[1];
-              vn[2] += pnn[2];
-          }
-
-          // normalize vertex normals.
-          float *vn = vertNormals.data();
-          for (unsigned int i=0;i<numVertices;i++,vn+=3)
-          {
-              float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
-              if (f > 1.0e-012f)
-              {
-                  f = 1.0f / sqrt(f);
-                  vn[0] *= f;
-                  vn[1] *= f;
-                  vn[2] *= f;
-              }
-              else
-              {
-                  vn[0] = 0;
-                  vn[1] = 1.0f;
-                  vn[2] = 0;
-              }
-          }
-      }
-
-      // calc bbox.
-      calcBBox();
-
-      // done.
-      return retGet;
-    }
-
-    // merge this mesh with the input mesh.
-    bool merge(const _polymesh &inMesh)
-    {
-      // trivial cases.
-      {
-        if (!inMesh.isValid())        // input mesh is invalid.
-        {
-          clear();
-          return isValid();
-        }
-        if (inMesh.isEmpty())         // input mesh is empty.
-        {
-          setEmptyMesh();
-          return isValid();
-        }
-        if (!isValid() || isEmpty())  // this mesh is empty or invalid.
-        {
-          setMesh(inMesh);
-          return isValid();
-        }
-      }
-
-      // append inMesh' arrays to this' arrays.
-      uint32_t nThis, nIn, nSum;
-      nThis = vertPositions  .size(); nIn = inMesh.vertPositions  .size();  nSum = nThis + nIn; vertPositions  .resize(nSum); memcpy(vertPositions  .data() + nThis, inMesh.vertPositions  .data(), nIn * sizeof(float)   );
-      nThis = vertNormals    .size(); nIn = inMesh.vertNormals    .size();  nSum = nThis + nIn; vertNormals    .resize(nSum); memcpy(vertNormals    .data() + nThis, inMesh.vertNormals    .data(), nIn * sizeof(float)   );
-      nThis = polyNumVertices.size(); nIn = inMesh.polyNumVertices.size();  nSum = nThis + nIn; polyNumVertices.resize(nSum); memcpy(polyNumVertices.data() + nThis, inMesh.polyNumVertices.data(), nIn * sizeof(uint32_t));
-      nThis = polyVertices   .size(); nIn = inMesh.polyVertices   .size();  nSum = nThis + nIn; polyVertices   .resize(nSum); memcpy(polyVertices   .data() + nThis, inMesh.polyVertices   .data(), nIn * sizeof(uint32_t));
-      nThis = polyNodeNormals.size(); nIn = inMesh.polyNodeNormals.size();  nSum = nThis + nIn; polyNodeNormals.resize(nSum); memcpy(polyNodeNormals.data() + nThis, inMesh.polyNodeNormals.data(), nIn * sizeof(float)   );
-
-      // fix vertex indices.
-      uint32_t *pi = polyVertices.data() + numSamples;
-      for (size_t i = 0; i < inMesh.numSamples; i++,pi++)
-        *pi += numVertices;
-
-      // fix amounts.
-      numVertices += inMesh.numVertices;
-      numPolygons += inMesh.numPolygons;
-      numSamples  += inMesh.numSamples;
-
-      // re-calc bbox.
-      bbox[0] = std::min(bbox[0], inMesh.bbox[0]);
-      bbox[1] = std::min(bbox[1], inMesh.bbox[1]);
-      bbox[2] = std::min(bbox[2], inMesh.bbox[2]);
-      bbox[3] = std::max(bbox[3], inMesh.bbox[3]);
-      bbox[4] = std::max(bbox[4], inMesh.bbox[4]);
-      bbox[5] = std::max(bbox[5], inMesh.bbox[5]);
-
-      // done.
-      return isValid();
-    }
-};
-
 // user data structure.
 struct emUserData
 {
@@ -322,7 +101,7 @@ struct emUserData
         try
         {
           // delete widget and base interface.
-          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface);
           if (w) delete w;
           delete baseInterface;
           baseInterface = NULL;
@@ -1244,7 +1023,7 @@ bool CReadItemInstance::ReadAndEvaluate(bakedChannels &baked)
                     // put the port's polygon mesh in tmpMesh.
                     const char *portName = graph.getExecPortName(fi);
                     _polymesh tmpMesh;
-                    int retGet = tmpMesh.setFromDFGPort(binding, portName);
+                    int retGet = tmpMesh.setFromDFGArg(binding, portName);
                     if (retGet)
                     {
                       sprintf(serr, "%d", retGet);
@@ -1317,26 +1096,35 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
     */
 
     // store pointer at BaseInterface in JSON channel.
-    bool ok = false;
+    bool err = false;
     CLxUser_Item item(m_item_obj);
     if (item.test())
     {
       CLxUser_ChannelWrite chanWrite;
       if (chanWrite.from(item))
       {
-        CLxUser_Value value_json;
-        if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
+        char chnName[128];
+        for (int i=0;i<CHN_FabricJSON_NUM;i++)
         {
-          JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
-          if (jv)
+          CLxUser_Value value_json;
+          sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+          if (chanWrite.Object(item, chnName, value_json) && value_json.test())
           {
-            ok = true;
-            jv->baseInterface = m_userData.baseInterface;
+            JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
+            if (!jv)
+            {
+              err |= true;
+            }
+            else
+            {
+              jv->chnIndex      = i;
+              jv->baseInterface = m_userData.baseInterface;
+            }
           }
         }
       }
     }
-    if (!ok)
+    if (err)
       feLogError("failed to store pointer at BaseInterface in JSON channel");
 
     // done.
@@ -1383,27 +1171,48 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
       feLogError(err);
       return LXe_OK;  }
 
-    // get value object.
-    CLxUser_Value value;
-    if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
-    { // note: we don't log an error here.
-      return LXe_OK;  }
+    // get the contents of all CHN_NAME_IO_FabricJSON channels and paste them together.
+    // (note: we also set the jv.chnIndex and pointer at BaseInterface here).
+    std::string sJSON = "";
+    {
+      char chnName[128];
+      for (int i=0;i<CHN_FabricJSON_NUM;i++)
+      {
+        // get value object.
+        sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+        CLxUser_Value value;
+        if (!chanRead.Object(item, chnName, value) || !value.test())
+        {
+          feLogError(std::string("failed to get chanRead for channel") + std::string(chnName) + std::string("!"));
+          return LXe_OK;
+        }
 
-    // get content of channel CHN_NAME_IO_FabricJSON.
-    JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
-    if (!jv)
-    { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
-      feLogError(err);
-      return LXe_OK;  }
+        //
+        JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
+        if (!jv)
+        { err += "channel \"";
+          err += chnName;
+          err += "\" data is NULL";
+          feLogError(err);
+          return LXe_OK;  }
 
-    // set pointer at BaseInterface.
-    jv->baseInterface = m_userData.baseInterface;
+        // set chnIndex.
+        jv->chnIndex = i;
+
+        // set pointer at BaseInterface.
+        jv->baseInterface = m_userData.baseInterface;
+
+        // add s to sJSON.
+        if (jv->s.length() > 0)
+          sJSON += jv->s;
+      }
+    }
 
     // do it.
     try
     {
-      if (jv->s.length() > 0)
-        b->setFromJSON(jv->s);
+      if (sJSON.length() > 0)
+        b->setFromJSON(sJSON);
     }
     catch (FabricCore::Exception e)
     {
@@ -1422,7 +1231,7 @@ LxResult CReadItemInstance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID 
       try
       {
         // delete only widget.
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface);
         if (w) delete w;
       }
       catch (FabricCore::Exception e)
@@ -1809,9 +1618,14 @@ LxResult CReadItemPackage::pkg_SetupChannels(ILxUnknownID addChan)
     ac.SetDefault(0.7f, 0);
     ac.SetHint(hint_FabricOpacity);
 
-    ac.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
-    ac.SetStorage("+" SERVER_NAME_JSONValue);
-    ac.SetInternal();
+    char chnName[128];
+    for (int i=0;i<CHN_FabricJSON_NUM;i++)
+    {
+      sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+      ac.NewChannel(chnName, "+" SERVER_NAME_JSONValue);
+      ac.SetStorage("+" SERVER_NAME_JSONValue);
+      ac.SetInternal();
+    }
 
     return LXe_OK;
 }
@@ -1848,9 +1662,9 @@ LxResult CReadItemPackage::cui_UIHints(const char *channelName, ILxUnknownID hin
   {
     if (strcmp(channelName, "draw"))
     {
-        if (   !strcmp(channelName, CHN_NAME_IO_FabricActive)
-            || !strcmp(channelName, CHN_NAME_IO_FabricEval)
-            || !strcmp(channelName, CHN_NAME_IO_FabricJSON)
+        if (   !strcmp (channelName, CHN_NAME_IO_FabricActive)
+            || !strcmp (channelName, CHN_NAME_IO_FabricEval)
+            || !strncmp(channelName, CHN_NAME_IO_FabricJSON, strlen(CHN_NAME_IO_FabricJSON))
             )
         {
           result = hints.ChannelFlags(0);   // by default we don't display these fixed channels in the schematic view.

@@ -13,7 +13,6 @@
 #include "cmd_FabricCanvasOpenCanvas.h"
 #include "itm_CanvasIM.h"
 #include "itm_CanvasPI.h"
-#include "itm_CanvasPIpilot.h"
 
 // log system.
 class CItemLog : public CLxLogMessage
@@ -55,6 +54,24 @@ void feLogError(const std::string &s)
 {
   feLogError(NULL, s.c_str(), s.length());
 }
+void feLogDebug(void *userData, const char *s, unsigned int length)
+{
+  feLog(userData, s, length);
+}
+void feLogDebug(void *userData, const std::string &s)
+{
+  feLog(userData, s);
+}
+void feLogDebug(const std::string &s)
+{
+  feLog(s);
+}
+void feLogDebug(const std::string &s, int number)
+{
+  char t[64];
+  sprintf(t, " number = %ld", number);
+  feLog(s + t);
+}
 
 // plugin initialization.
 void initialize()
@@ -76,7 +93,6 @@ void initialize()
     //
     CanvasIM                          :: initialize();
     CanvasPI                          :: initialize();
-    CanvasPIpilot                     :: initialize();
     //
     JSONValue                         :: initialize();
     FabricView                        :: initialize();
@@ -91,6 +107,7 @@ void initialize()
     FabricCanvasConnect               :: initialize();
     FabricCanvasCreatePreset          :: initialize();
     FabricCanvasDisconnect            :: initialize();
+    FabricCanvasDismissLoadDiags      :: initialize();
     FabricCanvasEditNode              :: initialize();
     FabricCanvasEditPort              :: initialize();
     FabricCanvasExplodeNode           :: initialize();

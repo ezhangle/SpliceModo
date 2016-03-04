@@ -50,9 +50,9 @@ class ModoTools
   // item user channel structure.
   struct UsrChnDef
   {
-    int  chan_index;            // item channel index.
-    int  eval_index;            // evaluation index.
-    std::string chan_name;      // name of the channnel.
+    int           chan_index;   // item channel index.
+    int           eval_index;   // channel evaluation index.
+    std::string   chan_name;    // name of the channnel.
     bool isSingleton;           // true: all other "is*" flags are equal false.
     bool isVec2x;               // true: this is the first channel of a 2D vector.
     bool isVec3x;               // true: this is the first channel of a 3D vector.
@@ -61,6 +61,20 @@ class ModoTools
     UsrChnDef () : chan_index(-1), eval_index(-1), chan_name(""),
                    isSingleton(true),
                    isVec2x(false), isVec3x(false), isRGBr(false), isRGBAr(false) {}
+    bool isEqual(const UsrChnDef &cd)  const
+    {
+      return (   chan_index   == cd.chan_index
+              && chan_name    == cd.chan_name
+              && isSingleton  == cd.isSingleton
+              && isVec2x      == cd.isVec2x
+              && isVec3x      == cd.isVec3x
+              && isRGBr       == cd.isRGBr
+              && isRGBAr      == cd.isRGBAr);
+    }
+    bool isUnequal(const UsrChnDef &cd)  const
+    {
+      return !isEqual(cd);
+    }
   };
 
  public:
@@ -87,6 +101,9 @@ class ModoTools
   // fills the array io_usrChan with all usable user channels of the input item.
   // note: all members of UsrChnDef are set except for eval_index which is set to -1.
   static void usrChanCollect(CLxUser_Item &item, std::vector <UsrChnDef> &io_usrChan);
+
+  // returns true if one or more eval_index are not set.
+  static bool usrChanHasUnsetEvalIndex(const std::vector <UsrChnDef> &usrChan);
 
   // looks for a channel with the specified name and returns its pointer (or NULL if not found).
   static UsrChnDef *usrChanGetFromName(std::string channelName, std::vector <UsrChnDef> &usrChan);
@@ -181,11 +198,15 @@ class ModoTools
   static int GetChannelValueAsRGBA      (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
   static int GetChannelValueAsQuaternion(CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
   static int GetChannelValueAsMatrix44  (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
+  static int GetChannelValueAsXfo       (CLxUser_Attributes &attr, int eval_index, std::vector <double> &out, bool strict = false);
 
   // invalidates an item so that it gets re-evaluated:
   // this is done by calling the command "FabricCanvasIncEval" which will increase
   // the value of the internal integer channel called "FabricEval" by 1.
   static void InvalidateItem(ILxUnknownID item_obj);
+
+  // clears Modo's undo stack.
+  static void ClearUndoStack();
 };
 
 #endif  // SRC__CLASS_MODOTOOLS_H_

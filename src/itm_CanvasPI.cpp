@@ -5,263 +5,36 @@
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
 #include "itm_CanvasPI.h"
+#include "itm_common.h"
+#include <Persistence/RTValToJSONEncoder.hpp>
 
 static CLxItemType gItemType_CanvasPI(SERVER_NAME_CanvasPI);
 
 namespace CanvasPI
 {
-  // polymesh structure.
-  struct _polymesh
-  {
-    unsigned int            numVertices;
-    unsigned int            numPolygons;
-    unsigned int            numSamples;
-    std::vector <float>     vertPositions;
-    std::vector <float>     vertNormals;
-    std::vector <uint32_t>  polyNumVertices;
-    std::vector <uint32_t>  polyVertices;
-    std::vector <float>     polyNodeNormals;
-
-    // mesh bounding box.
-    float bbox[6];
-
-    // constructor/destructor.
-    _polymesh()   {  clear();  }
-    ~_polymesh()  {  clear();  }
-
-    // clear and invalidate the mesh.
-    void clear(void)
-    {
-      numVertices     = -1;
-      numPolygons     = -1;
-      numSamples      = -1;
-      vertPositions   .clear();
-      vertNormals     .clear();
-      polyNumVertices .clear();
-      polyVertices    .clear();
-      polyNodeNormals .clear();
-      for (int i = 0; i < 6; i++)
-        bbox[i] = 0;
-    }
-    
-    // sets this mesh from the input mesh.
-    void setMesh(const _polymesh &inMesh)
-    {
-      numVertices    = inMesh.numVertices;
-      numPolygons    = inMesh.numPolygons;
-      numSamples     = inMesh.numSamples;
-      vertPositions  .resize(inMesh.vertPositions  .size());  memcpy(vertPositions  .data(), inMesh.vertPositions  .data(), vertPositions  .size() * sizeof(float)   );
-      vertNormals    .resize(inMesh.vertNormals    .size());  memcpy(vertNormals    .data(), inMesh.vertNormals    .data(), vertNormals    .size() * sizeof(float)   );
-      polyNumVertices.resize(inMesh.polyNumVertices.size());  memcpy(polyNumVertices.data(), inMesh.polyNumVertices.data(), polyNumVertices.size() * sizeof(uint32_t));
-      polyVertices   .resize(inMesh.polyVertices   .size());  memcpy(polyVertices   .data(), inMesh.polyVertices   .data(), polyVertices   .size() * sizeof(uint32_t));
-      polyNodeNormals.resize(inMesh.polyNodeNormals.size());  memcpy(polyNodeNormals.data(), inMesh.polyNodeNormals.data(), polyNodeNormals.size() * sizeof(float)   );
-      for (int i = 0; i < 6; i++)
-        bbox[i] = inMesh.bbox[i];
-    }
-    
-    // make this mesh an empty mesh.
-    void setEmptyMesh(void)
-    {
-      clear();
-      numVertices = 0;
-      numPolygons = 0;
-      numSamples  = 0;
-    }
-    
-    // returns true if this is a valid mesh.
-    bool isValid(void) const
-    {
-      return (   numVertices >= 0
-              && numPolygons >= 0
-              && numSamples  >= 0
-              && vertPositions  .size() == 3 * numVertices
-              && vertNormals    .size() == 3 * numVertices
-              && polyNumVertices.size() ==     numPolygons
-              && polyVertices   .size() ==     numSamples
-              && polyNodeNormals.size() == 3 * numSamples
-             );
-    }
-    
-    // returns true if this is an empty mesh.
-    bool isEmpty(void) const
-    {
-      return (numVertices == 0);
-    }
-    
-    // calculate bounding box (i.e. set member bbox).
-    void calcBBox(void)
-    {
-      for (int i=0;i<6;i++)
-        bbox[i] = 0;
-      if (isValid() && !isEmpty())
-      {
-        float *pv = vertPositions.data();
-        bbox[0] = pv[0];
-        bbox[1] = pv[1];
-        bbox[2] = pv[2];
-        bbox[3] = pv[0];
-        bbox[4] = pv[1];
-        bbox[5] = pv[2];
-        for (unsigned int i=0;i<numVertices;i++,pv+=3)
-        {
-          bbox[0] = std::min(bbox[0], pv[0]);
-          bbox[1] = std::min(bbox[1], pv[1]);
-          bbox[2] = std::min(bbox[2], pv[2]);
-          bbox[3] = std::max(bbox[3], pv[0]);
-          bbox[4] = std::max(bbox[4], pv[1]);
-          bbox[5] = std::max(bbox[5], pv[2]);
-        }
-      }
-    }
-
-    // set from DFG port.
-    // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
-    int setFromDFGPort(FabricCore::DFGBinding &binding, char const *argName)
-    {
-      // clear current.
-      clear();
-
-      // get RTVal.
-      //FabricCore::RTVal rtMesh = port->getArgValue();
-
-      // get the mesh data (except for the vertex normals).
-      int retGet = BaseInterface::GetArgValuePolygonMesh( binding,
-                                                          argName,
-                                                          numVertices,
-                                                          numPolygons,
-                                                          numSamples,
-                                                         &vertPositions,
-                                                         &polyNumVertices,
-                                                         &polyVertices,
-                                                         &polyNodeNormals
-                                                        );
-      // error?
-      if (retGet)
-      { clear();
-        return retGet;  }
-
-      // create vertex normals from the polygon node normals.
-      if (numPolygons > 0 && polyNodeNormals.size() > 0)
-      {
-        // resize and zero-out.
-        vertNormals.resize       (3 * numVertices, 0.0f);
-        if (vertNormals.size() != 3 * numVertices)
-        { clear();
-          return -3;  }
-
-        // fill.
-        uint32_t *pvi = polyVertices.data();
-        float    *pnn = polyNodeNormals.data();
-        for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
-        {
-          float *vn = vertNormals.data() + (*pvi) * 3;
-          vn[0] += pnn[0];
-          vn[1] += pnn[1];
-          vn[2] += pnn[2];
-        }
-
-        // normalize vertex normals.
-        float *vn = vertNormals.data();
-        for (unsigned int i=0;i<numVertices;i++,vn+=3)
-        {
-          float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
-          if (f > 1.0e-012f)
-          {
-            f = 1.0f / sqrt(f);
-            vn[0] *= f;
-            vn[1] *= f;
-            vn[2] *= f;
-          }
-          else
-          {
-            vn[0] = 0;
-            vn[1] = 1.0f;
-            vn[2] = 0;
-          }
-        }
-      }
-
-      // calc bbox.
-      calcBBox();
-
-      // done.
-      return retGet;
-    }
-
-    // merge this mesh with the input mesh.
-    bool merge(const _polymesh &inMesh)
-    {
-      // trivial cases.
-      {
-        if (!inMesh.isValid())        // input mesh is invalid.
-        {
-          clear();
-          return isValid();
-        }
-        if (inMesh.isEmpty())         // input mesh is empty.
-        {
-          setEmptyMesh();
-          return isValid();
-        }
-        if (!isValid() || isEmpty())  // this mesh is empty or invalid.
-        {
-          setMesh(inMesh);
-          return isValid();
-        }
-      }
-
-      // append inMesh' arrays to this' arrays.
-      uint32_t nThis, nIn, nSum;
-      nThis = vertPositions  .size(); nIn = inMesh.vertPositions  .size();  nSum = nThis + nIn; vertPositions  .resize(nSum); memcpy(vertPositions  .data() + nThis, inMesh.vertPositions  .data(), nIn * sizeof(float)   );
-      nThis = vertNormals    .size(); nIn = inMesh.vertNormals    .size();  nSum = nThis + nIn; vertNormals    .resize(nSum); memcpy(vertNormals    .data() + nThis, inMesh.vertNormals    .data(), nIn * sizeof(float)   );
-      nThis = polyNumVertices.size(); nIn = inMesh.polyNumVertices.size();  nSum = nThis + nIn; polyNumVertices.resize(nSum); memcpy(polyNumVertices.data() + nThis, inMesh.polyNumVertices.data(), nIn * sizeof(uint32_t));
-      nThis = polyVertices   .size(); nIn = inMesh.polyVertices   .size();  nSum = nThis + nIn; polyVertices   .resize(nSum); memcpy(polyVertices   .data() + nThis, inMesh.polyVertices   .data(), nIn * sizeof(uint32_t));
-      nThis = polyNodeNormals.size(); nIn = inMesh.polyNodeNormals.size();  nSum = nThis + nIn; polyNodeNormals.resize(nSum); memcpy(polyNodeNormals.data() + nThis, inMesh.polyNodeNormals.data(), nIn * sizeof(float)   );
-
-      // fix vertex indices.
-      uint32_t *pi = polyVertices.data() + numSamples;
-      for (size_t i = 0; i < inMesh.numSamples; i++,pi++)
-        *pi += numVertices;
-
-      // fix amounts.
-      numVertices += inMesh.numVertices;
-      numPolygons += inMesh.numPolygons;
-      numSamples  += inMesh.numSamples;
-
-      // re-calc bbox.
-      bbox[0] = std::min(bbox[0], inMesh.bbox[0]);
-      bbox[1] = std::min(bbox[1], inMesh.bbox[1]);
-      bbox[2] = std::min(bbox[2], inMesh.bbox[2]);
-      bbox[3] = std::max(bbox[3], inMesh.bbox[3]);
-      bbox[4] = std::max(bbox[4], inMesh.bbox[4]);
-      bbox[5] = std::max(bbox[5], inMesh.bbox[5]);
-
-      // done.
-      return isValid();
-    }
-  };
-
   // user data structure.
-  struct emUserData
+  struct piUserData
   {
-    BaseInterface  *baseInterface;      // pointer at BaseInterface.
-    _polymesh       polymesh;           // baked polygon mesh.
+    BaseInterface                      *baseInterface;      // pointer at BaseInterface.
+    _polymesh                           polymesh;           // baked polygon mesh.
+    std::vector <ModoTools::UsrChnDef>  usrChan;            // user channels.
     //
     void zero(void)
     {
       polymesh.clear();
       baseInterface = NULL;
+      usrChan.clear();
     }
     void clear(void)
     {
-      feLog("CanvasPI::emUserData::clear() called");
+      feLog("CanvasPI::piUserData::clear() called");
       if (baseInterface)
       {
-        feLog("CanvasPI::emUserData() delete BaseInterface");
+        feLog("CanvasPI::piUserData() delete BaseInterface");
         try
         {
           // delete widget and base interface.
-          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface, false);
+          FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(baseInterface);
           if (w) delete w;
           delete baseInterface;
           baseInterface = NULL;
@@ -271,59 +44,72 @@ namespace CanvasPI
           feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
         }
       }
-      polymesh.clear();
       zero();
     }
   };
 
-  /*
-    The procedural geometry that we're generating can be evaluated in multiple
-    ways. It could be evaluated as a Surface when rendering or displaying in the
-    GL viewport, but when drawing for the item, we may want to draw a highlighted
-    wireframe or a bounding box. We define a class here that allows us to read the
-    channels we need for evaluating our surface, and cache them for future use.
-  */
+/*
+ *  We define a class here that defines the channels used to evaluate our surface.
+ *  It has some helper functions for reading the channels, but ultimately is just
+ *  an object that can be passed around between the modifier and the surface.
+ */
  
   class SurfDef
   {
    public:
-    SurfDef() : m_size (0.5) {}
+    SurfDef() { m_userData = NULL; }
     
-    LxResult Prepare  (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *index);
-    LxResult Evaluate (CLxUser_Attributes &attr, unsigned index);
-    LxResult Evaluate (CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj);
-    LxResult Copy     (SurfDef *other);
-    int      Compare  (SurfDef *other);
+    LxResult Prepare (CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex);
+    LxResult Evaluate(CLxUser_Attributes &attr, unsigned evalIndex);
+    LxResult Copy    (SurfDef *other);
+    int      Compare (SurfDef *other);
     
-    double m_size;
-    
-   private:
-    std::vector <ModoTools::UsrChnDef>  m_usrChan;
+    piUserData *m_userData;
   };
 
-  LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *index)
+  LxResult SurfDef::Prepare(CLxUser_Evaluation &eval, ILxUnknownID item_obj, unsigned *evalIndex)
   {
+    /*
+     *  This function is used to add channels and user channels to a modifier.
+     *  The modifier will then call the evaluate function and read the channel
+     *  values.
+     */
+
+    // init pointer at user data and get the base interface.
+    m_userData = NULL;
     BaseInterface *b = GetBaseInterface(item_obj);
     if (!b)
     { feLogError("SurfDef::Prepare(): GetBaseInterface() returned NULL");
       return LXe_INVALIDARG; }
 
-    //
+    // check.
     CLxUser_Item item(item_obj);
     if (!eval.test() || !item.test())   return LXe_NOINTERFACE;
-    if (!index)                         return LXe_INVALIDARG;
+    if (!evalIndex)                     return LXe_INVALIDARG;
     
-   
-    // add the fixed input channels to eval.
-    *index = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
-             eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
-             eval.AddChan(item, CHN_NAME_IO_FabricJSON,   LXfECHAN_READ);
+    // set pointer at user data.
+    m_userData = GetInstanceUserData(item_obj);
+    if (!m_userData)
+    { feLogError("SurfDef::Prepare(): GetInstanceUserData(item_obj) returned NULL");
+      return LXe_INVALIDARG; }
 
-    // collect all the user channels and add them to eval.
-    ModoTools::usrChanCollect(item, m_usrChan);
-    for (unsigned i = 0; i < m_usrChan.size(); i++)
+    // collect all the user channels.
+    ModoTools::usrChanCollect(item, m_userData->usrChan);
+
+    // add the fixed input channels to eval.
+    *evalIndex = eval.AddChan(item, CHN_NAME_IO_FabricActive, LXfECHAN_READ);
+    eval.AddChan(item, CHN_NAME_IO_FabricEval,   LXfECHAN_READ);
+    char chnName[128];
+    for (int i=0;i<CHN_FabricJSON_NUM;i++)
     {
-      ModoTools::UsrChnDef &c = m_usrChan[i];
+      sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
+      eval.AddChan(item, chnName, LXfECHAN_READ);
+    }
+
+    // add the user channels to eval.
+    for (unsigned i=0;i<m_userData->usrChan.size();i++)
+    {
+      ModoTools::UsrChnDef &c = m_userData->usrChan[i];
 
       unsigned int type;
       if      (b->HasInputPort (c.chan_name.c_str()))     type = LXfECHAN_READ;
@@ -332,87 +118,424 @@ namespace CanvasPI
 
       c.eval_index = eval.AddChan(item, c.chan_index, type);
     }
-    
+
     // done.
     return LXe_OK;
   }
   
-  LxResult SurfDef::Evaluate(CLxUser_Attributes &attr, unsigned index)
+  LxResult SurfDef::Evaluate(CLxUser_Attributes &attr, unsigned evalIndex)
   {
-    // once the channels have been allocated as inputs for the surface,
-    // we'll evaluate them and store their values.
-    
-    if (!attr.test ())  return LXe_NOINTERFACE;
-    
-    // read fixed channels.
-    int FabricActive = attr.Int(index + 0);
-    m_size = (FabricActive ? 1 : 0.1);
-    int FabricEval   = attr.Int(index + 1);
-    m_size += 0.01 * FabricEval;
-    
-    /*
-      Enumerate over the user channels and read them here. We don't do
-      anything with these.
-  
-      FETODO: Add support for the other channel types and do something with
-      the channels.
-    */
-    for (size_t i = 0; i < m_usrChan.size(); i++)
+    // nothing to do?
+    if (!attr || !attr.test())
+      return LXe_NOINTERFACE;
+
+    //
+    if (!m_userData)
+    { feLogError("SurfDef::EvaluateMain(): m_userData is NULL");
+      return LXe_OK; }
+    BaseInterface *b = m_userData->baseInterface;
+    if (!b)
+    { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
+      return LXe_OK; }
+
+    // set the base interface's evaluation member so that it doesn't
+    // process notifications while the element is being evaluated.
+    FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
+
+    // refs and pointers.
+    FabricCore::Client *client  = b->getClient();
+    if (!client)
+    { feLogError("SurfDef::EvaluateMain(): getClient() returned NULL");
+      return LXe_OK; }
+    FabricCore::DFGBinding binding = b->getBinding();
+    if (!binding.isValid())
+    { feLogError("SurfDef::EvaluateMain(): invalid binding");
+      return LXe_OK; }
+    FabricCore::DFGExec graph = binding.getExec();
+    if (!graph.isValid())
+    { feLogError("SurfDef::EvaluateMain(): invalid graph");
+      return LXe_OK; }
+
+    // get item.
+    CLxUser_Item item((ILxUnknownID)m_userData->baseInterface->m_ILxUnknownID_CanvasPI);
+    if (!item.test())
+    { feLogError("SurfDef::EvaluateMain(): item.test() failed");
+      return LXe_OK; }
+
+    // make ud.polymesh a valid, empty mesh.
+    m_userData->polymesh.setEmptyMesh();
+
+    // read the fixed input channels and return early if the FabricActive flag is disabled.
+    int FabricActive = attr.Bool(evalIndex++, false);
+    int FabricEval   = attr.Int (evalIndex++);
+    if (!FabricActive)
+      return LXe_OK;
+
+    // Fabric Engine (step 1): loop through all the DFG's input ports and set
+    //                         their values from the matching Modo user channels.
     {
-      ModoTools::UsrChnDef *channel = &m_usrChan[i];
-      unsigned              type    = 0;
-        
-      if (channel->eval_index < 0)
-        continue;
+      try
+      {
+        char        serr[256];
+        std::string err = "";
 
-      type = attr.Type((unsigned)channel->eval_index);
+        for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
+        {
+          // if the port has the wrong type then skip it.
+          if (graph.getExecPortType(fi) != FabricCore::DFGPortType_In)
+            continue;
 
-      if (type == LXi_TYPE_INTEGER)     m_size += 0.1 * attr.Int  ((unsigned)channel->eval_index);
-      else if (type == LXi_TYPE_FLOAT)  m_size += 0.1 * attr.Float((unsigned)channel->eval_index);
+          // get pointer at matching channel definition.
+          const char *portName = graph.getExecPortName(fi);
+          bool storable = true;
+
+          ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_userData->usrChan);
+          if (!cd)
+          { err = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+            break;  }
+          if (cd->eval_index < 0)
+          { err = "(step 1/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
+            break;  }
+
+          // "DFG port value = item user channel".
+          int retGet = 0;
+          std::string port__resolvedType = graph.getExecPortResolvedType(fi);
+          if      (   port__resolvedType == "Boolean")    {
+                                                            bool val = false;
+                                                            retGet = ModoTools::GetChannelValueAsBoolean(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgBoolean(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Integer"
+                   || port__resolvedType == "SInt8"
+                   || port__resolvedType == "SInt16"
+                   || port__resolvedType == "SInt32"
+                   || port__resolvedType == "SInt64" )    {
+                                                            int val = 0;
+                                                            retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgSInt(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Byte"
+                   || port__resolvedType == "UInt8"
+                   || port__resolvedType == "UInt16"
+                   || port__resolvedType == "Count"
+                   || port__resolvedType == "Index"
+                   || port__resolvedType == "Size"
+                   || port__resolvedType == "UInt32"
+                   || port__resolvedType == "DataSize"
+                   || port__resolvedType == "UInt64" )    {
+                                                            int val = 0;
+                                                            retGet = ModoTools::GetChannelValueAsInteger(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgUInt(*client, binding, portName, (uint32_t)val);
+                                                          }
+          else if (   port__resolvedType == "Scalar"
+                   || port__resolvedType == "Float32"
+                   || port__resolvedType == "Float64" )   {
+                                                            double val = 0;
+                                                            retGet = ModoTools::GetChannelValueAsFloat(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgFloat(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "String")     {
+                                                            std::string val = "";
+                                                            retGet = ModoTools::GetChannelValueAsString(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgString(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Quat")       {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsQuaternion(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgQuat(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Vec2")       {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsVector2(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgVec2(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Vec3")       {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsVector3(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgVec3(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Color")      {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsColor(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgColor(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "RGB")        {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsRGB(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgRGB(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "RGBA")       {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsRGBA(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgRGBA(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Mat44")      {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsMatrix44(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgMat44(*client, binding, portName, val);
+                                                          }
+          else if (   port__resolvedType == "Xfo")        {
+                                                            std::vector <double> val;
+                                                            retGet = ModoTools::GetChannelValueAsXfo(attr, cd->eval_index, val);
+                                                            if (retGet == 0)    BaseInterface::SetValueOfArgXfo(*client, binding, portName, val);
+                                                          }
+          else
+          {
+            storable = false;
+            err = "the port \"" + std::string(portName) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
+            break;
+          }
+
+          if( storable ) {
+            // Set ports added with a "storable type" as persistable so their values are 
+            // exported if saving the graph
+            // TODO: handle this in a "clean" way; here we are not in the context of an undo-able command.
+            //       We would need that the DFG knows which binding types are "stored" as attributes on the
+            //       DCC side and set these as persistable in the source "addPort" command.
+            graph.setExecPortMetadata( portName, DFG_METADATA_UIPERSISTVALUE, "true" );
+          }
+
+          // error getting value from user channel?
+          if (retGet != 0)
+          {
+            snprintf(serr, sizeof(serr), "%d", retGet);
+            err = "failed to get value from user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
+            break;
+          }
+        }
+
+        // error?
+        if (err != "")
+        {
+          feLogError(err);
+          return LXe_OK;
+        }
+      }
+      catch (FabricCore::Exception e)
+      {
+        std::string s = std::string("SurfDef::EvaluateMain()(step 1): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        feLogError(s);
+      }
     }
 
-    // done.
-    return LXe_OK;
-  }
-
-  LxResult SurfDef::Evaluate(CLxUser_ChannelRead &chan_read, ILxUnknownID item_obj)
-  {
-    CLxUser_Item item(item_obj);
-
-    // In some instances, the surface may be evaluated using a channel read
-    // object to simply evaluate the surface directly. This function is used
-    // to read the channels and cache them.
-    
-    if (!chan_read.test() || !item.test())  return LXe_NOINTERFACE;
-    
-    // collect the user channels on this item.
-    ModoTools::usrChanCollect(item, m_usrChan);
-    
-    // read fixed channels.
-    int FabricActive = chan_read.IValue(item, CHN_NAME_IO_FabricActive);
-    m_size = (FabricActive ? 1 : 0.1);
-    int FabricEval = chan_read.IValue(item, CHN_NAME_IO_FabricEval);
-    m_size += 0.01 * FabricEval;
-    
-    /*
-      Enumerate over the user channels and read them here. We don't do
-      anything with these - but for them to be useful, we should.
-    
-      FETODO: Add support for the other channel types and do something with
-      the channels.
-    */
-    for (size_t i = 0; i < m_usrChan.size(); i++)
+    // Fabric Engine (step 2): execute the DFG.
     {
-      ModoTools::UsrChnDef *channel = &m_usrChan[i];
-      unsigned              type    = 0;
-        
-      if (channel->eval_index < 0)
-        continue;
-        
-      item.ChannelType(channel->chan_index, &type);
+      try
+      {
+        binding.execute();
+      }
+      catch (FabricCore::Exception e)
+      {
+        std::string s = std::string("SurfDef::EvaluateMain()(step 2): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        feLogError(s);
+      }
+    }
 
-      if (type == LXi_TYPE_INTEGER)     m_size += 0.1 * chan_read.IValue(item, (unsigned)channel->eval_index);
-      else if (type == LXi_TYPE_FLOAT)  m_size += 0.1 * chan_read.FValue(item, (unsigned)channel->eval_index);
+    // Fabric Engine (step 3): loop through all the DFG's output ports and set
+    //                         the values of the matching Modo user channels.
+    {
+      try
+      {
+        char        serr[256];
+        std::string err = "";
+
+        for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
+        {
+          // if the port has the wrong type then skip it.
+          std::string resolvedType = graph.getExecPortResolvedType(fi);
+          if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_Out
+              || resolvedType              == "PolygonMesh"  )
+            continue;
+
+          // get pointer at matching channel definition.
+          const char *portName = graph.getExecPortName(fi);
+          ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_userData->usrChan);
+          if (!cd)
+          { err = "(step 3/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+            break;  }
+          if (cd->eval_index < 0)
+          { err = "(step 3/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
+            break;  }
+
+          // "item user channel = DFG port value".
+          int dataType = attr.Type(cd->eval_index);
+          const char *typeName = NULL;
+          if (!LXx_OK(attr.TypeName(cd->eval_index, &typeName)))
+            typeName = NULL;
+          FabricCore::RTVal rtval;
+          int retGet = 0;
+          int retSet = LXe_OK;
+          if (cd->isSingleton)
+          {
+            if      (dataType == LXi_TYPE_INTEGER)
+            {
+              int val;
+              retGet = BaseInterface::GetArgValueInteger(binding, portName, val);
+              if (retGet == 0)
+                retSet = attr.SetInt(cd->eval_index, val);
+            }
+            else if (dataType == LXi_TYPE_FLOAT)
+            {
+              double val;
+              retGet = BaseInterface::GetArgValueFloat(binding, portName, val);
+              if (retGet == 0)
+                retSet = attr.SetFlt(cd->eval_index, val);
+            }
+            else if (dataType == LXi_TYPE_STRING)
+            {
+              std::string val;
+              retGet = BaseInterface::GetArgValueString(binding, portName, val);
+              if (retGet == 0)
+                retSet = attr.SetString(cd->eval_index, val.c_str());
+            }
+            else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_QUATERNION))
+            {
+              std::vector <double> val;
+              retGet = BaseInterface::GetArgValueQuat(binding, portName, val);
+              if (retGet == 0 && val.size() == 4)
+              {
+                CLxUser_Quaternion usrQuaternion;
+                LXtQuaternion      q;
+                if (!attr.ObjectRW(cd->eval_index, usrQuaternion) || !usrQuaternion.test())
+                { err = "the function ObjectRW() failed for the user channel  \"" + std::string(portName) + "\"";
+                  break;  }
+                for (int i = 0; i < 4; i++)   q[i] = val[i];
+                usrQuaternion.SetQuaternion(q);
+              }
+            }
+            else if (dataType == LXi_TYPE_OBJECT && typeName && !strcmp (typeName, LXsTYPE_MATRIX4))
+            {
+              std::vector <double> val;
+              retGet = BaseInterface::GetArgValueMat44(binding, portName, val);
+              if (retGet == 0 && val.size() == 16)
+              {
+                CLxUser_Matrix usrMatrix;
+                LXtMatrix4     m44;
+
+                if (!attr.ObjectRW(cd->eval_index, usrMatrix) || !usrMatrix.test())
+                { err = "the function ObjectRW() failed for the user channel  \"" + std::string(portName) + "\"";
+                  break;  }
+
+                for (int j = 0; j < 4; j++)
+                  for (int i = 0; i < 4; i++)
+                    m44[i][j] = val[j * 4 + i];
+
+                usrMatrix.Set4(m44);
+              }
+            }
+            else
+            {
+              const char *typeName = NULL;
+              attr.TypeName(cd->eval_index, &typeName);
+              if (typeName)   err = "the user channel  \"" + std::string(portName) + "\" has the unsupported data type \"" + typeName + "\"";
+              else            err = "the user channel  \"" + std::string(portName) + "\" has the unsupported data type \"NULL\"";
+              break;
+            }
+          }
+          else
+          {
+            std::vector <double> val;
+            size_t N = 0;
+            if (dataType == LXi_TYPE_FLOAT)
+            {
+              if      (cd->isVec2x)     {   N = 2;  retGet = BaseInterface::GetArgValueVec2(binding, portName, val);   }
+              else if (cd->isVec3x)     {   N = 3;  retGet = BaseInterface::GetArgValueVec3(binding, portName, val);   }
+              else if (cd->isRGBr)      {   N = 3;  retGet = BaseInterface::GetArgValueRGB (binding, portName, val);   }
+              else if (cd->isRGBAr)     {   N = 4;  retGet = BaseInterface::GetArgValueRGBA(binding, portName, val);   }
+              else
+              {
+                err = "something is wrong with the flags in ModoTools::UsrChnDef";
+                break;
+              }
+
+              if (retGet == 0 && val.size() == N)
+                for (size_t i = 0; i < N; i++)
+                  if (retSet)     break;
+                  else            retSet = attr.SetFlt(cd->eval_index + i, val[i]);
+            }
+          }
+
+          // error getting value from DFG port?
+          if (retGet != 0)
+          {
+            snprintf(serr, sizeof(serr), "%d", retGet);
+            err = "failed to get value from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
+            break;
+          }
+
+          // error setting value of user channel?
+          if (retSet != 0)
+          {
+            snprintf(serr, sizeof(serr), "%d", retGet);
+            err = "failed to set value of user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
+            break;
+          }
+        }
+
+        // error?
+        if (err != "")
+        {
+          feLogError(err);
+          return LXe_OK;
+        }
+      }
+      catch (FabricCore::Exception e)
+      {
+        std::string s = std::string("SurfDef::EvaluateMain()(step 3): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        feLogError(s);
+      }
+    }
+
+    // Fabric Engine (step 4): find all the PolygonMesh output ports and merge
+    //                         them into m_userData->polymesh.
+    {
+      try
+      {
+        char        serr[256];
+        std::string err = "";
+
+        for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
+        {
+          // if the port has the wrong type then skip it.
+          std::string resolvedType = graph.getExecPortResolvedType(fi);
+          if (   graph.getExecPortType(fi) != FabricCore::DFGPortType_Out
+              || resolvedType              != "PolygonMesh"  )
+            continue;
+
+          // put the port's polygon mesh in tmpMesh.
+          const char *portName = graph.getExecPortName(fi);
+          _polymesh tmpMesh;
+          int retGet = tmpMesh.setFromDFGArg(binding, portName);
+          if (retGet)
+          {
+            sprintf(serr, "%d", retGet);
+            err = "failed to get mesh from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
+            break;
+          }
+
+          // merge tmpMesh into m_userData->polymesh.
+          if (!m_userData->polymesh.merge(tmpMesh))
+          {
+            sprintf(serr, "%d", retGet);
+            err = "failed to merge current mesh with mesh from DFG port \"" + std::string(portName) + "\"";
+            break;
+          }
+        }
+
+        // error?
+        if (err != "")
+        {
+          m_userData->polymesh.clear();
+          feLogError(err);
+          return LXe_OK;
+        }
+      }
+      catch (FabricCore::Exception e)
+      {
+        m_userData->polymesh.clear();
+        std::string s = std::string("SurfDef::EvaluateMain()(step 4): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+        feLogError(s);
+      }
     }
 
     // done.
@@ -423,41 +546,22 @@ namespace CanvasPI
   {
     // This function is used to copy the cached channel values from one
     // surface definition to another. We also copy the cached user channels.
-    
-    if (!other) return LXe_INVALIDARG;
-    
-    // copy the cached user channel information.
-    m_usrChan.clear();
-    m_usrChan.reserve(other->m_usrChan.size());
-    std::copy(other->m_usrChan.begin(), other->m_usrChan.end(), std::back_inserter(m_usrChan));
-    
-    // copy any built in channel values.
-    m_size = other->m_size;
-    
-    /*
-      FETODO: Copy the other user channel values here.
-    */
-    
-    // done.
-    return LXe_OK;
+    if (other)
+    {
+      m_userData = other->m_userData;
+      return LXe_OK;
+    }
+    return LXe_INVALIDARG;
   }
 
   int SurfDef::Compare(SurfDef *other)
   {
-    /*
-      This function does a comparison of another SurfDef with this one. It
-      should work like strcmp and return 0 for identical, or -1/1 to imply
-      relative positioning. For now, we just compare the size channel.
-     
-      FETODO: Add comparison for user channel values here.
-    */
-    
-    if (!other) return 0;
+    // This function does a comparison of another SurfDef with this one. It
+    // should work like strcmp and return 0 for identical, or -1/1 to imply
+    // relative positioning.
+    if (other && m_userData != other->m_userData)
+        return  1;
 
-    if (m_size > other->m_size)                     return  1;
-    if (m_size < other->m_size)                     return -1;
-    if (m_usrChan.size() > other->m_usrChan.size()) return  1;
-    if (m_usrChan.size() < other->m_usrChan.size()) return -1;
     return 0;
   }
 
@@ -490,11 +594,10 @@ namespace CanvasPI
     
     LxResult      stag_Get            (LXtID4 type, const char **tag)                                   LXx_OVERRIDE;
 
-    SurfDef      *Definition();
-    
+    SurfDef       m_surf_def;
+
    private:
     int           m_offsets[4];
-    SurfDef       m_surf_def;
   };
 
   unsigned int SurfElement::tsrf_FeatureCount(LXtID4 type)
@@ -533,22 +636,18 @@ namespace CanvasPI
   {
     /*
       This is expected to return a bounding box for the current binned
-      element. As we only have one element in the sample, and the element
-      contains a single polygon plane, we'll just return a bounding box that
-      encapsulates the plane.
-     
-      FETODO: Add code here for implementing correct bounding box for
-      Fabric Engine element.
+      element.
     */
     
-    CLxBoundingBox bounds;
-    
-    bounds.clear();
-    
-    bounds.add(0.0, 0.0, 0.0);
-    bounds.inflate(m_surf_def.m_size);
-    
-    bounds.getBox6(bbox);
+    if (m_surf_def.m_userData && m_surf_def.m_userData->polymesh.isValid())
+    {
+      bbox[0] = m_surf_def.m_userData->polymesh.bbox[0];
+      bbox[1] = m_surf_def.m_userData->polymesh.bbox[1];
+      bbox[2] = m_surf_def.m_userData->polymesh.bbox[2];
+      bbox[3] = m_surf_def.m_userData->polymesh.bbox[3];
+      bbox[4] = m_surf_def.m_userData->polymesh.bbox[4];
+      bbox[5] = m_surf_def.m_userData->polymesh.bbox[5];
+    }
     
     return LXe_OK;
   }
@@ -571,7 +670,7 @@ namespace CanvasPI
     if (!vertex.set(vdesc_obj))
       return LXe_NOINTERFACE;
 
-    for (int i = 0; i < 4; i++)
+    for (int i=0;i<4;i++)
     {
       tsrf_FeatureByIndex(LXiTBLX_BASEFEATURE, i, &name);
         
@@ -587,38 +686,30 @@ namespace CanvasPI
   LxResult SurfElement::tsrf_Sample(const LXtTableauBox bbox, float scale, ILxUnknownID trisoup_obj)
   {
     /*
-      The Sample function is used to generate the geometry for this Surface
-      Element. We basically just insert points directly into the triangle
-      soup feature array and then build polygons/triangles from points at
-      specific positions in the array.
-     
-      FETODO: This function will need changing to actually generate
-      geometry matching the output from Fabric Engine.
-    */
-    
-    CLxUser_TriangleSoup  soup (trisoup_obj);
-    LXtTableauBox         bounds;
-    LXtFVector            normal;
-    LXtFVector            zero;
-    LxResult              result  = LXe_OK;
-    unsigned              index   = 0;
-    float                 features[4 * 3];
-    float                 positions[4][3] = {{-1.0, 0.0, -1.0}, {1.0, 0.0, -1.0}, {1.0, 0.0, 1.0}, {-1.0, 0.0, 1.0}};
-    
-    if (!soup.test ())
-      return LXe_NOINTERFACE;
-    
-    /*
-      Test if the current element is visible. If it isn't, we'll return to
-      save on evaluation time.
-    */
-    
-    if (LXx_OK(tsrf_Bound(bounds)))
-    {
-      if (!soup.TestBox (bounds))
+     *  The Sample function is used to generate the geometry for this Surface
+     *  Element. We basically just insert points directly into the triangle
+     *  soup feature array and then build polygons/triangles from points at
+     *  specific positions in the array.
+     */
+
+    // init ref at user data.
+    if (!m_surf_def.m_userData)
+      return LXe_FAILED;
+    piUserData &ud = *m_surf_def.m_userData;
+
+    // nothing to do?
+    if (!ud.polymesh.isValid() || ud.polymesh.isEmpty())
         return LXe_OK;
-    }
-    
+
+    // init triangle soup.
+    CLxUser_TriangleSoup soup(trisoup_obj);
+    if (!soup.test())
+      return LXe_NOINTERFACE;
+
+    // return early if the bounding box is not visible.
+    if (!soup.TestBox(ud.polymesh.bbox))
+        return LXe_OK;
+       
     /*
       We're only generating triangles/polygons in a single segment. If
       something else is being requested, we'll early out.
@@ -626,69 +717,74 @@ namespace CanvasPI
     
     if (LXx_FAIL(soup.Segment(1, LXiTBLX_SEG_TRIANGLE)))
       return LXe_OK;
-    
-    /*
-      Build the geometry. We're creating a simple polygon plane here, so
-      we'll begin by adding four points to the Triangle Soup and then
-      calling the Quad function to create a polygon from them. The size
-      of the plane is dictated by our cached channel on our SurfDef object.
-      As we're simply entering our points into an array, we have to insert
-      values for each of the features we intend to set, offset using the
-      offset value cached in the SetVertex function.
-    */
-    
-    /*
-      Add the four points to the triangle soup.
-    */
-    
-    LXx_VSET3 (normal, 0.0, 1.0, 0.0);
-    LXx_VCLR  (zero);
-    
-    for (int i = 0; i < 4; i++)
-    {
-      /*
-      *    Position.
-      */
-    
-      LXx_VSCL3 (features + m_offsets[0], positions[i], m_surf_def.m_size);
-        
-      /*
-      *    Object Position.
-      */
-        
-      LXx_VCPY  (features + m_offsets[1], features + m_offsets[0]);
-        
-      /*
-      *    Normal.
-      */
-        
-      LXx_VCPY  (features + m_offsets[2], normal);
-        
-      /*
-      *    Velocity.
-      */
 
-      LXx_VCPY  (features + m_offsets[3], features + m_offsets[2]);
-        
-      /*
-      *    Add the array of features to the triangle soup to define the
-      *    point.
-      */
-        
-      result = soup.Vertex (features, &index);
-        
-      if (LXx_FAIL (result))
-        break;
-    }
-    
     /*
-      Build a quad from the four points added to the triangle soup.
+      Build the geometry.
     */
-    
-    if (LXx_OK(result))
-      result = soup.Quad (3, 2, 1, 0);
-    
-    return result;
+
+    // set the Modo geometry from ud.pmesh.
+    {
+      // init.
+      LxResult rc = soup.Segment (1, LXiTBLX_SEG_TRIANGLE);
+      if (rc == LXe_FALSE)    return LXe_OK;
+      else if (LXx_FAIL (rc)) return rc;
+
+      // build the vertex list.
+      {
+          unsigned    index;
+          float       vec[3 * (4 + 3)] = {0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0,
+                                          0, 0, 0};
+          float *vp = ud.polymesh.vertPositions.data();
+          float *vn = ud.polymesh.vertNormals  .data();
+          for (unsigned int i=0;i<ud.polymesh.numVertices;i++,vp+=3,vn+=3)
+          {
+              // position.
+              vec[m_offsets[0] + 0] = vp[0];
+              vec[m_offsets[0] + 1] = vp[1];
+              vec[m_offsets[0] + 2] = vp[2];
+
+              // normal.
+              vec[m_offsets[2] + 0] = vn[0];
+              vec[m_offsets[2] + 1] = vn[1];
+              vec[m_offsets[2] + 2] = vn[2];
+
+              // velocity.
+              vec[m_offsets[3] + 0] = 0;
+              vec[m_offsets[3] + 1] = 0;
+              vec[m_offsets[3] + 2] = 0;
+
+              // add vertex.
+              soup.Vertex(vec, &index);
+          }
+      }
+
+      // build triangle list.
+      {
+          // init pointers at polygon data.
+          uint32_t *pn = ud.polymesh.polyNumVertices.data();
+          uint32_t *pi = ud.polymesh.polyVertices.data();
+
+          // go.
+          for (unsigned int i=0;i<ud.polymesh.numPolygons;i++)
+          {
+              // we only use triangles and quads.
+              if        (*pn == 3)    soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
+              else if (*pn == 4)    soup.Quad    ((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
+
+              // next.
+              pi += *pn;
+              pn++;
+          }
+      }
+    }
+
+    // done.
+    return LXe_OK;
   }
     
   LxResult SurfElement::stag_Get(LXtID4 type, const char **tag)
@@ -710,12 +806,6 @@ namespace CanvasPI
     }
     
     return LXe_NOTFOUND;
-  }
-
-  SurfDef *SurfElement::Definition()
-  {
-    // return a pointer to our surface definition.
-    return &m_surf_def;
   }
 
   /*
@@ -744,9 +834,6 @@ namespace CanvasPI
     LxResult  surf_TagByIndex (LXtID4 type, unsigned int index, const char **stag)      LXx_OVERRIDE;
     LxResult  surf_GLCount    (unsigned int *count)                                     LXx_OVERRIDE;
     
-    SurfDef  *Definition();
-    
-   private:
     SurfDef   m_surf_def;
   };
 
@@ -754,21 +841,16 @@ namespace CanvasPI
   {
     /*
       This is expected to return a bounding box for the entire surface.
-      We just return a uniform box the expanded by our size channel, this
-      isn't exactly correct, but it'll do for this sample.
-     
-      FETODO: Add code here for implementing correct bounding box for
-      Fabric Engine surface.
     */
     
-    CLxBoundingBox bounds;
-    
-    bounds.clear();
-    
-    bounds.add(0.0, 0.0, 0.0);
-    bounds.inflate(m_surf_def.m_size);
-    
-    bounds.get (bbox);
+    if (bbox && m_surf_def.m_userData && m_surf_def.m_userData->polymesh.isValid())
+    {
+      float *tBox = m_surf_def.m_userData->polymesh.bbox;
+      LXx_V3SET(bbox->min, tBox[0], tBox[1], tBox[2]);
+      LXx_V3SET(bbox->max, tBox[3], tBox[4], tBox[5]);
+      LXx_V3SET(bbox->extent, tBox[3] - tBox[0], tBox[4] - tBox[1], tBox[5] - tBox[2]);
+      LXx_VCLR (bbox->center);
+    }
     
     return LXe_OK;
   }
@@ -810,26 +892,18 @@ namespace CanvasPI
       FETODO: If you have more than one bin, you'll need to add the correct
       code for allocating different bins.
     */
-    
-    CLxSpawner<SurfElement> spawner(SERVER_NAME_CanvasPI ".elmt");
-    SurfElement            *element    = NULL;
-    SurfDef                *definition = NULL;
-    
+
     if (index == 0)
     {
-      element = spawner.Alloc(ppvObj);
-    
+      CLxSpawner<SurfElement> spawner(SERVER_NAME_CanvasPI ".elmt");
+      SurfElement *element = spawner.Alloc(ppvObj);
       if (element)
       {
-        definition = element->Definition();
-            
-        if (definition)
-          definition->Copy(&m_surf_def);
-            
+        element->m_surf_def.Copy(&m_surf_def);
         return LXe_OK;
       }
     }
-    
+
     return LXe_FAILED;
   }
 
@@ -880,25 +954,21 @@ namespace CanvasPI
       generating. The GL count should be the number of triangles generated
       by our surface. As our sample surface is just a plane, we can return
       a hardcoded value of 2.
-     
-      FETODO: You will need to expand this to query the returned surface
-      from the Fabric Engine evaluation.
     */
-    
-    count[0] = 2;
-    
+    *count = 0;
+    if (m_surf_def.m_userData && m_surf_def.m_userData->polymesh.isValid())
+    {
+      _polymesh &mesh = m_surf_def.m_userData->polymesh;
+      for (unsigned int i=0;i<mesh.numPolygons;i++)
+      {
+        unsigned int num = mesh.polyNumVertices[i];
+        if      (num == 3)   (*count) += 1;
+        else if (num == 4)   (*count) += 2;
+      }
+    }
     return LXe_OK;
   }
     
-  SurfDef *Surface::Definition()
-  {
-    /*
-      Return a pointer to our surface definition.
-    */
-
-    return &m_surf_def;
-  }
-
   /*
     The instanceable object is spawned by our modifier. It has one task, which is
     to return a surface that matches the current state of the input channels.
@@ -915,12 +985,9 @@ namespace CanvasPI
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".instObj", srv);
     }
     
-    LxResult    instable_GetSurface (void **ppvObj)         LXx_OVERRIDE;
-    int         instable_Compare    (ILxUnknownID other)    LXx_OVERRIDE;
+    LxResult  instable_GetSurface (void **ppvObj)         LXx_OVERRIDE;
+    int       instable_Compare    (ILxUnknownID other)    LXx_OVERRIDE;
     
-    SurfDef    *Definition();
-    
-   private:
     SurfDef     m_surf_def;
   };
 
@@ -932,18 +999,10 @@ namespace CanvasPI
     */
 
     CLxSpawner<Surface> spawner(SERVER_NAME_CanvasPI ".surf");
-    Surface            *surface    = NULL;
-    SurfDef            *definition = NULL;
-
-    surface = spawner.Alloc(ppvObj);
-    
+    Surface  *surface = spawner.Alloc(ppvObj);
     if (surface)
     {
-      definition = surface->Definition();
-    
-      if (definition)
-        definition->Copy(&m_surf_def);
-        
+      surface->m_surf_def.Copy(&m_surf_def);
       return LXe_OK;
     }
     
@@ -959,23 +1018,10 @@ namespace CanvasPI
     */
 
     CLxSpawner<SurfInst>  spawner(SERVER_NAME_CanvasPI ".instObj");
-    SurfInst             *other = NULL;
-
-    other = spawner.Cast(other_obj);
+    SurfInst             *other = spawner.Cast(other_obj);
     
-    if (other)
-      return m_surf_def.Compare(&other->m_surf_def);
-    
-    return 0;
-  }
-
-  SurfDef *SurfInst::Definition()
-  {
-    /*
-      Return a pointer to our surface definition.
-    */
-
-    return &m_surf_def;
+    if (other)  return m_surf_def.Compare(&other->m_surf_def);
+    else        return 0;
   }
 
   /*
@@ -997,25 +1043,26 @@ namespace CanvasPI
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".inst", srv);
     }
     
-    Instance() : m_surf_spawn(SERVER_NAME_CanvasPI ".surf")
+    Instance()
     {
       feLog("CanvasPI::Instance::Instance() new BaseInterface");
       // init members and create base interface.
+      m_item_obj = NULL;
       m_userData.zero();
       m_userData.baseInterface = new BaseInterface();
     }
     ~Instance()
     {
-      // note: for some reason this destructor doesn't get called.
-      //       as a workaround the cleaning up, i.e. deleting the base interface, is done
-      //       in the function pins_Cleanup().
+      // note: for some reason this destructor doesn't get called,
+      //       so as a workaround the cleaning up, i.e. deleting the
+      //       base interface, is done in the function pins_Cleanup().
     };
 
-    LxResult    pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)                  LXx_OVERRIDE;
-    LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)                         LXx_OVERRIDE;
-    LxResult    pins_AfterLoad(void)                                                        LXx_OVERRIDE;
-    void        pins_Doomed(void)                                                           LXx_OVERRIDE;
-    void        pins_Cleanup(void)                                                          LXx_OVERRIDE;
+    LxResult    pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)  LXx_OVERRIDE;
+    LxResult    pins_Newborn(ILxUnknownID original, unsigned flags)         LXx_OVERRIDE  { return ItemCommon::pins_Newborn(original, flags, m_item_obj, m_userData.baseInterface); }
+    LxResult    pins_AfterLoad(void)                                        LXx_OVERRIDE  { return ItemCommon::pins_AfterLoad(m_item_obj, m_userData.baseInterface); }
+    void        pins_Doomed(void)                                           LXx_OVERRIDE  { ItemCommon::pins_Doomed(m_userData.baseInterface); }
+    void        pins_Cleanup(void)                                          LXx_OVERRIDE  { m_userData.clear(); }
     
     LxResult    isurf_GetSurface (ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj) LXx_OVERRIDE;
     LxResult    isurf_Prepare    (ILxUnknownID eval_obj, unsigned *index)                   LXx_OVERRIDE;
@@ -1023,11 +1070,7 @@ namespace CanvasPI
 
    public:
     ILxUnknownID        m_item_obj;
-    emUserData          m_userData;
-
-   private:
-    CLxSpawner<Surface> m_surf_spawn;
-    SurfDef             m_surf_def;
+    piUserData          m_userData;
   };
 
   LxResult Instance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)
@@ -1046,216 +1089,67 @@ namespace CanvasPI
     return LXe_OK;
   }
 
-  LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
-  {
-    /*
-      This function is called when an item is added.
-      We store the pointer at the BaseInterface here so that the
-      functions JSONValue::io_Write() can write the JSON string
-      when the scene is saved.
-
-      note: this function is *not* called when a scene is loaded,
-            instead pins_AfterLoad() is called.
-    */
-
-    // store pointer at BaseInterface in JSON channel.
-    bool ok = false;
-    CLxUser_Item item(m_item_obj);
-    if (item.test())
-    {
-      CLxUser_ChannelWrite chanWrite;
-      if (chanWrite.from(item))
-      {
-        CLxUser_Value value_json;
-        if (chanWrite.Object(item, CHN_NAME_IO_FabricJSON, value_json) && value_json.test())
-        {
-          JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value_json.Intrinsic();
-          if (jv)
-          {
-            ok = true;
-            jv->baseInterface = m_userData.baseInterface;
-          }
-        }
-      }
-    }
-    if (!ok)
-      feLogError("failed to store pointer at BaseInterface in JSON channel");
-
-    // done.
-    return LXe_OK;
-  }
-
-  LxResult Instance::pins_AfterLoad(void)
-  {
-    /*
-      This function is called when a scene was loaded.
-
-      We store the pointer at the BaseInterface here so that the
-      functions JSONValue::io_Write() can write the JSON string
-      when the scene is saved.
-
-      Furthermore we set the graph from the content (i.e. the string)
-      of the channel CHN_NAME_IO_FabricJSON.
-    */
-
-    // init err string.
-    std::string err = "pins_AfterLoad() failed: ";
-
-    // get BaseInterface.
-    BaseInterface *b = m_userData.baseInterface;
-
-    // create item.
-    CLxUser_Item item(m_item_obj);
-    if (!item.test())
-    { err += "item(m_item_obj) failed";
-      feLogError(err);
-      return LXe_OK;  }
-
-    // log.
-    std::string itemName;
-    item.GetUniqueName(itemName);
-    std::string info;
-    info = "item \"" + itemName + "\": setting Fabric base interface from JSON string.";
-    feLog(0, info.c_str(), info.length());
-
-    // create channel reader.
-    CLxUser_ChannelRead chanRead;
-    if (!chanRead.from(item))
-    { err += "failed to create channel reader.";
-      feLogError(err);
-      return LXe_OK;  }
-
-    // get value object.
-    CLxUser_Value value;
-    if (!chanRead.Object(item, CHN_NAME_IO_FabricJSON, value) || !value.test())
-    { // note: we don't log an error here.
-      return LXe_OK;  }
-
-    // get content of channel CHN_NAME_IO_FabricJSON.
-    JSONValue::_JSONValue *jv = (JSONValue::_JSONValue *)value.Intrinsic();
-    if (!jv)
-    { err += "channel \"" CHN_NAME_IO_FabricJSON "\" data is NULL";
-      feLogError(err);
-      return LXe_OK;  }
-
-    // set pointer at BaseInterface.
-    jv->baseInterface = m_userData.baseInterface;
-
-    // do it.
-    try
-    {
-      if (jv->s.length() > 0)
-        b->setFromJSON(jv->s);
-    }
-    catch (FabricCore::Exception e)
-    {
-      err += (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
-      feLogError(err);
-    }
-
-    // done.
-    return LXe_OK;
-  }
-
-  void Instance::pins_Doomed(void)
-  {
-    if (m_userData.baseInterface)
-    {
-      // delete only widget.
-      FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(m_userData.baseInterface, false);
-      if (w) delete w;
-    }
-  }
-
-  void Instance::pins_Cleanup(void)
-  {
-    // note: for some reason the destructor doesn't get called,
-    //       so the workaround is to delete the base interface
-    //       and the rest of the user data here.
-
-    m_userData.clear();
-  }
-
   LxResult Instance::isurf_GetSurface(ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)
   {
     /*
-      This function is used to allocate a surface for displaying in the
-      GL viewport. We're given a channel read object and we're expected to
-      read the channels needed to generate the surface and then return the
-      spawned surface. We basically redirect the calls to the SurfDef
-      helper functions.
-    */
+     *  This function is used to allocate a surface for displaying in the GL
+     *  viewport. We're given a channel read object and we're expected to
+     *  read the channels needed to generate the surface and then return the
+     *  spawned surface. We simply read the instanceable channel and call
+     *  its GetSurface function.
+     */
 
     CLxUser_Item item(m_item_obj);
-    if (!item.test())
+    if (item.test())
     {
-      feLogError("Instance::isurf_GetSurface(): item(m_item_obj) failed");
-      return LXe_FAILED;
+      CLxUser_ChannelRead     chan_read(chanRead_obj);
+      CLxUser_ValueReference  val_ref;
+      CLxLoc_Instanceable     instanceable;
+      if (chan_read.Object(item, CHN_NAME_INSTOBJ, val_ref))
+      {
+        if (val_ref.Get(instanceable) && instanceable.test())
+          return instanceable.GetSurface (ppvObj);
+      }
     }
 
-    CLxUser_ChannelRead chan_read (chanRead_obj);
-    Surface            *surface    = NULL;
-    SurfDef            *definition = NULL;
-
-    surface = m_surf_spawn.Alloc(ppvObj);
-    
-    if (surface)
-    {
-      definition = surface->Definition();
-    
-      if (definition)
-        return definition->Evaluate(chan_read, item);
-    }
-    
     return LXe_FAILED;
   }
 
   LxResult Instance::isurf_Prepare(ILxUnknownID eval_obj, unsigned *index)
   {
     /*
-      This function is used to allocate a surface in an evaluated context.
-      We don't allocate the surface here, but just add the required channels
-      to the eval object that we're passed. We cache the channel values on
-      a locally stored SurfDef and then copy them to a new one that's
-      allocated with the surface.
-     
-      NOTE: This may cause issues if multiple things call Prepare->Evaluate
-      at the same time.
-    */
+     *  This function is used to allocate the channels needed to evaluate a
+     *  surface. We just add a single channel; the instanceable. This can be
+     *  used to generate the surface.
+     */
 
-    CLxUser_Evaluation eval(eval_obj);
-    
-    return m_surf_def.Prepare(eval, m_item_obj, index);
+    CLxUser_Item item(m_item_obj);
+    if (item.test())
+    {
+      CLxUser_Evaluation eval(eval_obj);
+      index[0] = eval.AddChan(item, CHN_NAME_INSTOBJ, LXfECHAN_READ);
+      return LXe_OK;
+    }
+
+    return LXe_FAILED;
   }
 
   LxResult Instance::isurf_Evaluate(ILxUnknownID attr_obj, unsigned index, void **ppvObj)
   {
     /*
-      This function is used to allocate a surface in an evaluated context.
-      We have a SurfDef that was used to allocate the input channels for
-      the modifier. We copy this surf def to the Surface and then evaluate
-      the channels allocated for the surface.
-     
-      NOTE: This may cause issues if multiple things call Prepare->Evaluate
-      at the same time.
-    */
+     *  This function is used to generate a surface in an evaluated context.
+     *  We have a single input channel to the modifier which is the instanceable,
+     *  so we read the object and call the GetSurface function.
+     */
     
-    CLxUser_Attributes  attr(attr_obj);
-    Surface            *surface    = NULL;
-    SurfDef            *definition = NULL;
-    
-    surface = m_surf_spawn.Alloc(ppvObj);
-    
-    if (surface)
+    CLxUser_Attributes      attr(attr_obj);
+    CLxUser_ValueReference  val_ref;
+    CLxLoc_Instanceable     instanceable;
+
+    if (attr.ObjectRO (index, val_ref))
     {
-      definition = surface->Definition();
-    
-      if (definition)
-      {
-        definition->Copy(&m_surf_def);
-        
-        return definition->Evaluate(attr, index);
-      }
+      if (val_ref.Get(instanceable) && instanceable.test())
+        return instanceable.GetSurface(ppvObj);
     }
     
     return LXe_FAILED;
@@ -1277,14 +1171,17 @@ namespace CanvasPI
       srv->AddInterface       (new CLxIfc_Package           <Package>);
       srv->AddInterface       (new CLxIfc_StaticDesc        <Package>);
       srv->AddInterface       (new CLxIfc_SceneItemListener <Package>);
+      srv->AddInterface       (new CLxIfc_ChannelUI         <Package>);
       lx::AddServer           (SERVER_NAME_CanvasPI, srv);
     }
 
     Package () : m_inst_spawn(SERVER_NAME_CanvasPI ".inst") {}
     
-    LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)                          LXx_OVERRIDE;
-    LxResult    pkg_Attach          (void **ppvObj)                                     LXx_OVERRIDE;
-    LxResult    pkg_TestInterface   (const LXtGUID *guid)                               LXx_OVERRIDE;
+    LxResult    pkg_SetupChannels   (ILxUnknownID addChan_obj)  LXx_OVERRIDE  { return ItemCommon::pkg_SetupChannels(addChan_obj, true); }
+    LxResult    pkg_Attach          (void **ppvObj)             LXx_OVERRIDE  { m_inst_spawn.Alloc(ppvObj); return (ppvObj[0] ? LXe_OK : LXe_FAILED); }
+    LxResult    pkg_TestInterface   (const LXtGUID *guid)       LXx_OVERRIDE  { return m_inst_spawn.TestInterfaceRC(guid); }
+
+    LxResult    cui_UIHints         (const char *channelName, ILxUnknownID hints_obj)   LXx_OVERRIDE  { return ItemCommon::cui_UIHints(channelName, hints_obj); }
 
     void        sil_ItemAddChannel  (ILxUnknownID item_obj)                             LXx_OVERRIDE;
     void        sil_ItemChannelName (ILxUnknownID item_obj, unsigned int index)         LXx_OVERRIDE;
@@ -1294,57 +1191,6 @@ namespace CanvasPI
    private:
     CLxSpawner <Instance> m_inst_spawn;
   };
-
-  LxResult Package::pkg_SetupChannels(ILxUnknownID addChan_obj)
-  {
-    /*
-      Add some basic built in channels.
-    */
-
-    CLxUser_AddChannel  add_chan(addChan_obj);
-    LxResult            result = LXe_FAILED;
-
-    if (add_chan.test())
-    {
-      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);  // objref channel, used for caching the instanceable version of the surface
-
-      add_chan.NewChannel(CHN_NAME_IO_FabricActive, LXsTYPE_BOOLEAN);
-      add_chan.SetDefault(1, 1);
-
-      add_chan.NewChannel(CHN_NAME_IO_FabricEval, LXsTYPE_INTEGER);
-      add_chan.SetDefault(0, 0);
-
-      add_chan.NewChannel(CHN_NAME_IO_FabricJSON, "+" SERVER_NAME_JSONValue);
-      add_chan.SetStorage("+" SERVER_NAME_JSONValue);
-      add_chan.SetInternal();
-
-      result = LXe_OK;
-    }
-
-    return result;
-  }
-
-  LxResult Package::pkg_Attach(void **ppvObj)
-  {
-    /*
-      Allocate an instance of the package instance.
-    */
-
-    m_inst_spawn.Alloc(ppvObj);
-    
-    return (ppvObj[0] ? LXe_OK : LXe_FAILED);
-  }
-
-  LxResult Package::pkg_TestInterface(const LXtGUID *guid)
-  {
-    /*
-      This is called for the various interfaces this package could
-      potentially support, it should return a result code to indicate if it
-      implements the specified interface.
-    */
-
-    return m_inst_spawn.TestInterfaceRC(guid);
-  }
 
   void Package::sil_ItemAddChannel(ILxUnknownID item_obj)
   {
@@ -1405,14 +1251,13 @@ namespace CanvasPI
   class Element : public CLxItemModifierElement
   {
    public:
-    Element           (CLxUser_Evaluation &eval, ILxUnknownID item_obj);
-    bool        Test  (ILxUnknownID item_obj)                               LXx_OVERRIDE;
-    void        Eval  (CLxUser_Evaluation &eval, CLxUser_Attributes &attr)  LXx_OVERRIDE;
+    Element     (CLxUser_Evaluation &eval, ILxUnknownID item_obj);
+    bool    Test(ILxUnknownID item_obj)                               LXx_OVERRIDE  { return ItemCommon::Test(item_obj, m_surf_def.m_userData->usrChan); }
+    void    Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)  LXx_OVERRIDE;
     
    private:
-    int                                 m_chan_index;
+    int                                 m_eval_index_InstObj;
     SurfDef                             m_surf_def;
-    std::vector <ModoTools::UsrChnDef>  m_usrChan;
   };
 
   Element::Element(CLxUser_Evaluation &eval, ILxUnknownID item_obj)
@@ -1425,64 +1270,15 @@ namespace CanvasPI
     */
 
     CLxUser_Item  item(item_obj);
-    unsigned      temp = 0;
-
     if (!item.test())
       return;
 
-    /*
-      The first channel we want to add is the instanceable object channel
-      as an output.
-    */
-
-    m_chan_index = eval.AddChan(item, CHN_NAME_INSTOBJ, LXfECHAN_WRITE);
+    // the first channel we add is the instanceable object channel as an output.
+    m_eval_index_InstObj = eval.AddChan(item, CHN_NAME_INSTOBJ, LXfECHAN_WRITE);
     
-    /*
-      Call the prepare function on the surface definition to add the
-      channels it needs.
-    */
-    
+    // call the prepare function on the surface definition to add the channels it needs.
+    unsigned int temp = 0;
     m_surf_def.Prepare(eval, item, &temp);
-
-    /*
-      Next, we want to grab all of the user channels on the item and cache
-      them. This is mostly so we can compare the list when the modifier
-      changes. This could potentially be moved to the Surface definition.
-    */
-    
-    ModoTools::usrChanCollect(item, m_usrChan);
-  }
-
-  bool Element::Test(ILxUnknownID item_obj)
-  {
-    /*
-      When the list of user channels for a particular item changes, the
-      modifier will be invalidated. This function will be called to check
-      if the modifier we allocated previously matches what we'd allocate
-      if the Alloc function was called now. We return true if it does.
-    */
-
-    CLxUser_Item             item(item_obj);
-    std::vector <ModoTools::UsrChnDef> tmp;
-
-    if (item.test())
-    {
-      ModoTools::usrChanCollect(item, tmp);
-
-      if (tmp.size() == m_usrChan.size())
-      {
-        bool foundDifference = false;
-        for (size_t i = 0; i < tmp.size(); i++)
-          if (memcmp(&tmp[i], &m_usrChan[i], sizeof(ModoTools::UsrChnDef)))
-          {
-            foundDifference = true;
-            break;
-          }
-        return !foundDifference;
-      }
-    }
-
-    return false;
   }
 
   void Element::Eval(CLxUser_Evaluation &eval, CLxUser_Attributes &attr)
@@ -1493,13 +1289,6 @@ namespace CanvasPI
       surface definition to it - then we evaluate it's channels.
     */
 
-    CLxSpawner <SurfInst>     spawner (SERVER_NAME_CanvasPI ".instObj");
-    CLxUser_ValueReference    val_ref;
-    SurfInst                 *instObj         = NULL;
-    SurfDef                  *definition      = NULL;
-    ILxUnknownID              object          = NULL;
-    unsigned                  temp_chan_index = m_chan_index;
-    
     if (!eval || !attr)
       return;
     
@@ -1509,8 +1298,12 @@ namespace CanvasPI
       the object it contains to our spawned instanceable object.
     */
     
-    instObj = spawner.Alloc(object);
+    CLxSpawner <SurfInst> spawner (SERVER_NAME_CanvasPI ".instObj");
+    ILxUnknownID object = NULL;
+    SurfInst *instObj = spawner.Alloc(object);
     
+    CLxUser_ValueReference val_ref;
+    unsigned int temp_chan_index = m_eval_index_InstObj;
     if (instObj && attr.ObjectRW(temp_chan_index++, val_ref))
     {
       val_ref.SetObject(object);
@@ -1519,53 +1312,23 @@ namespace CanvasPI
         Copy the cached surface definition to the surface definition
         on the instanceable object.
       */
-        
-      definition = instObj->Definition();
-        
-      if (definition)
-      {
-        definition->Copy (&m_surf_def);
+      instObj->m_surf_def.Copy(&m_surf_def);
             
-        /*
-          Call Evaluate on the Surface Defintion to get the
-          channels required for evaluation.
-        */
-            
-        definition->Evaluate (attr, temp_chan_index);
-      }
+      /*
+        Call Evaluate on the Surface Defintion to get the
+        channels required for evaluation.
+      */
+      instObj->m_surf_def.Evaluate(attr, temp_chan_index);
     }
   }
 
   class Modifier : public CLxItemModifierServer
   {
    public:
-    static void initialize()
-    {
-      CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasPI ".mod");
-    }
-    
-    const char              *ItemType()                                                 LXx_OVERRIDE;
-    
-    CLxItemModifierElement  *Alloc   (CLxUser_Evaluation &eval, ILxUnknownID item_obj)  LXx_OVERRIDE;
+    static void initialize()  { CLxExport_ItemModifierServer <Modifier> (SERVER_NAME_CanvasPI ".mod"); }
+    const char *ItemType()  LXx_OVERRIDE  { return SERVER_NAME_CanvasPI; }
+    CLxItemModifierElement *Alloc(CLxUser_Evaluation &eval, ILxUnknownID item_obj)   LXx_OVERRIDE { return new Element (eval, item_obj); }
   };
-
-  const char *Modifier::ItemType()
-  {
-    /*
-      The modifier should only associate itself with this item type.
-    */
-
-    return SERVER_NAME_CanvasPI;
-  }
-
-  CLxItemModifierElement *Modifier::Alloc(CLxUser_Evaluation &eval, ILxUnknownID item)
-  {
-    /*
-      Allocate and return the modifier element.
-    */
-
-    return new Element (eval, item);
-  }
 
   Instance *GetInstance(ILxUnknownID item_obj)
   {
@@ -1594,12 +1357,20 @@ namespace CanvasPI
     return NULL;
   }
 
+  piUserData *GetInstanceUserData(ILxUnknownID item_obj)
+  {
+    Instance *inst = GetInstance(item_obj);
+    if (inst)   return &inst->m_userData;
+    else        return NULL;
+  }
+
   BaseInterface *GetBaseInterface(ILxUnknownID item_obj)
   {
     Instance *inst = GetInstance(item_obj);
     if (inst)   return inst->m_userData.baseInterface;
     else        return NULL;
   }
+
 
   // used in the plugin's initialize() function (see plugin.cpp).
   void initialize()

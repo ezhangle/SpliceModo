@@ -1075,9 +1075,6 @@ namespace CanvasPI
 
   LxResult Instance::pins_Initialize(ILxUnknownID item_obj, ILxUnknownID super)
   {
-    // check Fabric env. vars.
-    ModoTools::checkFabricEnvVariables(true);
-
     // store item ID in our member.
     m_item_obj = item_obj;
 

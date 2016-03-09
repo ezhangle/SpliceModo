@@ -55,8 +55,6 @@
 
 #define VALUE_TYPE_NAME     "+"VALUE_SERVER_NAME
 
-#define CHAN_CUSTOMVALUE    "customValue"
-
 /*
  *  This is our value data. When our value type is evaluated, the object returned
  *  will point to this class, allowing us to call functions on it to get and set
@@ -103,6 +101,64 @@ class Value_Data
 
 namespace Value
 {
+  // log system.
+  #define VALUE_LOG_SYSTEM_NAME "value.log"
+  class CItemLog : public CLxLogMessage
+  {
+   public:
+      CItemLog() : CLxLogMessage(VALUE_LOG_SYSTEM_NAME) { }
+      const char *GetFormat()     { return "n.a."; }
+      const char *GetVersion()    { return "n.a."; }
+      const char *GetCopyright()  { return "n.a."; }
+  };
+  CItemLog gLog;
+  void feLog(void *userData, const char *s, unsigned int length)
+  {
+    const char *p = (s != NULL ? s : "s == NULL");
+    gLog.Message(LXe_INFO, "[VALUE]", p, " ");
+  }
+  void feLog(void *userData, const std::string &s)
+  {
+    feLog(userData, s.c_str(), s.length());
+  }
+  void feLog(const std::string &s)
+  {
+    feLog(NULL, s.c_str(), s.length());
+  }
+  void feLogError(void *userData, const char *s, unsigned int length)
+  {
+    const char *p = (s != NULL ? s : "s == NULL");
+    gLog.Message(LXe_FAILED, "[VALUE ERROR]", p, " ");
+  }
+  void feLogError(void *userData, const std::string &s)
+  {
+    feLogError(userData, s.c_str(), s.length());
+  }
+  void feLogError(const std::string &s)
+  {
+    feLogError(NULL, s.c_str(), s.length());
+  }
+  void feLogDebug(void *userData, const char *s, unsigned int length)
+  {
+    feLog(userData, s, length);
+  }
+  void feLogDebug(void *userData, const std::string &s)
+  {
+    feLog(userData, s);
+  }
+  void feLogDebug(const std::string &s)
+  {
+    feLog(s);
+  }
+  void feLogDebug(const std::string &s, int number)
+  {
+    char t[64];
+    sprintf(t, " number = %ld", number);
+    feLog(s + t);
+  }
+
+
+
 
 /*
  *  The Value class implements the custom value type. The base interface for this
@@ -173,7 +229,9 @@ LxResult Value::val_Copy (ILxUnknownID other)
    */
 
   Value_Data    *data = NULL;
-  
+
+  feLog("val_Copy()");
+
   if (other && _data)
   {
     data = static_cast <Value_Data *> ((void *) other);
@@ -181,6 +239,7 @@ LxResult Value::val_Copy (ILxUnknownID other)
     if (data)
     {
       _data->SetString (data->GetString ());
+  feLog("val_Copy() ... copied");
       
       return LXe_OK;
     }
@@ -259,6 +318,7 @@ void * Value::val_Intrinsic ()
    *  The Intrinsic function is the important one. This returns a pointer
    *  to our custom class, allowing callers to interface with it directly.
     */
+  feLog("val_Intrinsic()");
 
   return _data;
 }
@@ -274,11 +334,14 @@ LxResult Value::io_Write (ILxUnknownID stream)
   CLxUser_BlockWrite   write (stream);
   std::string     string;
   
+  feLog("io_Write()");
   if (_data && write.test ())
   {
     string = _data->GetString ();
-  
-    return write.WriteString (string.c_str ());
+    
+    LxResult result = write.WriteString (string.c_str ());
+  feLog("io_Write() ... written");
+    return result;
   }
   
   return LXe_FAILED;
@@ -296,11 +359,13 @@ LxResult Value::io_Read (ILxUnknownID stream)
   CLxUser_BlockRead   read (stream);
   std::string     string;
   
+  feLog("io_Read()");
   if (_data && read.test ())
   {
     if (read.Read (string))
     {
       _data->SetString (string);
+  feLog("io_Read() ... read");
       
       return LXe_OK;
     }
@@ -311,6 +376,7 @@ LxResult Value::io_Read (ILxUnknownID stream)
 
 LXtTagInfoDesc Value::descInfo[] =
 {
+  { LXsSRV_LOGSUBSYSTEM, VALUE_LOG_SYSTEM_NAME },
   { 0 }
 };
 
@@ -346,6 +412,7 @@ void initialize ()
 
 #define CHAN_INSTOBJ        "instObj"
 #define CHAN_DIMENSIONS     "dimensions"
+#define CHAN_CUSTOMVALUE    "customValue"
 
 static CLxItemType   gItemTypeFix (SERVER_NAME);
 
@@ -356,11 +423,11 @@ static CLxItemType   gItemTypeFix (SERVER_NAME);
 namespace Surf_Sample
 {
   // log system.
-  #define LOG_SYSTEM_NAME "surf.sample.log"
+  #define SURF_SAMPLE_LOG_SYSTEM_NAME "surf.sample.log"
   class CItemLog : public CLxLogMessage
   {
    public:
-      CItemLog() : CLxLogMessage(LOG_SYSTEM_NAME) { }
+      CItemLog() : CLxLogMessage(SURF_SAMPLE_LOG_SYSTEM_NAME) { }
       const char *GetFormat()     { return "n.a."; }
       const char *GetVersion()    { return "n.a."; }
       const char *GetCopyright()  { return "n.a."; }
@@ -516,6 +583,8 @@ LxResult SurfDef::Prepare (CLxUser_Evaluation &eval, CLxUser_Item &item, unsigne
     
     index[0] = eval.AddChan (item, CHAN_DIMENSIONS, LXfECHAN_READ);
     
+    eval.AddChan (item, CHAN_CUSTOMVALUE, LXfECHAN_READ);
+
     /*
      *  Enumerate over the user channels and add them as inputs to a modifier.
      */
@@ -1298,6 +1367,10 @@ LxResult Package::pkg_SetupChannels (ILxUnknownID addChan_obj)
         
         add_chan.NewChannel (CHAN_DIMENSIONS, LXsTYPE_DISTANCE);
         add_chan.SetDefault (0.5, 0);
+
+        add_chan.NewChannel(CHAN_CUSTOMVALUE, VALUE_TYPE_NAME);
+        add_chan.SetStorage(VALUE_TYPE_NAME);
+        add_chan.SetInternal();
     }
 
     return LXe_OK;
@@ -1353,7 +1426,7 @@ LXtTagInfoDesc Package::descInfo[] =
     { LXsPKG_SUPERTYPE,     LXsITYPE_LOCATOR },
     { LXsPKG_IS_MASK,       "."      },
     { LXsPKG_INSTANCEABLE_CHANNEL,  CHAN_INSTOBJ     },
-    { LXsSRV_LOGSUBSYSTEM, LOG_SYSTEM_NAME },
+    { LXsSRV_LOGSUBSYSTEM, SURF_SAMPLE_LOG_SYSTEM_NAME },
     { 0 }
 };
 

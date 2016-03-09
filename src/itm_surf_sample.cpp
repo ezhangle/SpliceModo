@@ -196,7 +196,6 @@ class Value : public CLxImpl_Value,
   
     unsigned int   val_Type    ()        LXx_OVERRIDE;
     LxResult   val_Copy    (ILxUnknownID other)    LXx_OVERRIDE;
-    LxResult   val_SetInt    (int val)      LXx_OVERRIDE;
     LxResult   val_GetString    (char *buf, unsigned len)  LXx_OVERRIDE;
     LxResult   val_SetString    (const char *val)    LXx_OVERRIDE;
     void    *val_Intrinsic    ()        LXx_OVERRIDE;
@@ -230,8 +229,6 @@ LxResult Value::val_Copy (ILxUnknownID other)
 
   Value_Data    *data = NULL;
 
-  feLog("val_Copy()");
-
   if (other && _data)
   {
     data = static_cast <Value_Data *> ((void *) other);
@@ -239,7 +236,7 @@ LxResult Value::val_Copy (ILxUnknownID other)
     if (data)
     {
       _data->SetString (data->GetString ());
-  feLog("val_Copy() ... copied");
+  feLog("Value::val_Copy(): copied \"" + data->GetString() + "\"");
       
       return LXe_OK;
     }
@@ -248,24 +245,6 @@ LxResult Value::val_Copy (ILxUnknownID other)
   return LXe_FAILED;
 }
   
-LxResult Value::val_SetInt (int val)
-{
-  /*
-   *  Our custom value type has functions for setting the value using an
-   *  integer, so we may as well implement this function - it doesn't really
-   *  matter though, the custom value object is pretty arbitrary.
-   */
-  
-  if (_data)
-  {
-    _data->SetInt (val);
-    
-    return LXe_OK;
-  }
-  
-  return LXe_FAILED;
-}
-
 LxResult Value::val_GetString (char *buf, unsigned len)
 {
   /*
@@ -318,7 +297,6 @@ void * Value::val_Intrinsic ()
    *  The Intrinsic function is the important one. This returns a pointer
    *  to our custom class, allowing callers to interface with it directly.
     */
-  feLog("val_Intrinsic()");
 
   return _data;
 }
@@ -334,13 +312,12 @@ LxResult Value::io_Write (ILxUnknownID stream)
   CLxUser_BlockWrite   write (stream);
   std::string     string;
   
-  feLog("io_Write()");
   if (_data && write.test ())
   {
     string = _data->GetString ();
     
     LxResult result = write.WriteString (string.c_str ());
-  feLog("io_Write() ... written");
+
     return result;
   }
   
@@ -359,13 +336,11 @@ LxResult Value::io_Read (ILxUnknownID stream)
   CLxUser_BlockRead   read (stream);
   std::string     string;
   
-  feLog("io_Read()");
   if (_data && read.test ())
   {
     if (read.Read (string))
     {
       _data->SetString (string);
-  feLog("io_Read() ... read");
       
       return LXe_OK;
     }
@@ -1280,7 +1255,7 @@ LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
       Value_Data *p = (Value_Data *)value.Intrinsic();
       if (p)
       {
-        p->SetString("value set to something");
+        p->SetString("value set to something.");
         feLog("pins_Newborn() string set");
       }
     }

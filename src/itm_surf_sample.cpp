@@ -1238,6 +1238,8 @@ class Instance : public CLxImpl_PackageInstance, public CLxImpl_SurfaceItem, pub
         }
 
         LxResult     pins_Initialize    (ILxUnknownID item_obj, ILxUnknownID super_obj)         LXx_OVERRIDE;
+        LxResult     pins_Newborn       (ILxUnknownID original, unsigned flags)         LXx_OVERRIDE;
+        LxResult     pins_AfterLoad     (void)                                        LXx_OVERRIDE;
     
         LxResult     isurf_GetSurface   (ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)  LXx_OVERRIDE;
         LxResult     isurf_Prepare      (ILxUnknownID eval_obj, unsigned *index)            LXx_OVERRIDE;
@@ -1255,6 +1257,69 @@ LxResult Instance::pins_Initialize (ILxUnknownID item_obj, ILxUnknownID super_ob
      */
 
     return _item.set (item_obj) ? LXe_OK : LXe_FAILED;
+}
+
+LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
+{
+  /*
+    This function is called when an item is added.
+    We store the pointer at the BaseInterface here so that the
+    functions JSONValue::io_Write() can write the JSON string
+    when the scene is saved.
+
+    note: this function is *not* called when a scene is loaded,
+          instead pins_AfterLoad() is called.
+  */
+
+  CLxUser_ChannelWrite chanWrite;
+  if (chanWrite.from(_item))
+  {
+    CLxUser_Value value;
+    if (chanWrite.Object(_item, CHAN_CUSTOMVALUE, value) && value.test())
+    {
+      Value_Data *p = (Value_Data *)value.Intrinsic();
+      if (p)
+      {
+        p->SetString("value set to something");
+        feLog("pins_Newborn() string set");
+      }
+    }
+  }
+
+  return LXe_OK;
+}
+
+LxResult Instance::pins_AfterLoad(void)
+{
+  /*
+    This function is called when a scene was loaded.
+
+    We simply log the value of the custom value channel.
+  */
+
+  // create channel reader.
+  CLxUser_ChannelRead chanRead;
+  if (!chanRead.from(_item))
+  { feLogError("failed to create channel reader.");
+    return LXe_OK;  }
+
+  // get value object.
+  CLxUser_Value value;
+  if (!chanRead.Object(_item, CHAN_CUSTOMVALUE, value) || !value.test())
+  {
+    feLogError(std::string("failed to get chanRead for channel ") + std::string(CHAN_CUSTOMVALUE));
+    return LXe_OK;
+  }
+
+  // log the content of the custom value channel.
+  Value_Data *p = (Value_Data *)value.Intrinsic();
+  if (!p)
+  { feLogError(std::string("data is NULL for channel ") + std::string(CHAN_CUSTOMVALUE));
+    return LXe_OK;  }
+  char buf[1024] = "";
+  feLog(std::string("data of channel ") + std::string(CHAN_CUSTOMVALUE) + std::string(" is \"") + p->GetString() + std::string("\""));
+
+  return LXe_OK;
 }
 
 LxResult Instance::isurf_GetSurface (ILxUnknownID chanRead_obj, unsigned morph, void **ppvObj)

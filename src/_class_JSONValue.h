@@ -62,9 +62,6 @@ class JSONValue : public CLxImpl_Value,
   JSONValue()   { m_data = new _JSONValue;   }
   ~JSONValue()  { if (m_data) delete m_data; }
 
-  static LXtTagInfoDesc descInfo[];
-
-  _JSONValue *m_data;
 
   unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
   LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
@@ -74,6 +71,11 @@ class JSONValue : public CLxImpl_Value,
   
   LxResult   io_Write(ILxUnknownID stream)  LXx_OVERRIDE;
   LxResult   io_Read (ILxUnknownID stream)  LXx_OVERRIDE;
+
+  static LXtTagInfoDesc descInfo[];
+
+  private:
+  _JSONValue *m_data;
 };
 
 #endif  // SRC__CLASS_JSONVALUE_H_

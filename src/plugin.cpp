@@ -73,6 +73,9 @@ void feLogDebug(const std::string &s, int number)
   feLog(s + t);
 }
 
+namespace Surf_Sample { void initialize(); };
+namespace Value       { void initialize(); };
+
 // plugin initialization.
 void initialize()
 {
@@ -97,6 +100,9 @@ void initialize()
     //
     CanvasIM                          :: initialize();
     CanvasPI                          :: initialize();
+    //
+    Surf_Sample                       :: initialize();
+    Value                             :: initialize();
     //
     JSONValue                         :: initialize();
     FabricView                        :: initialize();

@@ -156,7 +156,7 @@ protected:
     FabricCore::DFGBinding const &binding,
     QString execPath,
     FabricCore::DFGExec const &exec,
-    QList<QString> nodeNames,
+    QStringList nodeNames,
     QList<QPointF> newTopLeftPoss
     );
 
@@ -173,11 +173,11 @@ protected:
     FabricCore::DFGBinding const &binding,
     QString execPath,
     FabricCore::DFGExec const &exec,
-    QList<QString> nodeNames,
+    QStringList nodeNames,
     QString desiredNodeName
     );
 
-  virtual QList<QString> dfgDoExplodeNode(
+  virtual QStringList dfgDoExplodeNode(
     FabricCore::DFGBinding const &binding,
     QString execPath,
     FabricCore::DFGExec const &exec,
@@ -225,7 +225,7 @@ protected:
     QString desiredNewPortName
     );
 
-  virtual QList<QString> dfgDoPaste(
+  virtual QStringList dfgDoPaste(
     FabricCore::DFGBinding const &binding,
     QString execPath,
     FabricCore::DFGExec const &exec,

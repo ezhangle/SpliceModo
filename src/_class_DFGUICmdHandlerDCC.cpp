@@ -15,7 +15,21 @@
   helper functions.
 */
 
+static inline std::string ToStdString( QString &qstr )
+{
+  QByteArray bytes = qstr.toUtf8();
+  return std::string( bytes.data(), bytes.size() );
+}
 
+static inline QString ToQString( FTL::StrRef str )
+{
+  return QString::fromUtf8( str.data(), str.size() );
+}
+
+static inline QString ToQString( std::string &str )
+{
+  return QString::fromUtf8( str.data(), str.size() );
+}
 
 bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result)
 {
@@ -89,7 +103,7 @@ static inline std::string EncodeNames(FTL::ArrayRef<FTL::StrRef> names)
   return nameSS.str();
 }
 
-static inline std::string EncodeNames( QList<QString> const &names )
+static inline std::string EncodeNames( QStringList const &names )
 {
   std::stringstream nameSS;
   for ( int i = 0; i < names.size(); ++i )
@@ -177,9 +191,9 @@ static inline void EncodeSize(QSizeF const &size, std::vector<std::string> &args
   }
 }
 
-static inline bool DecodeString(std::vector<std::string> const &args, unsigned &ai, std::string &value)
+static inline bool DecodeString(std::vector<std::string> const &args, unsigned &ai, QString &value)
 {
-  value = args[ai++];
+  value = ToQString( args[ai++] );
   return true;
 }
 
@@ -208,7 +222,7 @@ static inline bool DecodeBinding(std::vector<std::string> const &args, unsigned 
   return true;
 }
 
-static inline bool DecodeExec(std::vector<std::string> const &args, unsigned &ai, FabricCore::DFGBinding &binding, std::string &execPath, FabricCore::DFGExec &exec)
+static inline bool DecodeExec(std::vector<std::string> const &args, unsigned &ai, FabricCore::DFGBinding &binding, QString &execPath, FabricCore::DFGExec &exec)
 {
   if (!DecodeBinding(args, ai, binding))
     return false;
@@ -218,7 +232,7 @@ static inline bool DecodeExec(std::vector<std::string> const &args, unsigned &ai
   
   try
   {
-    exec = binding.getExec().getSubExec(execPath.c_str());
+    exec = binding.getExec().getSubExec(execPath.toUtf8().data());
   }
   catch (FabricCore::Exception e)
   {
@@ -228,22 +242,23 @@ static inline bool DecodeExec(std::vector<std::string> const &args, unsigned &ai
   return true;
 }
 
-static inline bool DecodeName(std::vector<std::string> const &args, unsigned &ai, std::string &value)
+static inline bool DecodeName(std::vector<std::string> const &args, unsigned &ai, QString &value)
 {
   return DecodeString(args, ai, value);
 }
 
-static inline bool DecodeNames(std::vector<std::string> const &args, unsigned &ai, std::string &namesString, std::vector<FTL::StrRef> &names)
+static inline bool DecodeNames(std::vector<std::string> const &args, unsigned &ai, QString &namesString, QStringList &names)
 {
   if (!DecodeString(args, ai, namesString))
     return false;
-  
-  FTL::StrRef namesStr = namesString;
+ 
+  std::string namesStdString( ToStdString( namesString ) );
+  FTL::StrRef namesStr = namesStdString;
   while (!namesStr.empty())
   {
     FTL::StrRef::Split split = namesStr.trimSplit('|');
     if (!split.first.empty())
-      names.push_back(split.first);
+      names.push_back(ToQString(split.first));
     namesStr = split.second;
   }
 
@@ -260,16 +275,16 @@ static inline bool DecodeNames(std::vector<std::string> const &args, unsigned &a
 
 void DFGUICmdHandlerDCC::dfgDoRemoveNodes(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::ArrayRef<FTL::StrRef> nodeNames
+  QStringList nodeNames
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_RemoveNodes::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
+  args.push_back(ToStdString(execPath));
   args.push_back(EncodeNames(nodeNames));
 
   std::string output;
@@ -278,19 +293,19 @@ void DFGUICmdHandlerDCC::dfgDoRemoveNodes(
 
 void DFGUICmdHandlerDCC::dfgDoConnect(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef srcPort, 
-  FTL::CStrRef dstPort
+  QString srcPort, 
+  QString dstPort
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_Connect::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(srcPort);
-  args.push_back(dstPort);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(srcPort));
+  args.push_back(ToStdString(dstPort));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -298,29 +313,29 @@ void DFGUICmdHandlerDCC::dfgDoConnect(
 
 void DFGUICmdHandlerDCC::dfgDoDisconnect(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef srcPort, 
-  FTL::CStrRef dstPort
+  QString srcPort, 
+  QString dstPort
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_Disconnect::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(srcPort);
-  args.push_back(dstPort);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(srcPort));
+  args.push_back(ToStdString(dstPort));
 
   std::string output;
   execCmd(cmdName, args, output);
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoAddGraph(
+QString DFGUICmdHandlerDCC::dfgDoAddGraph(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef title,
+  QString title,
   QPointF pos
   )
 {
@@ -328,21 +343,21 @@ std::string DFGUICmdHandlerDCC::dfgDoAddGraph(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(title);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(title));
   EncodePosition(pos, args);
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
 QString DFGUICmdHandlerDCC::dfgDoAddFunc(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef title,
-  FTL::CStrRef initialCode,
+  QString title,
+  QString initialCode,
   QPointF pos
   )
 {
@@ -350,9 +365,9 @@ QString DFGUICmdHandlerDCC::dfgDoAddFunc(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(title);
-  args.push_back(initialCode);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(title));
+  args.push_back(ToStdString(initialCode));
   EncodePosition(pos, args);
 
   QString result;
@@ -362,9 +377,9 @@ QString DFGUICmdHandlerDCC::dfgDoAddFunc(
 
 QString DFGUICmdHandlerDCC::dfgDoInstPreset(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef presetPath,
+  QString presetPath,
   QPointF pos
   )
 {
@@ -372,8 +387,8 @@ QString DFGUICmdHandlerDCC::dfgDoInstPreset(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(presetPath);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(presetPath));
   EncodePosition(pos, args);
 
   QString result;
@@ -383,11 +398,11 @@ QString DFGUICmdHandlerDCC::dfgDoInstPreset(
 
 QString DFGUICmdHandlerDCC::dfgDoAddVar(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef desiredNodeName,
-  FTL::CStrRef dataType,
-  FTL::CStrRef extDep,
+  QString desiredNodeName,
+  QString dataType,
+  QString extDep,
   QPointF pos
   )
 {
@@ -395,10 +410,10 @@ QString DFGUICmdHandlerDCC::dfgDoAddVar(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(desiredNodeName);
-  args.push_back(dataType);
-  args.push_back(extDep);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(desiredNodeName));
+  args.push_back(ToStdString(dataType));
+  args.push_back(ToStdString(extDep));
   EncodePosition(pos, args);
 
   QString result;
@@ -408,10 +423,10 @@ QString DFGUICmdHandlerDCC::dfgDoAddVar(
 
 QString DFGUICmdHandlerDCC::dfgDoAddGet(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef desiredNodeName,
-  FTL::CStrRef varPath,
+  QString desiredNodeName,
+  QString varPath,
   QPointF pos
   )
 {
@@ -419,9 +434,9 @@ QString DFGUICmdHandlerDCC::dfgDoAddGet(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(desiredNodeName);
-  args.push_back(varPath);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(desiredNodeName));
+  args.push_back(ToStdString(varPath));
   EncodePosition(pos, args);
 
   QString result;
@@ -431,10 +446,10 @@ QString DFGUICmdHandlerDCC::dfgDoAddGet(
 
 QString DFGUICmdHandlerDCC::dfgDoAddSet(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef desiredNodeName,
-  FTL::CStrRef varPath,
+  QString desiredNodeName,
+  QString varPath,
   QPointF pos
   )
 {
@@ -442,9 +457,9 @@ QString DFGUICmdHandlerDCC::dfgDoAddSet(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(desiredNodeName);
-  args.push_back(varPath);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(desiredNodeName));
+  args.push_back(ToStdString(varPath));
   EncodePosition(pos, args);
 
   QString result;
@@ -452,24 +467,24 @@ QString DFGUICmdHandlerDCC::dfgDoAddSet(
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoAddPort(
+QString DFGUICmdHandlerDCC::dfgDoAddPort(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef desiredPortName,
+  QString desiredPortName,
   FabricCore::DFGPortType portType,
-  FTL::CStrRef typeSpec,
-  FTL::CStrRef portToConnect,
-  FTL::StrRef extDep,
-  FTL::CStrRef uiMetadata
+  QString typeSpec,
+  QString portToConnect,
+  QString extDep,
+  QString uiMetadata
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_AddPort::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(desiredPortName);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(desiredPortName));
   FTL::CStrRef portTypeStr;
   switch ( portType )
   {
@@ -484,79 +499,79 @@ std::string DFGUICmdHandlerDCC::dfgDoAddPort(
       break;
   }
   args.push_back(portTypeStr);
-  args.push_back(typeSpec);
-  args.push_back(portToConnect);
-  args.push_back(extDep);
-  args.push_back(uiMetadata);
+  args.push_back(ToStdString(typeSpec));
+  args.push_back(ToStdString(portToConnect));
+  args.push_back(ToStdString(extDep));
+  args.push_back(ToStdString(uiMetadata));
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoCreatePreset(
+QString DFGUICmdHandlerDCC::dfgDoCreatePreset(
   FabricCore::DFGBinding const &binding,
-  FTL::StrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::StrRef nodeName,
-  FTL::StrRef presetDirPath,
-  FTL::StrRef presetName
+  QString nodeName,
+  QString presetDirPath,
+  QString presetName
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_CreatePreset::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(nodeName);
-  args.push_back(presetDirPath);
-  args.push_back(presetName);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(nodeName));
+  args.push_back(ToStdString(presetDirPath));
+  args.push_back(ToStdString(presetName));
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoEditPort(
+QString DFGUICmdHandlerDCC::dfgDoEditPort(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::StrRef oldPortName,
-  FTL::StrRef desiredNewPortName,
-  FTL::StrRef typeSpec,
-  FTL::StrRef extDep,
-  FTL::StrRef uiMetadata
+  QString oldPortName,
+  QString desiredNewPortName,
+  QString typeSpec,
+  QString extDep,
+  QString uiMetadata
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_EditPort::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(oldPortName);
-  args.push_back(desiredNewPortName);
-  args.push_back(typeSpec);
-  args.push_back(extDep);
-  args.push_back(uiMetadata);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(oldPortName));
+  args.push_back(ToStdString(desiredNewPortName));
+  args.push_back(ToStdString(typeSpec));
+  args.push_back(ToStdString(extDep));
+  args.push_back(ToStdString(uiMetadata));
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
 void DFGUICmdHandlerDCC::dfgDoRemovePort(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef portName
+  QString portName
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_RemovePort::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(portName);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(portName));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -564,9 +579,9 @@ void DFGUICmdHandlerDCC::dfgDoRemovePort(
 
 void DFGUICmdHandlerDCC::dfgDoMoveNodes(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  QList<QString> nodeNames,
+  QStringList nodeNames,
   QList<QPointF> newTopLeftPoss
   )
 {
@@ -574,10 +589,10 @@ void DFGUICmdHandlerDCC::dfgDoMoveNodes(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
+  args.push_back(ToStdString(execPath));
   args.push_back(EncodeNames(nodeNames));
-  args.push_back(EncodeXPoss(poss));
-  args.push_back(EncodeYPoss(poss));
+  args.push_back(EncodeXPoss(newTopLeftPoss));
+  args.push_back(EncodeYPoss(newTopLeftPoss));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -585,9 +600,9 @@ void DFGUICmdHandlerDCC::dfgDoMoveNodes(
 
 void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef backDropName,
+  QString backDropName,
   QPointF pos,
   QSizeF size
   )
@@ -596,8 +611,8 @@ void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(backDropName);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(backDropName));
   EncodePosition(pos, args);
   EncodeSize(size, args);
 
@@ -607,9 +622,9 @@ void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
 
 QString DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  QList<QString> nodeNames,
+  QStringList nodeNames,
   QString desiredNodeName
   )
 {
@@ -617,13 +632,13 @@ QString DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
+  args.push_back(ToStdString(execPath));
   args.push_back(EncodeNames(nodeNames));
-  args.push_back(desiredNodeName);
+  args.push_back(ToStdString(desiredNodeName));
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
-  return QString.fromUtf8( result.data(), result.size() );
+  return result;
 }
 
 void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
@@ -652,9 +667,9 @@ void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
   execCmd(cmdName, args, output);
 }
 
-QList<QString> DFGUICmdHandlerDCC::dfgDoExplodeNode(
+QStringList DFGUICmdHandlerDCC::dfgDoExplodeNode(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
   QString nodeName
   )
@@ -663,19 +678,17 @@ QList<QString> DFGUICmdHandlerDCC::dfgDoExplodeNode(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(nodeName);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(nodeName));
 
   std::string resultValue;
   execCmd(cmdName, args, resultValue);
   FTL::StrRef explodedNodeNamesStr = resultValue;
-  QList<QString> result;
+  QStringList result;
   while (!explodedNodeNamesStr.empty())
   {
     FTL::StrRef::Split split = explodedNodeNamesStr.split('|');
-    result.append(
-      QString::fromUtf8( split.first.data(), split.first.size() )
-      );
+    result.append( ToQString( split.first ) );
     explodedNodeNamesStr = split.second;
   }
   return result;
@@ -683,9 +696,9 @@ QList<QString> DFGUICmdHandlerDCC::dfgDoExplodeNode(
 
 void DFGUICmdHandlerDCC::dfgDoAddBackDrop(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef title,
+  QString title,
   QPointF pos
   )
 {
@@ -693,8 +706,8 @@ void DFGUICmdHandlerDCC::dfgDoAddBackDrop(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(title);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(title));
   EncodePosition(pos, args);
 
   std::string output;
@@ -703,19 +716,19 @@ void DFGUICmdHandlerDCC::dfgDoAddBackDrop(
 
 void DFGUICmdHandlerDCC::dfgDoSetNodeComment(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef nodeName,
-  FTL::CStrRef comment
+  QString nodeName,
+  QString comment
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_SetNodeComment::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(nodeName);
-  args.push_back(comment);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(nodeName));
+  args.push_back(ToStdString(comment));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -723,71 +736,71 @@ void DFGUICmdHandlerDCC::dfgDoSetNodeComment(
 
 void DFGUICmdHandlerDCC::dfgDoSetCode(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef code
+  QString code
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_SetCode::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(code);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(code));
 
   std::string output;
   execCmd(cmdName, args, output);
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoEditNode(
+QString DFGUICmdHandlerDCC::dfgDoEditNode(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::StrRef oldNodeName,
-  FTL::StrRef desiredNewNodeName,
-  FTL::StrRef nodeMetadata,
-  FTL::StrRef execMetadata
+  QString oldNodeName,
+  QString desiredNewNodeName,
+  QString nodeMetadata,
+  QString execMetadata
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_EditNode::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(oldNodeName);
-  args.push_back(desiredNewNodeName);
-  args.push_back(nodeMetadata);
-  args.push_back(execMetadata);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(oldNodeName));
+  args.push_back(ToStdString(desiredNewNodeName));
+  args.push_back(ToStdString(nodeMetadata));
+  args.push_back(ToStdString(execMetadata));
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-std::string DFGUICmdHandlerDCC::dfgDoRenamePort(
+QString DFGUICmdHandlerDCC::dfgDoRenamePort(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef oldPortName,
-  FTL::CStrRef desiredNewPortName
+  QString oldPortName,
+  QString desiredNewPortName
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_RenamePort::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(oldPortName);
-  args.push_back(desiredNewPortName);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(oldPortName));
+  args.push_back(ToStdString(desiredNewPortName));
 
-  std::string result;
+  QString result;
   execCmd(cmdName, args, result);
   return result;
 }
 
-QList<QString> DFGUICmdHandlerDCC::dfgDoPaste(
+QStringList DFGUICmdHandlerDCC::dfgDoPaste(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
   QString text,
   QPointF cursorPos
@@ -797,20 +810,18 @@ QList<QString> DFGUICmdHandlerDCC::dfgDoPaste(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(text);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(text));
   EncodePosition(cursorPos, args);
 
   std::string resultValue;
   execCmd(cmdName, args, resultValue);
   FTL::StrRef pastedNodeNamesStr = resultValue;
-  QList<QString> result;
+  QStringList result;
   while (!pastedNodeNamesStr.empty())
   {
     FTL::StrRef::Split split = pastedNodeNamesStr.split('|');
-    result.append(
-      QString::fromUtf8( split.first.data(), split.first.size() )
-      );
+    result.append( ToQString( split.first ) );
     pastedNodeNamesStr = split.second;
   }
   return result;
@@ -818,7 +829,7 @@ QList<QString> DFGUICmdHandlerDCC::dfgDoPaste(
 
 void DFGUICmdHandlerDCC::dfgDoSetArgValue(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef argName,
+  QString argName,
   FabricCore::RTVal const &value
   )
 {
@@ -826,7 +837,7 @@ void DFGUICmdHandlerDCC::dfgDoSetArgValue(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(argName);
+  args.push_back(ToStdString(argName));
   args.push_back(value.getTypeNameCStr());
   args.push_back(value.getJSON().getStringCString());
 
@@ -836,16 +847,16 @@ void DFGUICmdHandlerDCC::dfgDoSetArgValue(
 
 void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
     FabricCore::DFGBinding const &binding,
-    FTL::CStrRef execPath,
+    QString execPath,
     FabricCore::DFGExec const &exec,
-    FTL::ArrayRef<FTL::StrRef> extDeps
+    QStringList extDeps
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_SetExtDeps::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
+  args.push_back(ToStdString(execPath));
   args.push_back(EncodeNames(extDeps));
 
   std::string output;
@@ -854,7 +865,7 @@ void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
 
 void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
     FabricCore::DFGBinding const &binding,
-    FTL::CStrRef execPath,
+    QString execPath,
     FabricCore::DFGExec const &exec
   )
 {
@@ -862,7 +873,7 @@ void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
+  args.push_back(ToStdString(execPath));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -870,9 +881,9 @@ void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
 
 void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef portPath,
+  QString portPath,
   FabricCore::RTVal const &value
   )
 {
@@ -880,13 +891,13 @@ void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(portPath);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(portPath));
   args.push_back(value.getTypeNameCStr());
 
   FabricCore::Context context = binding.getHost().getContext();
-  std::string json = encodeRTValToJSON(context, value);
-  args.push_back(json.c_str());
+  QString json = encodeRTValToJSON(context, value);
+  args.push_back(ToStdString(json));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -894,19 +905,19 @@ void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
 
 void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  FTL::CStrRef refName,
-  FTL::CStrRef varPath
+  QString refName,
+  QString varPath
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_SetRefVarPath::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
-  args.push_back(refName);
-  args.push_back(varPath);
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(refName));
+  args.push_back(ToStdString(varPath));
 
   std::string output;
   execCmd(cmdName, args, output);
@@ -914,16 +925,16 @@ void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
 
 void DFGUICmdHandlerDCC::dfgDoReorderPorts(
   FabricCore::DFGBinding const &binding,
-  FTL::CStrRef execPath,
+  QString execPath,
   FabricCore::DFGExec const &exec,
-  const std::vector<unsigned int> &indices
+  QList<int> indices
   )
 {
   std::string cmdName(FabricUI::DFG::DFGUICmd_ReorderPorts::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(execPath);
+  args.push_back(ToStdString(execPath));
 
   char n[64];
   std::string indicesStr = "[";
@@ -1015,18 +1026,18 @@ FabricUI::DFG::DFGUICmd_RemoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGComm
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string nodeNamesString;
-    std::vector<FTL::StrRef> nodeNames;
+    QString nodeNamesString;
+    QStringList nodeNames;
     if (!DecodeNames(args, ai, nodeNamesString, nodeNames))
       return cmd;
     
     cmd = new FabricUI::DFG::DFGUICmd_RemoveNodes(binding,
-                                                  execPath.c_str(),
+                                                  execPath,
                                                   exec,
                                                   nodeNames);
     try
@@ -1049,24 +1060,24 @@ FabricUI::DFG::DFGUICmd_Connect *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string srcPortPath;
+    QString srcPortPath;
     if (!DecodeName(args, ai, srcPortPath))
       return cmd;
 
-    std::string dstPortPath;
+    QString dstPortPath;
     if (!DecodeName(args, ai, dstPortPath))
       return cmd;
     
     cmd = new FabricUI::DFG::DFGUICmd_Connect(binding,
-                                              execPath.c_str(),
+                                              execPath,
                                               exec,
-                                              srcPortPath.c_str(),
-                                              dstPortPath.c_str());
+                                              srcPortPath,
+                                              dstPortPath);
     try
     {
       cmd->doit();
@@ -1087,24 +1098,24 @@ FabricUI::DFG::DFGUICmd_Disconnect *DFGUICmdHandlerDCC::createAndExecuteDFGComma
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string srcPortPath;
+    QString srcPortPath;
     if (!DecodeName(args, ai, srcPortPath))
       return cmd;
 
-    std::string dstPortPath;
+    QString dstPortPath;
     if (!DecodeName(args, ai, dstPortPath))
       return cmd;
     
     cmd = new FabricUI::DFG::DFGUICmd_Disconnect(binding,
-                                                 execPath.c_str(),
+                                                 execPath,
                                                  exec,
-                                                 srcPortPath.c_str(),
-                                                 dstPortPath.c_str());
+                                                 srcPortPath,
+                                                 dstPortPath);
     try
     {
       cmd->doit();
@@ -1125,12 +1136,12 @@ FabricUI::DFG::DFGUICmd_AddGraph *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string title;
+    QString title;
     if (!DecodeString(args, ai, title))
       return cmd;
 
@@ -1139,9 +1150,9 @@ FabricUI::DFG::DFGUICmd_AddGraph *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddGraph(binding,
-                                               execPath.c_str(),
+                                               execPath,
                                                exec,
-                                               title.c_str(),
+                                               title,
                                                position);
     try
     {
@@ -1164,16 +1175,16 @@ FabricUI::DFG::DFGUICmd_AddFunc *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string title;
+    QString title;
     if (!DecodeString(args, ai, title))
       return cmd;
 
-    std::string initialCode;
+    QString initialCode;
     if (!DecodeString(args, ai, initialCode))
       return cmd;
 
@@ -1182,10 +1193,10 @@ FabricUI::DFG::DFGUICmd_AddFunc *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddFunc(binding,
-                                              execPath.c_str(),
+                                              execPath,
                                               exec,
-                                              title.c_str(),
-                                              initialCode.c_str(),
+                                              title,
+                                              initialCode,
                                               position);
     try
     {
@@ -1207,12 +1218,12 @@ FabricUI::DFG::DFGUICmd_InstPreset *DFGUICmdHandlerDCC::createAndExecuteDFGComma
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string presetPath;
+    QString presetPath;
     if (!DecodeString(args, ai, presetPath))
       return cmd;
 
@@ -1221,9 +1232,9 @@ FabricUI::DFG::DFGUICmd_InstPreset *DFGUICmdHandlerDCC::createAndExecuteDFGComma
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_InstPreset(binding,
-                                                 execPath.c_str(),
+                                                 execPath,
                                                  exec,
-                                                 presetPath.c_str(),
+                                                 presetPath,
                                                  position);
     try
     {
@@ -1246,20 +1257,20 @@ FabricUI::DFG::DFGUICmd_AddVar *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string desiredNodeName;
+    QString desiredNodeName;
     if (!DecodeString(args, ai, desiredNodeName))
       return cmd;
 
-    std::string dataType;
+    QString dataType;
     if (!DecodeString(args, ai, dataType))
       return cmd;
 
-    std::string extDep;
+    QString extDep;
     if (!DecodeString(args, ai, extDep))
       return cmd;
 
@@ -1268,11 +1279,11 @@ FabricUI::DFG::DFGUICmd_AddVar *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddVar(binding,
-                                             execPath.c_str(),
+                                             execPath,
                                              exec,
-                                             desiredNodeName.c_str(),
-                                             dataType.c_str(),
-                                             extDep.c_str(),
+                                             desiredNodeName,
+                                             dataType,
+                                             extDep,
                                              position);
     try
     {
@@ -1295,16 +1306,16 @@ FabricUI::DFG::DFGUICmd_AddGet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string desiredNodeName;
+    QString desiredNodeName;
     if (!DecodeString(args, ai, desiredNodeName))
       return cmd;
 
-    std::string varPath;
+    QString varPath;
     if (!DecodeString(args, ai, varPath))
       return cmd;
 
@@ -1313,10 +1324,10 @@ FabricUI::DFG::DFGUICmd_AddGet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddGet(binding,
-                                             execPath.c_str(),
+                                             execPath,
                                              exec,
-                                             desiredNodeName.c_str(),
-                                             varPath.c_str(),
+                                             desiredNodeName,
+                                             varPath,
                                              position);
     try
     {
@@ -1339,16 +1350,16 @@ FabricUI::DFG::DFGUICmd_AddSet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string desiredNodeName;
+    QString desiredNodeName;
     if (!DecodeString(args, ai, desiredNodeName))
       return cmd;
 
-    std::string varPath;
+    QString varPath;
     if (!DecodeString(args, ai, varPath))
       return cmd;
 
@@ -1357,10 +1368,10 @@ FabricUI::DFG::DFGUICmd_AddSet *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_A
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddSet(binding,
-                                             execPath.c_str(),
+                                             execPath,
                                              exec,
-                                             desiredNodeName.c_str(),
-                                             varPath.c_str(),
+                                             desiredNodeName,
+                                             varPath,
                                              position);
     try
     {
@@ -1383,16 +1394,16 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string desiredPortName;
+    QString desiredPortName;
     if (!DecodeString(args, ai, desiredPortName))
       return cmd;
 
-    std::string portTypeString;
+    QString portTypeString;
     if (!DecodeString(args, ai, portTypeString))
       return cmd;
     FabricCore::DFGPortType portType;
@@ -1403,37 +1414,37 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
     {
       std::string msg;
       msg += "[DFGUICmd] Unrecognize port type \"";
-      msg.insert( msg.end(), portTypeString.begin(), portTypeString.end() );
+      msg += ToStdString(portTypeString);
       msg += "\"";
       feLogError(msg);
       return cmd;
     }
 
-    std::string typeSpec;
+    QString typeSpec;
     if (!DecodeString(args, ai, typeSpec))
       return cmd;
 
-    std::string portToConnectWith;
+    QString portToConnectWith;
     if (!DecodeString(args, ai, portToConnectWith))
       return cmd;
 
-    std::string extDep;
+    QString extDep;
     if (!DecodeString(args, ai, extDep))
       return cmd;
 
-    std::string metaData;
+    QString metaData;
     if (!DecodeString(args, ai, metaData))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddPort(binding,
-                                              execPath.c_str(),
+                                              execPath,
                                               exec,
-                                              desiredPortName.c_str(),
+                                              desiredPortName,
                                               portType,
-                                              typeSpec.c_str(),
-                                              portToConnectWith.c_str(),
-                                              extDep.c_str(),
-                                              metaData.c_str());
+                                              typeSpec,
+                                              portToConnectWith,
+                                              extDep,
+                                              metaData);
     try
     {
       cmd->doit();
@@ -1455,29 +1466,29 @@ FabricUI::DFG::DFGUICmd_CreatePreset *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string nodeName;
+    QString nodeName;
     if (!DecodeString(args, ai, nodeName))
       return cmd;
 
-    std::string presetDirPath;
+    QString presetDirPath;
     if (!DecodeString(args, ai, presetDirPath))
       return cmd;
 
-    std::string presetName;
+    QString presetName;
     if (!DecodeString(args, ai, presetName))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_CreatePreset(binding,
-                                                   execPath.c_str(),
+                                                   execPath,
                                                    exec,
-                                                   nodeName.c_str(),
-                                                   presetDirPath.c_str(),
-                                                   presetName.c_str());
+                                                   nodeName,
+                                                   presetDirPath,
+                                                   presetName);
     try
     {
       cmd->doit();
@@ -1499,39 +1510,39 @@ FabricUI::DFG::DFGUICmd_EditPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string oldPortName;
+    QString oldPortName;
     if (!DecodeString(args, ai, oldPortName))
       return cmd;
 
-    std::string desiredPortName;
+    QString desiredPortName;
     if (!DecodeString(args, ai, desiredPortName))
       return cmd;
 
-    std::string typeSpec;
+    QString typeSpec;
     if (!DecodeString(args, ai, typeSpec))
       return cmd;
 
-    std::string extDep;
+    QString extDep;
     if (!DecodeString(args, ai, extDep))
       return cmd;
 
-    std::string metaData;
+    QString metaData;
     if (!DecodeString(args, ai, metaData))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_EditPort(binding,
-                                               execPath.c_str(),
+                                               execPath,
                                                exec,
-                                               oldPortName.c_str(),
-                                               desiredPortName.c_str(),
-                                               typeSpec.c_str(),
-                                               extDep.c_str(),
-                                               metaData.c_str());
+                                               oldPortName,
+                                               desiredPortName,
+                                               typeSpec,
+                                               extDep,
+                                               metaData);
     try
     {
       cmd->doit();
@@ -1553,19 +1564,19 @@ FabricUI::DFG::DFGUICmd_RemovePort *DFGUICmdHandlerDCC::createAndExecuteDFGComma
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string portName;
+    QString portName;
     if (!DecodeName(args, ai, portName))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_RemovePort(binding,
-                                                 execPath.c_str(),
+                                                 execPath,
                                                  exec,
-                                                 portName.c_str());
+                                                 portName);
     try
     {
       cmd->doit();
@@ -1587,17 +1598,17 @@ FabricUI::DFG::DFGUICmd_MoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGComman
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string nodeNamesString;
-    std::vector<FTL::StrRef> nodeNames;
+    QString nodeNamesString;
+    QStringList nodeNames;
     if (!DecodeNames(args, ai, nodeNamesString, nodeNames))
       return cmd;
 
-    std::vector<QPointF> poss;
+    QList<QPointF> poss;
     std::string xPosString = args[ai++];
     FTL::StrRef xPosStr = xPosString;
     std::string yPosString = args[ai++];
@@ -1617,7 +1628,7 @@ FabricUI::DFG::DFGUICmd_MoveNodes *DFGUICmdHandlerDCC::createAndExecuteDFGComman
     }
 
     cmd = new FabricUI::DFG::DFGUICmd_MoveNodes(binding,
-                                                execPath.c_str(),
+                                                execPath,
                                                 exec,
                                                 nodeNames,
                                                 poss);
@@ -1642,13 +1653,13 @@ FabricUI::DFG::DFGUICmd_SetExtDeps *DFGUICmdHandlerDCC::createAndExecuteDFGComma
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string extDepsString;
-    std::vector<FTL::StrRef> extDeps;
+    QString extDepsString;
+    QStringList extDeps;
     if (!DecodeNames(args, ai, extDepsString, extDeps))
       return cmd;
 
@@ -1677,7 +1688,7 @@ FabricUI::DFG::DFGUICmd_SplitFromPreset *DFGUICmdHandlerDCC::createAndExecuteDFG
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
@@ -1706,12 +1717,12 @@ FabricUI::DFG::DFGUICmd_ResizeBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGC
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string backDropName;
+    QString backDropName;
     if (!DecodeName(args, ai, backDropName))
       return cmd;
 
@@ -1724,9 +1735,9 @@ FabricUI::DFG::DFGUICmd_ResizeBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGC
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_ResizeBackDrop(binding,
-                                                     execPath.c_str(),
+                                                     execPath,
                                                      exec,
-                                                     backDropName.c_str(),
+                                                     backDropName,
                                                      position,
                                                      size);
     try
@@ -1750,25 +1761,25 @@ FabricUI::DFG::DFGUICmd_ImplodeNodes *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string nodeNamesString;
-    std::vector<FTL::StrRef> nodeNames;
+    QString nodeNamesString;
+    QStringList nodeNames;
     if (!DecodeNames(args, ai, nodeNamesString, nodeNames))
       return cmd;
 
-    std::string desiredImplodedNodeName;
+    QString desiredImplodedNodeName;
     if (!DecodeString(args, ai, desiredImplodedNodeName))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_ImplodeNodes(binding,
-                                                   execPath.c_str(),
+                                                   execPath,
                                                    exec,
                                                    nodeNames,
-                                                   desiredImplodedNodeName.c_str());
+                                                   desiredImplodedNodeName);
     try
     {
       cmd->doit();
@@ -1790,19 +1801,19 @@ FabricUI::DFG::DFGUICmd_ExplodeNode *DFGUICmdHandlerDCC::createAndExecuteDFGComm
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string nodeName;
+    QString nodeName;
     if (!DecodeName(args, ai, nodeName))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_ExplodeNode(binding,
-                                                  execPath.c_str(),
+                                                  execPath,
                                                   exec,
-                                                  nodeName.c_str());
+                                                  nodeName);
     try
     {
       cmd->doit();
@@ -1824,12 +1835,12 @@ FabricUI::DFG::DFGUICmd_AddBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGComm
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string title;
+    QString title;
     if (!DecodeString(args, ai, title))
       return cmd;
 
@@ -1838,9 +1849,9 @@ FabricUI::DFG::DFGUICmd_AddBackDrop *DFGUICmdHandlerDCC::createAndExecuteDFGComm
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_AddBackDrop(binding,
-                                                  execPath.c_str(),
+                                                  execPath,
                                                   exec,
-                                                  title.c_str(),
+                                                  title,
                                                   position);
     try
     {
@@ -1863,24 +1874,24 @@ FabricUI::DFG::DFGUICmd_SetNodeComment *DFGUICmdHandlerDCC::createAndExecuteDFGC
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string nodeName;
+    QString nodeName;
     if (!DecodeName(args, ai, nodeName))
       return cmd;
 
-    std::string comment;
+    QString comment;
     if (!DecodeName(args, ai, comment))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_SetNodeComment(binding,
-                                                     execPath.c_str(),
+                                                     execPath,
                                                      exec,
-                                                     nodeName.c_str(),
-                                                     comment.c_str());
+                                                     nodeName,
+                                                     comment);
     try
     {
       cmd->doit();
@@ -1902,19 +1913,19 @@ FabricUI::DFG::DFGUICmd_SetCode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string code;
+    QString code;
     if (!DecodeName(args, ai, code))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_SetCode(binding,
-                                              execPath.c_str(),
+                                              execPath,
                                               exec,
-                                              code.c_str());
+                                              code);
     try
     {
       cmd->doit();
@@ -1936,34 +1947,34 @@ FabricUI::DFG::DFGUICmd_EditNode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string oldNodeName;
+    QString oldNodeName;
     if (!DecodeString(args, ai, oldNodeName))
       return cmd;
 
-    std::string desiredNewNodeName;
+    QString desiredNewNodeName;
     if (!DecodeString(args, ai, desiredNewNodeName))
       return cmd;
 
-    std::string nodeMetadata;
+    QString nodeMetadata;
     if (!DecodeString(args, ai, nodeMetadata))
       return cmd;
 
-    std::string execMetadata;
+    QString execMetadata;
     if (!DecodeString(args, ai, execMetadata))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_EditNode(binding,
-                                                 execPath.c_str(),
+                                                 execPath,
                                                  exec,
-                                                 oldNodeName.c_str(),
-                                                 desiredNewNodeName.c_str(),
-                                                 nodeMetadata.c_str(),
-                                                 execMetadata.c_str());
+                                                 oldNodeName,
+                                                 desiredNewNodeName,
+                                                 nodeMetadata,
+                                                 execMetadata);
     try
     {
       cmd->doit();
@@ -1985,24 +1996,24 @@ FabricUI::DFG::DFGUICmd_RenamePort *DFGUICmdHandlerDCC::createAndExecuteDFGComma
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string oldPortName;
+    QString oldPortName;
     if (!DecodeString(args, ai, oldPortName))
       return cmd;
 
-    std::string desiredNewPortName;
+    QString desiredNewPortName;
     if (!DecodeString(args, ai, desiredNewPortName))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_RenamePort(binding,
-                                                 execPath.c_str(),
+                                                 execPath,
                                                  exec,
-                                                 oldPortName.c_str(),
-                                                 desiredNewPortName.c_str());
+                                                 oldPortName,
+                                                 desiredNewPortName);
     try
     {
       cmd->doit();
@@ -2024,12 +2035,12 @@ FabricUI::DFG::DFGUICmd_Paste *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Pa
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string text;
+    QString text;
     if (!DecodeName(args, ai, text))
       return cmd;
 
@@ -2038,9 +2049,9 @@ FabricUI::DFG::DFGUICmd_Paste *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_Pa
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_Paste(binding,
-                                            execPath.c_str(),
+                                            execPath,
                                             exec,
-                                            text.c_str(),
+                                            text,
                                             position);
     try
     {
@@ -2066,24 +2077,25 @@ FabricUI::DFG::DFGUICmd_SetArgValue *DFGUICmdHandlerDCC::createAndExecuteDFGComm
     if (!DecodeBinding(args, ai, binding))
       return cmd;
 
-    std::string argName;
+    QString argName;
     if (!DecodeName(args, ai, argName))
       return cmd;
 
-    std::string typeName;
+    QString typeName;
     if (!DecodeName(args, ai, typeName))
       return cmd;
   
-    std::string valueJSON;
+    QString valueJSON;
     if (!DecodeString(args, ai, valueJSON))
       return cmd;
     FabricCore::DFGHost host    = binding.getHost();
     FabricCore::Context context = host.getContext();
-    FabricCore::RTVal   value   = FabricCore::RTVal::Construct( context, typeName.c_str(), 0, NULL );
-    value.setJSON(valueJSON.c_str());
+    FabricCore::RTVal   value   = FabricCore::RTVal::Construct(
+      context, typeName.toUtf8().data(), 0, NULL );
+    value.setJSON(valueJSON.toUtf8().data());
 
     cmd = new FabricUI::DFG::DFGUICmd_SetArgValue(binding,
-                                                  argName.c_str(),
+                                                  argName,
                                                   value);
     try
     {
@@ -2106,35 +2118,36 @@ FabricUI::DFG::DFGUICmd_SetPortDefaultValue *DFGUICmdHandlerDCC::createAndExecut
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string portPath;
+    QString portPath;
     if (!DecodeName(args, ai, portPath))
       return cmd;
 
-    std::string typeName;
+    QString typeName;
     if (!DecodeName(args, ai, typeName))
       return cmd;
   
-    std::string valueJSON;
+    QString valueJSON;
     if (!DecodeString(args, ai, valueJSON))
       return cmd;
     FabricCore::DFGHost host    = binding.getHost();
     FabricCore::Context context = host.getContext();
-    FabricCore::RTVal value     = FabricCore::RTVal::Construct( context, typeName.c_str(), 0, NULL );
+    FabricCore::RTVal value     = FabricCore::RTVal::Construct(
+      context, typeName.toUtf8().data(), 0, NULL );
     FabricUI::DFG::DFGUICmdHandler::decodeRTValFromJSON(
       context,
       value,
-      valueJSON.c_str()
+      valueJSON
       );
 
     cmd = new FabricUI::DFG::DFGUICmd_SetPortDefaultValue(binding,
-                                                          execPath.c_str(),
+                                                          execPath,
                                                           exec,
-                                                          portPath.c_str(),
+                                                          portPath,
                                                           value);
     try
     {
@@ -2157,24 +2170,24 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string refName;
+    QString refName;
     if (!DecodeName(args, ai, refName))
       return cmd;
 
-    std::string varPath;
+    QString varPath;
     if (!DecodeName(args, ai, varPath))
       return cmd;
 
     cmd = new FabricUI::DFG::DFGUICmd_SetRefVarPath(binding,
-                                                    execPath.c_str(),
+                                                    execPath,
                                                     exec,
-                                                    refName.c_str(),
-                                                    varPath.c_str());
+                                                    refName,
+                                                    varPath);
     try
     {
       cmd->doit();
@@ -2195,19 +2208,20 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     unsigned int ai = 0;
 
     FabricCore::DFGBinding binding;
-    std::string execPath;
+    QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
       return cmd;
 
-    std::string indicesStr;
+    QString indicesStr;
     if (!DecodeName(args, ai, indicesStr))
       return cmd;
 
-    std::vector<unsigned int> indices;
+    QList<int> indices;
     try
     {
-      FTL::JSONStrWithLoc jsonStrWithLoc( indicesStr.c_str() );
+      QByteArray indicesBytes( indicesStr.toUtf8() );
+      FTL::JSONStrWithLoc jsonStrWithLoc( indicesBytes.data() );
       FTL::OwnedPtr<FTL::JSONArray> jsonArray(
         FTL::JSONValue::Decode( jsonStrWithLoc )->cast<FTL::JSONArray>()
         );
@@ -2223,7 +2237,7 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     }
 
     cmd = new FabricUI::DFG::DFGUICmd_ReorderPorts(binding,
-                                                    execPath.c_str(),
+                                                    execPath,
                                                     exec,
                                                     indices);
     try
@@ -2249,14 +2263,15 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
     if (!DecodeBinding(args, ai, binding))
       return cmd;
 
-    std::string indicesStr;
+    QString indicesStr;
     if (!DecodeName(args, ai, indicesStr))
       return cmd;
 
     QList<int> indices;
     try
     {
-      FTL::JSONStrWithLoc jsonStrWithLoc( indicesStr.c_str() );
+      QByteArray indicesBytes( indicesStr.toUtf8() );
+      FTL::JSONStrWithLoc jsonStrWithLoc( indicesBytes.data() );
       FTL::OwnedPtr<FTL::JSONArray> jsonArray(
         FTL::JSONValue::Decode( jsonStrWithLoc )->cast<FTL::JSONArray>()
         );

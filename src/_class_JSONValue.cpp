@@ -103,7 +103,6 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
 
   if (!write.test())          return LXe_FAILED;
   if (!m_data)                return LXe_FAILED;
-  if (m_data->chnIndex < 0)   return LXe_FAILED;
 
   // note: we never write 'nothing' (zero bytes) or else
   // the CHN_NAME_IO_FabricJSON channels won't get properly
@@ -111,9 +110,12 @@ LxResult JSONValue::io_Write(ILxUnknownID stream)
   char pseudoNothing[8] = " ";  // one byte of data.
 
   // write the JSON string.
+  if (m_data->chnIndex < 0)
+  { feLog(std::string(preLog) + ": chnIndex is less than 0.");
+    return write.WriteString(pseudoNothing); }
   if (!m_data->baseInterface)
-  { feLogError(std::string(preLog) + ": pointer at BaseInterface is NULL!");
-    return LXe_FAILED;  }
+  { feLog(std::string(preLog) + ": pointer at BaseInterface is NULL.");
+    return write.WriteString(pseudoNothing); }
   try
   {
     // get the JSON string and its length.

@@ -177,7 +177,8 @@ namespace ItemCommon
     {
       // objref channel, used for caching the instanceable version of the surface
 
-      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);
+      if (addObjRefChannel)
+        add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);
 
       // built-in Fabric channels.
 

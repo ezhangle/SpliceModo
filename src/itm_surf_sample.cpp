@@ -1255,8 +1255,8 @@ LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
       Value_Data *p = (Value_Data *)value.Intrinsic();
       if (p)
       {
-        p->SetString("value set to something.");
-        feLog("pins_Newborn() string set");
+        p->SetString("abcdefghi");
+        feLog("pins_Newborn() string set to abcdefghi");
       }
     }
   }
@@ -1648,5 +1648,6 @@ void initialize ()
 
 //void initialize ()
 //{
-//    Surface_Sample_Fix::initialize ();
+//    Surf_Sample::initialize ();
+//    Value::initialize ();
 //}

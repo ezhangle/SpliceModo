@@ -198,11 +198,12 @@ class Value : public CLxImpl_Value,
     LxResult   val_Copy    (ILxUnknownID other)    LXx_OVERRIDE;
     LxResult   val_GetString    (char *buf, unsigned len)  LXx_OVERRIDE;
     LxResult   val_SetString    (const char *val)    LXx_OVERRIDE;
-    void    *val_Intrinsic    ()        LXx_OVERRIDE;
   
     LxResult   io_Write    (ILxUnknownID stream)    LXx_OVERRIDE;
     LxResult   io_Read    (ILxUnknownID stream)    LXx_OVERRIDE;
   
+    static Value_Data *GetValue(ILxUnknownID obj);
+
     static LXtTagInfoDesc   descInfo[];
   
   private:
@@ -231,7 +232,7 @@ LxResult Value::val_Copy (ILxUnknownID other)
 
   if (other && _data)
   {
-    data = static_cast <Value_Data *> ((void *) other);
+    data = GetValue(other);
     
     if (data)
     {
@@ -244,7 +245,7 @@ LxResult Value::val_Copy (ILxUnknownID other)
   
   return LXe_FAILED;
 }
-  
+
 LxResult Value::val_GetString (char *buf, unsigned len)
 {
   /*
@@ -289,16 +290,6 @@ LxResult Value::val_SetString (const char *val)
   }
   
   return LXe_FAILED;
-}
-  
-void * Value::val_Intrinsic ()
-{
-  /*
-   *  The Intrinsic function is the important one. This returns a pointer
-   *  to our custom class, allowing callers to interface with it directly.
-    */
-
-  return _data;
 }
 
 LxResult Value::io_Write (ILxUnknownID stream)
@@ -347,6 +338,20 @@ LxResult Value::io_Read (ILxUnknownID stream)
   }
   
   return LXe_FAILED;
+}
+
+Value_Data *Value::GetValue(ILxUnknownID obj)
+{
+  Value *value = NULL;
+
+  if (obj)
+  {
+    lx::CastServer(VALUE_SERVER_NAME, obj, value);
+    if (value)
+      return value->_data;
+  }
+	
+  return NULL;
 }
 
 LXtTagInfoDesc Value::descInfo[] =
@@ -1252,7 +1257,7 @@ LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
     CLxUser_Value value;
     if (chanWrite.Object(_item, CHAN_CUSTOMVALUE, value) && value.test())
     {
-      Value_Data *p = (Value_Data *)value.Intrinsic();
+      Value_Data *p = Value::Value::GetValue(value);
       if (p)
       {
         p->SetString("abcdefghi");
@@ -1287,7 +1292,7 @@ LxResult Instance::pins_AfterLoad(void)
   }
 
   // log the content of the custom value channel.
-  Value_Data *p = (Value_Data *)value.Intrinsic();
+  Value_Data *p = Value::Value::GetValue(value);
   if (!p)
   { feLogError(std::string("data is NULL for channel ") + std::string(CHAN_CUSTOMVALUE));
     return LXe_OK;  }

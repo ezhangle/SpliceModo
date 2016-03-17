@@ -12,23 +12,15 @@ LxResult JSONValue::val_Copy(ILxUnknownID other)
     the object to our internal structure and then copy the data.
   */
 
-  //char t[256];
-  //sprintf(t, "JSONValue::val_Copy, m_data = %ld, other = %ld, *other = %ld", (int)m_data, (int)other, other ? (int)(*other) : 0);
-  //feLog(t);
-
   _JSONValue *other_data = NULL;
   if (other && m_data)
   {
-    other_data = static_cast <_JSONValue *>((void *)other);
+    other_data = GetJSONValueData(other);
     if (other_data)
     {
-      if (   other_data->chnIndex >= -1
-          && other_data->chnIndex <  CHN_FabricJSON_NUM)  // QUICK HACK to prevent crash from FE-6090!
-      {
-        m_data->chnIndex      = other_data->chnIndex;
-        m_data->s             = other_data->s;
-        m_data->baseInterface = other_data->baseInterface;
-      }
+      m_data->chnIndex      = other_data->chnIndex;
+      m_data->s             = other_data->s;
+      m_data->baseInterface = other_data->baseInterface;
       return LXe_OK;
     }
   }
@@ -71,15 +63,6 @@ LxResult JSONValue::val_SetString(const char *val)
   m_data->s = val;
 
   return LXe_OK;
-}
-
-void *JSONValue::val_Intrinsic()
-{
-  /*
-    The Intrinsic function is the important one. This returns a pointer
-    to the custom value's class, allowing callers to interface with it directly.
-  */
-  return m_data;
 }
 
 LxResult JSONValue::io_Write(ILxUnknownID stream)
@@ -200,6 +183,20 @@ LxResult JSONValue::io_Read(ILxUnknownID stream)
     m_data->s = " ";
     return LXe_FAILED;
   }
+}
+
+_JSONValue *JSONValue::GetJSONValueData(ILxUnknownID obj)
+{
+  JSONValue *value = NULL;
+
+  if (obj)
+  {
+    lx::CastServer(SERVER_NAME_JSONValue, obj, value);
+    if (value)
+      return value->m_data;
+  }
+
+  return NULL;
 }
 
 LXtTagInfoDesc JSONValue::descInfo[] =

@@ -73,6 +73,9 @@ void feLogDebug(const std::string &s, int number)
   feLog(s + t);
 }
 
+namespace Surf_Sample { void initialize(); };
+namespace Value       { void initialize(); };
+
 // plugin initialization.
 void initialize()
 {
@@ -81,6 +84,10 @@ void initialize()
     // set log function pointers.
     BaseInterface::setLogFunc(feLog);
     BaseInterface::setLogErrorFunc(feLogError);
+
+    // set the client persistence flag.
+    char const *no_client_persistence = ::getenv( "FABRIC_DISABLE_CLIENT_PERSISTENCE" );
+    BaseInterface::setPersistClient(!no_client_persistence || no_client_persistence[0] == '\0');
   }
 
   // Modo.
@@ -93,6 +100,9 @@ void initialize()
     //
     CanvasIM                          :: initialize();
     CanvasPI                          :: initialize();
+    //
+    Surf_Sample                       :: initialize();
+    Value                             :: initialize();
     //
     JSONValue                         :: initialize();
     FabricView                        :: initialize();

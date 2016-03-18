@@ -17,6 +17,7 @@ unsigned int                              BaseInterface::s_maxId = 0;
 void (*BaseInterface::s_logFunc)(void *, const char *, unsigned int) = NULL;
 void (*BaseInterface::s_logErrorFunc)(void *, const char *, unsigned int) = NULL;
 std::map <unsigned int, BaseInterface*>   BaseInterface::s_instances;
+bool                                      BaseInterface::s_persistClient = true;
 
 BaseInterface::BaseInterface()
 {
@@ -31,14 +32,29 @@ BaseInterface::BaseInterface()
   {
     try
     {
-      // create a client
+      // setup options for creation of client
       FabricCore::Client::CreateOptions options;
       memset(&options, 0, sizeof(options));
       options.guarded = 1;
+      char fabric_dfg_path[512];
+      char fabric_exts_path[512];
+      char *ptr_fabric_dfg_path  = fabric_dfg_path;
+      char *ptr_fabric_exts_path = fabric_exts_path;
+      if (!ModoTools::checkFabricEnvVariables(ptr_fabric_dfg_path, ptr_fabric_exts_path, true))
+      {
+        if (*ptr_fabric_dfg_path != '\0')
+        { options.canvasPresetDirCStrs = &ptr_fabric_dfg_path;
+          options.canvasPresetDirCount = 1; }
+        if (*ptr_fabric_exts_path != '\0')
+        { options.extPaths    = &ptr_fabric_exts_path;
+          options.numExtPaths = 1; }
+      }
       CLxUser_PlatformService platformService;
       if (platformService.IsHeadless())   options.licenseType = FabricCore::ClientLicenseType_Compute;
       else                                options.licenseType = FabricCore::ClientLicenseType_Interactive;
       options.optimizationType = FabricCore::ClientOptimizationType_Background;
+
+      // create a client
       s_client = FabricCore::Client(reportFunc, NULL, &options);
 
       // load basic extensions
@@ -105,10 +121,22 @@ BaseInterface::~BaseInterface()
     {
       try
       {
-        // [FE-5802] only remove the singleton objects
-        // instead of destroying the client entirely.
-        FabricCore::RTVal handleVal = FabricCore::RTVal::Construct(s_client, "SingletonHandle", 0, NULL);
-        handleVal.callMethod("", "removeAllObjects", 0, NULL);
+        if (s_persistClient)
+        {
+          // [FE-5802] only remove the singleton objects
+          // instead of destroying the client entirely.
+          FabricCore::RTVal handleVal = FabricCore::RTVal::Construct(s_client, "SingletonHandle", 0, NULL);
+          handleVal.callMethod("", "removeAllObjects", 0, NULL);
+        }
+        else
+        {
+          // [FE-5944] old behavior: destroy the client.
+          std::string info = "destructing client";
+          logFunc(NULL, info.c_str(), info.length());
+          delete(s_manager);
+          s_host = FabricCore::DFGHost();
+          s_client = FabricCore::Client();
+        }
       }
       catch (FabricCore::Exception e)
       {

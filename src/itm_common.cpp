@@ -35,11 +35,11 @@ namespace ItemCommon
         char chnName[128];
         for (int i=0;i<CHN_FabricJSON_NUM;i++)
         {
-          CLxUser_Value value_json;
+          CLxUser_Value value;
           sprintf(chnName, "%s%d", CHN_NAME_IO_FabricJSON, i);
-          if (chanWrite.Object(item, chnName, value_json) && value_json.test())
+          if (chanWrite.Object(item, chnName, value) && value.test())
           {
-            _JSONValue *jv = (_JSONValue *)value_json.Intrinsic();
+            _JSONValue *jv = JSONValue::GetJSONValueData(value);
             if (!jv)
             {
               err |= true;
@@ -120,7 +120,7 @@ namespace ItemCommon
         }
 
         //
-        _JSONValue *jv = (_JSONValue *)value.Intrinsic();
+        _JSONValue *jv = JSONValue::GetJSONValueData(value);
         if (!jv)
         { err += "channel \"";
           err += chnName;
@@ -177,7 +177,8 @@ namespace ItemCommon
     {
       // objref channel, used for caching the instanceable version of the surface
 
-      add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);
+      if (addObjRefChannel)
+        add_chan.NewChannel(CHN_NAME_INSTOBJ, LXsTYPE_OBJREF);
 
       // built-in Fabric channels.
 

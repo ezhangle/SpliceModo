@@ -62,18 +62,21 @@ class JSONValue : public CLxImpl_Value,
   JSONValue()   { m_data = new _JSONValue;   }
   ~JSONValue()  { if (m_data) delete m_data; }
 
-  static LXtTagInfoDesc descInfo[];
-
-  _JSONValue *m_data;
 
   unsigned int val_Type()                               LXx_OVERRIDE { return LXi_TYPE_OBJECT; }
   LxResult     val_Copy(ILxUnknownID other)             LXx_OVERRIDE;
   LxResult     val_GetString(char *buf, unsigned len)   LXx_OVERRIDE;
   LxResult     val_SetString(const char *val)           LXx_OVERRIDE;
-  void        *val_Intrinsic()                          LXx_OVERRIDE;
   
   LxResult   io_Write(ILxUnknownID stream)  LXx_OVERRIDE;
   LxResult   io_Read (ILxUnknownID stream)  LXx_OVERRIDE;
+
+  static _JSONValue *GetJSONValueData(ILxUnknownID obj);
+
+  static LXtTagInfoDesc descInfo[];
+
+  private:
+  _JSONValue *m_data;
 };
 
 #endif  // SRC__CLASS_JSONVALUE_H_

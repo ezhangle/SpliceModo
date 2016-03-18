@@ -1954,7 +1954,7 @@ FabricUI::DFG::DFGUICmd_SetCode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
 FabricUI::DFG::DFGUICmd_EditNode *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_EditNode(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_EditNode *cmd = NULL;
-  if (args.size() == 4)
+  if (args.size() == 6)
   {
     unsigned int ai = 0;
 

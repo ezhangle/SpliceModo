@@ -2359,7 +2359,8 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
                                                 { 0 }                                          \
                                               };                                               \
                                               __CanvasCmdClass__::__CanvasCmdClass__(void)     \
-                                              {
+                                              {                                                \
+                                                int idx = -1;
 #define __CanvasCmd_constructor_finish__      }
 
 // execute.
@@ -2388,9 +2389,9 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
 #define __CanvasCmdName__  "FabricCanvasRemoveNodes"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("nodeNames");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("nodeNames");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2403,10 +2404,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasConnect"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("srcPort");
-    addArgStr("dstPort");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("srcPort");
+    idx++;  addArgStr("dstPort");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2419,10 +2420,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasDisconnect"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("srcPort");
-    addArgStr("dstPort");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("srcPort");
+    idx++;  addArgStr("dstPort");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2435,11 +2436,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddGraph"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("title");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("title");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2452,12 +2453,12 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddFunc"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("title");
-    addArgStr("initialCode");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("title");
+    idx++;  addArgStr("initialCode");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2470,11 +2471,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasInstPreset"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("presetPath");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("presetPath");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2487,13 +2488,13 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddVar"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("desiredNodeName");
-    addArgStr("dataType");
-    addArgStr("extDep");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("desiredNodeName");
+    idx++;  addArgStr("dataType");
+    idx++;  addArgStr("extDep");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2506,12 +2507,12 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddGet"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("desiredNodeName");
-    addArgStr("varPath");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("desiredNodeName");
+    idx++;  addArgStr("varPath");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2524,12 +2525,12 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddSet"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("desiredNodeName");
-    addArgStr("varPath");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("desiredNodeName");
+    idx++;  addArgStr("varPath");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2542,14 +2543,14 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddPort"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("desiredPortName");
-    addArgStr("portType");
-    addArgStr("typeSpec");
-    addArgStr("portToConnect");
-    addArgStr("extDep");
-    addArgStr("uiMetadata");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("desiredPortName");
+    idx++;  addArgStr("portType");
+    idx++;  addArgStr("typeSpec");
+    idx++;  addArgStr("portToConnect");
+    idx++;  addArgStr("extDep");
+    idx++;  addArgStr("uiMetadata");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2562,11 +2563,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasCreatePreset"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("nodeName");
-    addArgStr("presetDirPath");
-    addArgStr("presetName");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("nodeName");
+    idx++;  addArgStr("presetDirPath");
+    idx++;  addArgStr("presetName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2579,13 +2580,13 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasEditPort"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("oldPortName");
-    addArgStr("desiredNewPortName");
-    addArgStr("typeSpec");
-    addArgStr("extDep");
-    addArgStr("uiMetadata");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("oldPortName");
+    idx++;  addArgStr("desiredNewPortName");
+    idx++;  addArgStr("typeSpec");
+    idx++;  addArgStr("extDep");
+    idx++;  addArgStr("uiMetadata");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2598,9 +2599,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasRemovePort"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("portName");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("portName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2613,11 +2614,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasMoveNodes"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("nodeNames");
-    addArgStr("xPoss");
-    addArgStr("yPoss");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("nodeNames");
+    idx++;  addArgStr("xPoss");
+    idx++;  addArgStr("yPoss");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2630,13 +2631,13 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasResizeBackDrop"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("backDropName");
-    addArgStr("xPos");
-    addArgStr("yPos");
-    addArgStr("Width");
-    addArgStr("Height");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("backDropName");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
+    idx++;  addArgStr("Width");
+    idx++;  addArgStr("Height");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2649,10 +2650,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasImplodeNodes"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("nodeNames");
-    addArgStr("desiredNodeName");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("nodeNames");
+    idx++;  addArgStr("desiredNodeName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2665,9 +2666,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasExplodeNode"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("nodeName");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("nodeName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2680,11 +2681,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasAddBackDrop"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("title");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("title");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2697,9 +2698,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetTitle"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("title");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("title");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2712,10 +2713,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetNodeComment"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("nodeName");
-    addArgStr("comment");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("nodeName");
+    idx++;  addArgStr("comment");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2728,9 +2729,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetCode"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("code");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("code");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2743,12 +2744,12 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasEditNode"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("oldNodeName");
-    addArgStr("desiredNewNodeName");
-    addArgStr("nodeMetadata");
-    addArgStr("execMetadata");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("oldNodeName");
+    idx++;  addArgStr("desiredNewNodeName");
+    idx++;  addArgStr("nodeMetadata");
+    idx++;  addArgStr("execMetadata");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2761,10 +2762,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasRenamePort"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("oldPortName");
-    addArgStr("desiredNewPortName");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("oldPortName");
+    idx++;  addArgStr("desiredNewPortName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2777,11 +2778,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasPaste"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("text");
-    addArgStr("xPos");
-    addArgStr("yPos");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("text");
+    idx++;  addArgStr("xPos");
+    idx++;  addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2794,9 +2795,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetArgType"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("argName");
-    addArgStr("typeName");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("argName");
+    idx++;  addArgStr("typeName");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2809,10 +2810,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetArgValue"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("argName");
-    addArgStr("typeName");
-    addArgStr("valueJSON");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("argName");
+    idx++;  addArgStr("typeName");
+    idx++;  addArgStr("valueJSON");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2825,9 +2826,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetExtDeps"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("extDeps");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("extDeps");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2840,8 +2841,8 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSplitFromPreset"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2854,11 +2855,11 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetPortDefaultValue"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("portPath");
-    addArgStr("typeName");
-    addArgStr("valueJSON");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("portPath");
+    idx++;  addArgStr("typeName");
+    idx++;  addArgStr("valueJSON");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2871,10 +2872,10 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasSetRefVarPath"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("refName");
-    addArgStr("varPath");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("refName");
+    idx++;  addArgStr("varPath");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2887,9 +2888,9 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasReorderPorts"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("execPath");
-    addArgStr("indices");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("execPath");
+    idx++;  addArgStr("indices");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__
@@ -2902,8 +2903,8 @@ __CanvasCmd_execute__
 #define __CanvasCmdName__  "FabricCanvasDismissLoadDiags"
 __CanvasCmd_constructor_begin__
   {
-    addArgStr("binding");
-    addArgStr("diagIndices");
+    idx++;  addArgStr("binding");
+    idx++;  addArgStr("diagIndices");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

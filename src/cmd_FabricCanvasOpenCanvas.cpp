@@ -24,7 +24,25 @@ FabricCanvasOpenCanvas::Command::Command(void)
     dyna_Add("item", LXsTYPE_STRING);
     basic_SetFlags(idx, LXfCMDARG_OPTIONAL);
     idx++;
+
+    // test.
+    dyna_Add("test", LXsTYPE_STRING);
+    basic_SetFlags(idx, LXfCMDARG_OPTIONAL | LXfCMDARG_QUERY);
+    idx++;
   }
+}
+
+LxResult FabricCanvasOpenCanvas::Command::cmd_Query(unsigned int index, ILxUnknownID vaQuery)
+{
+  feLog("query!");
+  cmd_Execute(0);
+
+  CLxUser_ValueArray val_array(vaQuery);
+  
+  val_array.AddString("looking good.");
+  val_array.AddString("fuck yeah!");
+
+  return LXe_OK;
 }
 
 // execute code.

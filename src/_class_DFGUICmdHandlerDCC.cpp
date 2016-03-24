@@ -42,7 +42,7 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   {
     // execute the dfg command by executing the corresponding DCC command.
     std::string err;
-    ret = ModoTools::ExecuteCommand(in_cmdName, in_args, io_result, err);
+    ret = ModoTools::ExecuteCommand(in_cmdName, in_args, err);
     if (!ret) feLogError(err);
   }
 

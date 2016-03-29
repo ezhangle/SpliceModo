@@ -13,8 +13,6 @@
 #define DFGUICmdHandlerLOG        false  // FOR DEBUGGING: log some info (class DFGUICmdHandler).
 #define UndoDFGUICmdLOG           false  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
 
-bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result);
-
 class BaseInterface;
 
 class DFGUICmdHandlerDCC : public FabricUI::DFG::DFGUICmdHandler
@@ -30,6 +28,10 @@ public:
   {
     m_parentBaseInterface = parentBaseInterface;
   }
+
+public:
+
+  static std::string s_lastReturnValue; // contains the return value of the last DFG command that was executed.
 
 private:
 
@@ -528,7 +530,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_SetTitle       ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_SetTitle           ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SetTitle T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
@@ -552,7 +554,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_EditNode         ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_EditNode           ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_EditNode T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
@@ -616,7 +618,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset         ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset    ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SplitFromPreset T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
@@ -632,7 +634,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags       ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags   ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_DismissLoadDiags T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();

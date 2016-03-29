@@ -82,10 +82,9 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
       // if necessary create FabricView.
       if (FabricView::s_FabricViews.size() == 0)
       {
-        std::string res;
         std::string err;
-        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", res, err))
-          ModoTools::ExecuteCommand("customview.view FabricCanvas", res, err);
+        if (ModoTools::ExecuteCommand("layout.create \"Fabric Canvas\" width:800 height:400", err))
+          ModoTools::ExecuteCommand("customview.view FabricCanvas", err);
       }
 
       // no FabricView?
@@ -142,18 +141,14 @@ FabricDFGWidget *FabricDFGWidget::getWidgetforBaseInterface(BaseInterface *in_ba
 
 void FabricDFGWidget::onUndo()
 {
-  std::string               name = "app.undo";
-  std::vector<std::string>  args;
-  std::string               output;
-  execCmd(name, args, output);
+  std::string               err;
+  ModoTools::ExecuteCommand("app.undo", err);
 }
 
 void FabricDFGWidget::onRedo()
 {
-  std::string               name = "app.redo";
-  std::vector<std::string>  args;
-  std::string               output;
-  execCmd(name, args, output);
+  std::string               err;
+  ModoTools::ExecuteCommand("app.redo", err);
 }
 
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)

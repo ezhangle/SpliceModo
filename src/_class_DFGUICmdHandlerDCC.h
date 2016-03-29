@@ -13,8 +13,6 @@
 #define DFGUICmdHandlerLOG        false  // FOR DEBUGGING: log some info (class DFGUICmdHandler).
 #define UndoDFGUICmdLOG           false  // FOR DEBUGGING: log some info (class UndoDFGUICmd).
 
-bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result);
-
 class BaseInterface;
 
 class DFGUICmdHandlerDCC : public FabricUI::DFG::DFGUICmdHandler
@@ -30,6 +28,10 @@ public:
   {
     m_parentBaseInterface = parentBaseInterface;
   }
+
+public:
+
+  static std::string s_lastReturnValue; // contains the return value of the last DFG command that was executed.
 
 private:
 
@@ -290,36 +292,36 @@ public:
 
   static FabricUI::DFG::DFGUICmd *createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args);
 
-  static FabricUI::DFG::DFGUICmd_RemoveNodes *createAndExecuteDFGCommand_RemoveNodes(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_Connect *createAndExecuteDFGCommand_Connect(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_CreatePreset *createAndExecuteDFGCommand_CreatePreset(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_Disconnect *createAndExecuteDFGCommand_Disconnect(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddGraph *createAndExecuteDFGCommand_AddGraph(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddFunc *createAndExecuteDFGCommand_AddFunc(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_InstPreset *createAndExecuteDFGCommand_InstPreset(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddVar *createAndExecuteDFGCommand_AddVar(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddGet *createAndExecuteDFGCommand_AddGet(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddSet *createAndExecuteDFGCommand_AddSet(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddPort *createAndExecuteDFGCommand_AddPort(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_EditPort *createAndExecuteDFGCommand_EditPort(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_RemovePort *createAndExecuteDFGCommand_RemovePort(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_MoveNodes *createAndExecuteDFGCommand_MoveNodes(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_ResizeBackDrop *createAndExecuteDFGCommand_ResizeBackDrop(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_ImplodeNodes *createAndExecuteDFGCommand_ImplodeNodes(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_ExplodeNode *createAndExecuteDFGCommand_ExplodeNode(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_AddBackDrop *createAndExecuteDFGCommand_AddBackDrop(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetNodeComment *createAndExecuteDFGCommand_SetNodeComment(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetCode *createAndExecuteDFGCommand_SetCode(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_EditNode *createAndExecuteDFGCommand_EditNode(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_RenamePort *createAndExecuteDFGCommand_RenamePort(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_Paste *createAndExecuteDFGCommand_Paste(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetArgValue *createAndExecuteDFGCommand_SetArgValue(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetExtDeps *createAndExecuteDFGCommand_SetExtDeps(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetPortDefaultValue *createAndExecuteDFGCommand_SetPortDefaultValue(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SetRefVarPath *createAndExecuteDFGCommand_SetRefVarPath(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_SplitFromPreset *createAndExecuteDFGCommand_SplitFromPreset(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_ReorderPorts *createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args);
-  static FabricUI::DFG::DFGUICmd_DismissLoadDiags *createAndExecuteDFGCommand_DismissLoadDiags(std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_RemoveNodes          *createAndExecuteDFGCommand_RemoveNodes         (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_Connect              *createAndExecuteDFGCommand_Connect             (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_CreatePreset         *createAndExecuteDFGCommand_CreatePreset        (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_Disconnect           *createAndExecuteDFGCommand_Disconnect          (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddGraph             *createAndExecuteDFGCommand_AddGraph            (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddFunc              *createAndExecuteDFGCommand_AddFunc             (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_InstPreset           *createAndExecuteDFGCommand_InstPreset          (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddVar               *createAndExecuteDFGCommand_AddVar              (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddGet               *createAndExecuteDFGCommand_AddGet              (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddSet               *createAndExecuteDFGCommand_AddSet              (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddPort              *createAndExecuteDFGCommand_AddPort             (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_EditPort             *createAndExecuteDFGCommand_EditPort            (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_RemovePort           *createAndExecuteDFGCommand_RemovePort          (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_MoveNodes            *createAndExecuteDFGCommand_MoveNodes           (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_ResizeBackDrop       *createAndExecuteDFGCommand_ResizeBackDrop      (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_ImplodeNodes         *createAndExecuteDFGCommand_ImplodeNodes        (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_ExplodeNode          *createAndExecuteDFGCommand_ExplodeNode         (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddBackDrop          *createAndExecuteDFGCommand_AddBackDrop         (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetNodeComment       *createAndExecuteDFGCommand_SetNodeComment      (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetCode              *createAndExecuteDFGCommand_SetCode             (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_EditNode             *createAndExecuteDFGCommand_EditNode            (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_RenamePort           *createAndExecuteDFGCommand_RenamePort          (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_Paste                *createAndExecuteDFGCommand_Paste               (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetArgValue          *createAndExecuteDFGCommand_SetArgValue         (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetExtDeps           *createAndExecuteDFGCommand_SetExtDeps          (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetPortDefaultValue  *createAndExecuteDFGCommand_SetPortDefaultValue (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SetRefVarPath        *createAndExecuteDFGCommand_SetRefVarPath       (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_SplitFromPreset      *createAndExecuteDFGCommand_SplitFromPreset     (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_ReorderPorts         *createAndExecuteDFGCommand_ReorderPorts        (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_DismissLoadDiags     *createAndExecuteDFGCommand_DismissLoadDiags    (std::vector<std::string> &args);
 };
 
 class UndoDFGUICmd : public CLxImpl_Undo
@@ -529,7 +531,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_EditNode         ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_EditNode           ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_EditNode T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
@@ -585,7 +587,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset         ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset    ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_SplitFromPreset T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
@@ -601,7 +603,7 @@ public:
       else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
                                              cmd = NULL; }
     }
-    else if (cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags       ::CmdName().c_str())
+    else if (cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags   ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_DismissLoadDiags T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();

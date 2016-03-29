@@ -31,7 +31,7 @@ static inline QString ToQString( std::string &str )
   return QString::fromUtf8( str.data(), str.size() );
 }
 
-bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result)
+bool execDFGCmdViaDCC(std::string &in_cmdName, std::vector<std::string> &in_args, std::string &io_result)
 {
   /*
     executes a DCC command.
@@ -56,8 +56,9 @@ bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, std::st
   {
     // execute the dfg command by executing the corresponding DCC command.
     std::string err;
-    ret = ModoTools::ExecuteCommand(in_cmdName, in_args, io_result, err);
-    if (!ret) feLogError(err);
+    ret = ModoTools::ExecuteCommand(in_cmdName, in_args, err);
+    if (ret)  io_result = DFGUICmdHandlerDCC::s_lastReturnValue;
+    else      feLogError(err);
   }
 
   // failed?
@@ -267,6 +268,16 @@ static inline bool DecodeNames(std::vector<std::string> const &args, unsigned &a
 
 
 
+/*----------------------------------
+  static members of DFGUICmdHandler.
+*/
+
+
+
+std::string DFGUICmdHandlerDCC::s_lastReturnValue;
+
+
+
 /*---------------------------------------------------
   implementation of DFGUICmdHandler member functions.
 */
@@ -288,7 +299,7 @@ void DFGUICmdHandlerDCC::dfgDoRemoveNodes(
   args.push_back(EncodeNames(nodeNames));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoConnect(
@@ -308,7 +319,7 @@ void DFGUICmdHandlerDCC::dfgDoConnect(
   args.push_back(ToStdString(dstPort));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoDisconnect(
@@ -328,7 +339,7 @@ void DFGUICmdHandlerDCC::dfgDoDisconnect(
   args.push_back(ToStdString(dstPort));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 QString DFGUICmdHandlerDCC::dfgDoAddGraph(
@@ -574,7 +585,7 @@ void DFGUICmdHandlerDCC::dfgDoRemovePort(
   args.push_back(ToStdString(portName));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoMoveNodes(
@@ -595,7 +606,7 @@ void DFGUICmdHandlerDCC::dfgDoMoveNodes(
   args.push_back(EncodeYPoss(newTopLeftPoss));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
@@ -617,7 +628,7 @@ void DFGUICmdHandlerDCC::dfgDoResizeBackDrop(
   EncodeSize(size, args);
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 QString DFGUICmdHandlerDCC::dfgDoImplodeNodes(
@@ -664,7 +675,7 @@ void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
   args.push_back(indicesStr);
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 QStringList DFGUICmdHandlerDCC::dfgDoExplodeNode(
@@ -682,7 +693,7 @@ QStringList DFGUICmdHandlerDCC::dfgDoExplodeNode(
   args.push_back(ToStdString(nodeName));
 
   std::string resultValue;
-  execCmd(cmdName, args, resultValue);
+  execDFGCmdViaDCC(cmdName, args, resultValue);
   FTL::StrRef explodedNodeNamesStr = resultValue;
   QStringList result;
   while (!explodedNodeNamesStr.empty())
@@ -711,7 +722,7 @@ void DFGUICmdHandlerDCC::dfgDoAddBackDrop(
   EncodePosition(pos, args);
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetNodeComment(
@@ -731,7 +742,7 @@ void DFGUICmdHandlerDCC::dfgDoSetNodeComment(
   args.push_back(ToStdString(comment));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetCode(
@@ -749,7 +760,7 @@ void DFGUICmdHandlerDCC::dfgDoSetCode(
   args.push_back(ToStdString(code));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 QString DFGUICmdHandlerDCC::dfgDoEditNode(
@@ -815,7 +826,7 @@ QStringList DFGUICmdHandlerDCC::dfgDoPaste(
   EncodePosition(cursorPos, args);
 
   std::string resultValue;
-  execCmd(cmdName, args, resultValue);
+  execDFGCmdViaDCC(cmdName, args, resultValue);
   FTL::StrRef pastedNodeNamesStr = resultValue;
   QStringList result;
   while (!pastedNodeNamesStr.empty())
@@ -842,7 +853,7 @@ void DFGUICmdHandlerDCC::dfgDoSetArgValue(
   args.push_back(value.getJSON().getStringCString());
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
@@ -860,7 +871,7 @@ void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
   args.push_back(EncodeNames(extDeps));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
@@ -876,7 +887,7 @@ void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
   args.push_back(ToStdString(execPath));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
@@ -900,7 +911,7 @@ void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   args.push_back(ToStdString(json));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
@@ -920,7 +931,7 @@ void DFGUICmdHandlerDCC::dfgDoSetRefVarPath(
   args.push_back(ToStdString(varPath));
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 void DFGUICmdHandlerDCC::dfgDoReorderPorts(
@@ -949,7 +960,7 @@ void DFGUICmdHandlerDCC::dfgDoReorderPorts(
   args.push_back(indicesStr);
 
   std::string output;
-  execCmd(cmdName, args, output);
+  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 std::string DFGUICmdHandlerDCC::getDCCObjectNameFromBinding(FabricCore::DFGBinding const &binding)
@@ -984,6 +995,7 @@ FabricCore::DFGBinding DFGUICmdHandlerDCC::getBindingFromDCCObjectName(std::stri
 
 FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::string &in_cmdName, std::vector<std::string> &in_args)
 {
+  // create and execute the command.
   FabricUI::DFG::DFGUICmd *cmd = NULL;
   if      (in_cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes::        CmdName().c_str())    cmd = createAndExecuteDFGCommand_RemoveNodes        (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_CreatePreset::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_CreatePreset       (in_args);
@@ -1014,7 +1026,101 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath::      CmdName().c_str())    cmd = createAndExecuteDFGCommand_SetRefVarPath      (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset::    CmdName().c_str())    cmd = createAndExecuteDFGCommand_SplitFromPreset    (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_ReorderPorts       (in_args);
-  else if (in_cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags::       CmdName().c_str())    cmd = createAndExecuteDFGCommand_DismissLoadDiags       (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags::   CmdName().c_str())    cmd = createAndExecuteDFGCommand_DismissLoadDiags   (in_args);
+
+  // store the command's return value.
+  s_lastReturnValue = "";
+  if (cmd)
+  {
+    if      (in_cmdName == FabricUI::DFG::DFGUICmd_RemoveNodes::        CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_CreatePreset::       CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_CreatePreset &c = *(FabricUI::DFG::DFGUICmd_CreatePreset *)cmd;
+                                                                                                s_lastReturnValue = c.getPathname();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_Connect::            CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_Disconnect::         CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGraph::           CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_AddGraph &c = *(FabricUI::DFG::DFGUICmd_AddGraph *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddFunc::            CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_AddFunc &c = *(FabricUI::DFG::DFGUICmd_AddFunc *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_InstPreset::         CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_InstPreset &c = *(FabricUI::DFG::DFGUICmd_InstPreset *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddVar::             CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_AddVar &c = *(FabricUI::DFG::DFGUICmd_AddVar *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGet::             CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_AddGet &c = *(FabricUI::DFG::DFGUICmd_AddGet *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddSet::             CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_AddSet &c = *(FabricUI::DFG::DFGUICmd_AddSet *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddPort::            CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_AddPort &c = *(FabricUI::DFG::DFGUICmd_AddPort *)cmd;
+                                                                                                s_lastReturnValue = c.getActualPortName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditPort::           CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_EditPort &c = *(FabricUI::DFG::DFGUICmd_EditPort *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNewPortName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_RemovePort::         CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_MoveNodes::          CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_ResizeBackDrop::     CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_ImplodeNodes::       CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_ImplodeNodes &c = *(FabricUI::DFG::DFGUICmd_ImplodeNodes *)cmd;
+                                                                                                s_lastReturnValue = c.getActualImplodedNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode::        CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_ExplodeNode &c = *(FabricUI::DFG::DFGUICmd_ExplodeNode *)cmd;
+                                                                                                FTL::ArrayRef<std::string> names = c.getExplodedNodeNames();
+                                                                                                for (FTL::ArrayRef<std::string>::IT it=names.begin();it!=names.end();it++)
+                                                                                                {
+                                                                                                  if (it != names.begin())
+                                                                                                    s_lastReturnValue += '|';
+                                                                                                  s_lastReturnValue += *it;
+                                                                                                }
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop::        CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetTitle::           CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment::     CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetCode::            CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditNode::           CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_EditNode &c = *(FabricUI::DFG::DFGUICmd_EditNode *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNewNodeName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_RenamePort::         CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_RenamePort &c = *(FabricUI::DFG::DFGUICmd_RenamePort *)cmd;
+                                                                                                s_lastReturnValue = c.getActualNewPortName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_Paste::              CmdName().c_str())    {
+                                                                                                FabricUI::DFG::DFGUICmd_Paste &c = *(FabricUI::DFG::DFGUICmd_Paste *)cmd;
+                                                                                                FTL::ArrayRef<std::string> names = c.getPastedNodeNames();
+                                                                                                for (FTL::ArrayRef<std::string>::IT it=names.begin();it!=names.end();it++)
+                                                                                                {
+                                                                                                  if (it != names.begin())
+                                                                                                    s_lastReturnValue += '|';
+                                                                                                  s_lastReturnValue += *it;
+                                                                                                }
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgType::         CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgValue::        CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetExtDeps::         CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetRefVarPath::      CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SplitFromPreset::    CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_ReorderPorts::       CmdName().c_str())    { }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_DismissLoadDiags::   CmdName().c_str())    { }
+  }
+
+  // done.
   return cmd;
 }
 
@@ -2319,7 +2425,7 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
                                               {
 #define __CanvasCmd_constructor_finish__      }
 
-// execute.
+// execute / query.
 #define __CanvasCmd_execute__                 void __CanvasCmdClass__::cmd_Execute(unsigned flags)                                \
                                               {                                                                                   \
                                                 CLxUser_UndoService undoSvc;                                                      \
@@ -2337,8 +2443,6 @@ FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDF
                                                 undoSvc.Record(obj);                                                              \
                                                 lx::ObjRelease(obj);                                                              \
                                               }
-
-
 
 #define __CanvasCmdNumArgs__     3
 #define __CanvasCmdClass__  FabricCanvasRemoveNodes

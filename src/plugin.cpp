@@ -7,6 +7,7 @@
 #include "_class_JSONValue.h"
 #include "_class_ModoTools.h"
 #include "cmd_FabricCanvasExportGraph.h"
+#include "cmd_FabricCanvasGetResult.h"
 #include "cmd_FabricCanvasImportGraph.h"
 #include "cmd_FabricCanvasIncEval.h"
 #include "cmd_FabricCanvasLogVersion.h"
@@ -93,6 +94,7 @@ void initialize()
   // Modo.
   {
     FabricCanvasExportGraph :: Command:: initialize();
+    FabricCanvasGetResult   :: Command:: initialize();
     FabricCanvasImportGraph :: Command:: initialize();
     FabricCanvasIncEval     :: Command:: initialize();
     FabricCanvasLogVersion  :: Command:: initialize();

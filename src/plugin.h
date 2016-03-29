@@ -3,7 +3,7 @@
 #define SRC_PLUGIN_H_
 
 // plugin version.
-#define FABRICMODO_PLUGIN_VERSION   0.700
+#define FABRICMODO_PLUGIN_VERSION   0.800
 
 // disable some annoying VS warnings.
 #ifdef _WIN32

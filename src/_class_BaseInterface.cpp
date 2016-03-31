@@ -6,9 +6,14 @@
 #include "_class_ModoTools.h"
 
 #include <FabricUI/Licensing/Licensing.h>
+#include <Persistence/RTValToJSONEncoder.hpp>
+#include <Persistence/RTValFromJSONDecoder.hpp>
 
 #include <algorithm>
 #include <sstream>
+
+FabricServices::Persistence::RTValToJSONEncoder   sRTValEncoder;
+FabricServices::Persistence::RTValFromJSONDecoder sRTValDecoder;
 
 FabricCore::Client                        BaseInterface::s_client;
 FabricCore::DFGHost                       BaseInterface::s_host;
@@ -36,6 +41,8 @@ BaseInterface::BaseInterface()
       FabricCore::Client::CreateOptions options;
       memset(&options, 0, sizeof(options));
       options.guarded = 1;
+      options.rtValToJSONEncoder   = &sRTValEncoder;
+      options.rtValFromJSONDecoder = &sRTValDecoder;
       char fabric_dfg_path[512];
       char fabric_exts_path[512];
       char *ptr_fabric_dfg_path  = fabric_dfg_path;

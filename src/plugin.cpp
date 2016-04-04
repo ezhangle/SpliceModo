@@ -70,7 +70,7 @@ void feLogDebug(const std::string &s)
 void feLogDebug(const std::string &s, int number)
 {
   char t[64];
-  sprintf(t, " number = %ld", number);
+  sprintf(t, " number = %d", number);
   feLog(s + t);
 }
 

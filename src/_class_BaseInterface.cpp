@@ -747,7 +747,7 @@ int BaseInterface::GetArgValueString(FabricCore::DFGBinding &binding, char const
       if (GetArgValueInteger(binding, argName, i, true) == 0)
       {
         #ifdef _WIN32
-          sprintf_s(s, sizeof(s), "%ld", i);
+          sprintf_s(s, sizeof(s), "%d", i);
         #else
           snprintf(s, sizeof(s), "%d", i);
         #endif
@@ -1125,9 +1125,9 @@ int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const 
                                               for (int i = 0; i < 4; i++)
                                               {
                                                 #ifdef _WIN32
-                                                  sprintf_s(member, sizeof(member), "row%ld", i);
+                                                  sprintf_s(member, sizeof(member), "row%d", i);
                                                 #else
-                                                  snprintf(member, sizeof(member), "row%ld", i);
+                                                  snprintf(member, sizeof(member), "row%d", i);
                                                 #endif
                                                 rtRow = rtval.maybeGetMember(member);
                                                 out.push_back(rtRow.maybeGetMember("x").getFloat32());
@@ -1145,9 +1145,9 @@ int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const 
                                               for (int i = 0; i < 4; i++)
                                               {
                                                 #ifdef _WIN32
-                                                  sprintf_s(member, sizeof(member), "row%ld", i);
+                                                  sprintf_s(member, sizeof(member), "row%d", i);
                                                 #else
-                                                  snprintf(member, sizeof(member), "row%ld", i);
+                                                  snprintf(member, sizeof(member), "row%d", i);
                                                 #endif
                                                 rtRow = rtmat44.maybeGetMember(member);
                                                 out.push_back(rtRow.maybeGetMember("x").getFloat32());
@@ -1505,7 +1505,7 @@ void BaseInterface::SetValueOfArgVec2(FabricCore::Client &client, FabricCore::DF
     const char name[16] = "Vec2";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
-    const bool valIsValid  = (val.size() >= N);
+    const bool valIsValid  = (val.size() >= (unsigned int)N);
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
@@ -1532,7 +1532,7 @@ void BaseInterface::SetValueOfArgVec3(FabricCore::Client &client, FabricCore::DF
     const char name[16] = "Vec3";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
-    const bool valIsValid  = (val.size() >= N);
+    const bool valIsValid  = (val.size() >= (unsigned int)N);
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
@@ -1559,7 +1559,7 @@ void BaseInterface::SetValueOfArgVec4(FabricCore::Client &client, FabricCore::DF
     const char name[16] = "Vec4";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
-    const bool valIsValid  = (val.size() >= N);
+    const bool valIsValid  = (val.size() >= (unsigned int)N);
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
@@ -1586,7 +1586,7 @@ void BaseInterface::SetValueOfArgColor(FabricCore::Client &client, FabricCore::D
     const char name[16] = "Color";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
-    const bool valIsValid  = (val.size() >= N);
+    const bool valIsValid  = (val.size() >= (unsigned int)N);
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructFloat32(client, valIsValid ? val[i] : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
@@ -1613,7 +1613,7 @@ void BaseInterface::SetValueOfArgRGB(FabricCore::Client &client, FabricCore::DFG
     const char name[16] = "RGB";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
-    const bool valIsValid  = (val.size() >= N);
+    const bool valIsValid  = (val.size() >= (unsigned int)N);
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);
@@ -1640,7 +1640,7 @@ void BaseInterface::SetValueOfArgRGBA(FabricCore::Client &client, FabricCore::DF
     const char name[16] = "RGBA";
     FabricCore::RTVal rtval;
     FabricCore::RTVal v[N];
-    const bool valIsValid  = (val.size() >= N);
+    const bool valIsValid  = (val.size() >= (unsigned int)N);
     for (int i = 0; i < N; i++)
       v[i] = FabricCore::RTVal::ConstructUInt8(client, valIsValid ? (uint8_t)std::max(0.0, std::min(255.0, 255.0 * val[i])) : 0);
     rtval  = FabricCore::RTVal::Construct(client, name, N, v);

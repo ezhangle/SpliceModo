@@ -11,6 +11,7 @@
 // includes.
 #include <ASTWrapper/KLASTManager.h>
 #include <map>
+#include <math.h>
 
 struct _polymesh;
 class DFGUICmdHandlerDCC;
@@ -788,7 +789,7 @@ struct _polymesh
 
     // fix vertex indices.
     uint32_t *pi = polyVertices.data() + numSamples;
-    for (int i = 0; i < inMesh.numSamples; i++,pi++)
+    for (unsigned int i=0;i<inMesh.numSamples;i++,pi++)
       *pi += numVertices;
 
     // fix amounts.

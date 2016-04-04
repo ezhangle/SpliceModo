@@ -153,7 +153,7 @@ namespace Value
   void feLogDebug(const std::string &s, int number)
   {
     char t[64];
-    sprintf(t, " number = %ld", number);
+    sprintf(t, " number = %d", number);
     feLog(s + t);
   }
 
@@ -454,7 +454,7 @@ namespace Surf_Sample
   void feLogDebug(const std::string &s, int number)
   {
     char t[64];
-    sprintf(t, " number = %ld", number);
+    sprintf(t, " number = %d", number);
     feLog(s + t);
   }
 
@@ -600,7 +600,7 @@ LxResult SurfDef::Evaluate (CLxUser_Attributes &attr, unsigned index)
      *  in the ChannelDef object.
      */
 
-    for (int i = 0; i < _user_channels.size (); i++)
+    for (unsigned int i = 0; i < _user_channels.size (); i++)
     {
         ChannelDef      *channel = &_user_channels[i];
         
@@ -1296,7 +1296,6 @@ LxResult Instance::pins_AfterLoad(void)
   if (!p)
   { feLogError(std::string("data is NULL for channel ") + std::string(CHAN_CUSTOMVALUE));
     return LXe_OK;  }
-  char buf[1024] = "";
   feLog(std::string("data of channel ") + std::string(CHAN_CUSTOMVALUE) + std::string(" is \"") + p->GetString() + std::string("\""));
 
   return LXe_OK;

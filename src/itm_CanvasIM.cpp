@@ -247,10 +247,12 @@ namespace CanvasIM
     { feLogError("Element::Eval(): invalid graph");
       return; }
 
-    // read the fixed input channels and return early if the FabricActive flag is disabled.
+    // read the fixed input channels (so that Modo evaluates them)
+    // and return early if the FabricActive flag is disabled.
     unsigned int eval_index = m_first_eval_index;
     int FabricActive = attr.Bool(eval_index++, false);
     int FabricEval   = attr.Int (eval_index++);
+    (void)FabricEval;
     if (!FabricActive)
       return;
 

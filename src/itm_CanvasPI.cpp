@@ -165,9 +165,11 @@ namespace CanvasPI
     // make ud.polymesh a valid, empty mesh.
     m_userData->polymesh.setEmptyMesh();
 
-    // read the fixed input channels and return early if the FabricActive flag is disabled.
+    // read the fixed input channels (so that Modo evaluates them)
+    // and return early if the FabricActive flag is disabled.
     int FabricActive = attr.Bool(evalIndex++, false);
     int FabricEval   = attr.Int (evalIndex++);
+    (void)FabricEval;
     if (!FabricActive)
       return LXe_OK;
 

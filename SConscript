@@ -50,14 +50,14 @@ if FABRIC_BUILD_OS == 'Linux':
   modoFlags['LIBS'].extend(['QtCore', 'QtGui', 'QtOpenGL'])
 if FABRIC_BUILD_OS == 'Darwin':
   modoFlags['CPPDEFINES'] = ['OSMac_']
-  qtCoreLib = File(os.path.join(MAYA_LIB_DIR, 'QtCore'))
-  qtGuiLib = File(os.path.join(MAYA_LIB_DIR, 'QtGui'))
-  qtOpenGLLib = File(os.path.join(MAYA_LIB_DIR, 'QtOpenGL'))
+  qtCoreLib = File(os.path.join(MODO_LIB_DIR, 'QtCore.framework/QtCore'))
+  qtGuiLib = File(os.path.join(MODO_LIB_DIR, 'QtGui.framework/QtGui'))
+  qtOpenGLLib = File(os.path.join(MODO_LIB_DIR, 'QtOpenGL.framework/QtOpenGL'))
   modoFlags['LIBS'].extend([
     qtCoreLib,
     qtGuiLib,
     qtOpenGLLib,
-    File(os.path.join(MAYA_LIB_DIR, 'QtGui'))
+    File(os.path.join(MODO_LIB_DIR, 'QtGui.framework/QtGui'))
     ])
 
 env.MergeFlags(modoFlags)
@@ -113,6 +113,15 @@ if FABRIC_BUILD_OS == 'Windows':
   env.Append(CCFLAGS = ['/wd4700'])
 elif FABRIC_BUILD_OS == 'Linux':
   env.Append(CCFLAGS = ['-Wno-missing-braces'])
+elif FABRIC_BUILD_OS == 'Darwin':
+  env.Append(CCFLAGS = ['-Wno-#warnings'])
+  env.Append(CCFLAGS = ['-Wno-missing-braces'])
+  env.Append(CCFLAGS = ['-Wno-tautological-compare'])
+  env.Append(CCFLAGS = ['-Wno-unused-private-field'])
+  env.Append(CCFLAGS = ['-Wno-dangling-else'])
+  env.Append(CCFLAGS = ['-Wno-deprecated-writable-strings'])
+  env.Append(CCFLAGS = ['-Wno-unknown-pragmas'])
+  env.Append(CCFLAGS = ['-Wno-parentheses'])
 
 target = 'FabricModo'
 
@@ -143,7 +152,7 @@ for commonSource in commonSources:
 if FABRIC_BUILD_OS == 'Darwin':
   # a loadable module will omit the 'lib' prefix name on Os X
   spliceAppName = 'FabricModo'+MODO_VERSION
-  target += '.bundle'
+  target += '.lx'
   env.Append(SHLINKFLAGS = ','.join([
     '-Wl',
     '-current_version',
@@ -151,7 +160,7 @@ if FABRIC_BUILD_OS == 'Darwin':
     '-compatibility_version',
     '.'.join([env['FABRIC_VERSION_MAJ'],env['FABRIC_VERSION_MIN'],'0']),
     '-install_name',
-    '@rpath/Splice/Applications/'+spliceAppName+'/plugins/'+spliceAppName+".bundle"
+    '@rpath/Splice/Applications/'+spliceAppName+'/plugins/'+spliceAppName+".lx"
     ]))
   modoModule = env.LoadableModule(target = target, source = pluginSources, SHLIBSUFFIX='.lx')
 else:
@@ -164,11 +173,11 @@ else:
 
 installDir = None
 if FABRIC_BUILD_OS == 'Linux':
-  installDir = STAGE_DIR.Dir('linux64')
+  installDir = STAGE_DIR.Dir('lnx64')
 elif FABRIC_BUILD_OS == 'Windows':
   installDir = STAGE_DIR.Dir('win64')
 else:
-  installDir = STAGE_DIR.Dir('darwin')
+  installDir = STAGE_DIR.Dir('mac64')
 
 installedModule = env.Install(installDir, modoModule)
 
@@ -189,6 +198,9 @@ if FABRIC_BUILD_OS == 'Windows':
   modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'FabricSplitSearch.pdb'))
   modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbb.dll'))
   modoFiles += env.Install(installDir, os.path.join(FABRIC_DIR, 'bin', 'tbbmalloc.dll'))
+
+if FABRIC_BUILD_OS == 'Darwin':
+  env.Append(LINKFLAGS = [Literal('-Wl,-rpath,@loader_path/../../..')])
 
 alias = env.Alias('splicemodo', modoFiles)
 spliceData = (alias, modoFiles)

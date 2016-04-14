@@ -657,7 +657,7 @@ void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
   QList<int> diagIndices
   )
 {
-  std::string cmdName(FabricUI::DFG::DFGUICmd_ImplodeNodes::CmdName());
+  std::string cmdName(FabricUI::DFG::DFGUICmd_DismissLoadDiags::CmdName());
   std::vector<std::string> args;
 
   args.push_back(getDCCObjectNameFromBinding(binding));
@@ -2310,6 +2310,7 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
 FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_ReorderPorts *cmd = NULL;
+  if (args.size() == 3)
   {
     unsigned int ai = 0;
 
@@ -2343,9 +2344,9 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     }
 
     cmd = new FabricUI::DFG::DFGUICmd_ReorderPorts(binding,
-                                                    execPath,
-                                                    exec,
-                                                    indices);
+                                                   execPath.c_str(),
+                                                   exec,
+                                                   indices);
     try
     {
       cmd->doit();
@@ -2362,6 +2363,7 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 FabricUI::DFG::DFGUICmd_DismissLoadDiags *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_DismissLoadDiags(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_DismissLoadDiags *cmd = NULL;
+  if (args.size() == 2)
   {
     unsigned int ai = 0;
 

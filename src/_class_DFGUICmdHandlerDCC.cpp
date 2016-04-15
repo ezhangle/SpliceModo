@@ -57,7 +57,7 @@ bool execDFGCmdViaDCC(std::string &in_cmdName, std::vector<std::string> &in_args
     // execute the dfg command by executing the corresponding DCC command.
     std::string err;
     ret = ModoTools::ExecuteCommand(in_cmdName, in_args, err);
-    if (ret)  io_result = DFGUICmdHandlerDCC::s_lastReturnValue;
+    if (ret)  io_result = ToStdString( DFGUICmdHandlerDCC::s_lastReturnValue );
     else      feLogError(err);
   }
 
@@ -77,7 +77,7 @@ bool execDFGCmdViaDCC(std::string &in_cmdName, std::vector<std::string> &in_args
 bool execCmd(std::string &in_cmdName, std::vector<std::string> &in_args, QString &io_result)
 {
   std::string io_result_tmp;
-  bool result = execCmd( in_cmdName, in_args, io_result_tmp );
+  bool result = execDFGCmdViaDCC( in_cmdName, in_args, io_result_tmp );
   io_result = QString::fromUtf8( io_result_tmp.data(), io_result_tmp.size() );
   return result;
 }
@@ -274,7 +274,7 @@ static inline bool DecodeNames(std::vector<std::string> const &args, unsigned &a
 
 
 
-std::string DFGUICmdHandlerDCC::s_lastReturnValue;
+QString DFGUICmdHandlerDCC::s_lastReturnValue;
 
 
 
@@ -1080,8 +1080,8 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
                                                                                               }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_ExplodeNode::        CmdName().c_str())    {
                                                                                                 FabricUI::DFG::DFGUICmd_ExplodeNode &c = *(FabricUI::DFG::DFGUICmd_ExplodeNode *)cmd;
-                                                                                                FTL::ArrayRef<std::string> names = c.getExplodedNodeNames();
-                                                                                                for (FTL::ArrayRef<std::string>::IT it=names.begin();it!=names.end();it++)
+                                                                                                QStringList names = c.getExplodedNodeNames();
+                                                                                                for (QStringList::Iterator it=names.begin();it!=names.end();it++)
                                                                                                 {
                                                                                                   if (it != names.begin())
                                                                                                     s_lastReturnValue += '|';
@@ -1089,7 +1089,6 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
                                                                                                 }
                                                                                               }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBackDrop::        CmdName().c_str())    { }
-    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetTitle::           CmdName().c_str())    { }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetNodeComment::     CmdName().c_str())    { }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetCode::            CmdName().c_str())    { }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditNode::           CmdName().c_str())    {
@@ -1102,15 +1101,14 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
                                                                                               }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_Paste::              CmdName().c_str())    {
                                                                                                 FabricUI::DFG::DFGUICmd_Paste &c = *(FabricUI::DFG::DFGUICmd_Paste *)cmd;
-                                                                                                FTL::ArrayRef<std::string> names = c.getPastedNodeNames();
-                                                                                                for (FTL::ArrayRef<std::string>::IT it=names.begin();it!=names.end();it++)
+                                                                                                QStringList names = c.getPastedNodeNames();
+                                                                                                for (QStringList::Iterator it=names.begin();it!=names.end();it++)
                                                                                                 {
                                                                                                   if (it != names.begin())
                                                                                                     s_lastReturnValue += '|';
                                                                                                   s_lastReturnValue += *it;
                                                                                                 }
                                                                                               }
-    else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgType::         CmdName().c_str())    { }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetArgValue::        CmdName().c_str())    { }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetExtDeps::         CmdName().c_str())    { }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_SetPortDefaultValue::CmdName().c_str())    { }
@@ -2344,7 +2342,7 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     }
 
     cmd = new FabricUI::DFG::DFGUICmd_ReorderPorts(binding,
-                                                   execPath.c_str(),
+                                                   execPath,
                                                    exec,
                                                    indices);
     try

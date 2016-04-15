@@ -32,8 +32,8 @@ LxResult FabricCanvasGetResult::Command::cmd_Query(unsigned int index, ILxUnknow
 
   // do it.
   CLxUser_ValueArray val_array(vaQuery);
-  if (DFGUICmdHandlerDCC::s_lastReturnValue.empty())  val_array.AddString("");
-  else                                                val_array.AddString(DFGUICmdHandlerDCC::s_lastReturnValue.c_str());
+  if (DFGUICmdHandlerDCC::s_lastReturnValue.isEmpty())  val_array.AddString("");
+  else                                                  val_array.AddString(DFGUICmdHandlerDCC::s_lastReturnValue.toUtf8().data());
 
   // done.
   return LXe_OK;

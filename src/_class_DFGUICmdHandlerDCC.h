@@ -31,7 +31,7 @@ public:
 
 public:
 
-  static std::string s_lastReturnValue; // contains the return value of the last DFG command that was executed.
+  static QString s_lastReturnValue; // contains the return value of the last DFG command that was executed.
 
 private:
 

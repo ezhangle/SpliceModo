@@ -588,6 +588,9 @@ namespace CanvasPI
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".elmt", srv);
     }
     
+    SurfElement()   { m_numOffsets = 0; };
+    ~SurfElement()  {};
+
     unsigned int  tsrf_FeatureCount   (LXtID4 type)                                                     LXx_OVERRIDE;
     LxResult      tsrf_FeatureByIndex (LXtID4 type, unsigned int index, const char **name)              LXx_OVERRIDE;
     LxResult      tsrf_Bound          (LXtTableauBox bbox)                                              LXx_OVERRIDE;
@@ -599,7 +602,8 @@ namespace CanvasPI
     SurfDef       m_surf_def;
 
    private:
-    int           m_offsets[4];
+    int           m_offsets[MAX_NUM_VERTEX_FEATURE_OFFSETS];
+    int           m_numOffsets;
   };
 
   unsigned int SurfElement::tsrf_FeatureCount(LXtID4 type)
@@ -609,8 +613,14 @@ namespace CanvasPI
       things like UVs or weight maps if we have them, but we'll just assume
       the standard set of 4 required features.
     */
-    
-    return (type == LXiTBLX_BASEFEATURE ? 4 : 0);
+
+    unsigned int count = 0;
+
+    if      (type == LXiTBLX_BASEFEATURE)   count = 4;
+    else if (type == LXi_VMAP_TEXTUREUV)    count = 1;
+    else if (type == LXiTBLX_DPDU)          count = 1;
+
+    return count;
   }
 
   LxResult SurfElement::tsrf_FeatureByIndex(LXtID4 type, unsigned int index, const char **name)
@@ -621,17 +631,37 @@ namespace CanvasPI
       but we must provide these.
     */
 
-    if (type != LXiTBLX_BASEFEATURE)
-      return LXe_NOTFOUND;
-
-    switch (index)
+    if (type == LXiTBLX_BASEFEATURE)
     {
-      case 0:   name[0] = LXsTBLX_FEATURE_POS;      return LXe_OK;
-      case 1:   name[0] = LXsTBLX_FEATURE_OBJPOS;   return LXe_OK;
-      case 2:   name[0] = LXsTBLX_FEATURE_NORMAL;   return LXe_OK;
-      case 3:   name[0] = LXsTBLX_FEATURE_VEL;      return LXe_OK;
-      default:                                      return LXe_OUTOFBOUNDS;
+      switch (index)
+      {
+        case 0:   name[0] = LXsTBLX_FEATURE_POS;      return LXe_OK;
+        case 1:   name[0] = LXsTBLX_FEATURE_OBJPOS;   return LXe_OK;
+        case 2:   name[0] = LXsTBLX_FEATURE_NORMAL;   return LXe_OK;
+        case 3:   name[0] = LXsTBLX_FEATURE_VEL;      return LXe_OK;
+        default:                                      return LXe_OUTOFBOUNDS;
+      }
     }
+
+    if (type == LXi_VMAP_TEXTUREUV)
+    {
+      switch (index)
+      {
+        case 0:   name[0] = VMAPNAME_UV;              return LXe_OK;
+        default:                                      return LXe_OUTOFBOUNDS;
+      }
+    }
+
+    if (type == LXiTBLX_DPDU)
+    {
+      switch (index)
+      {
+        case 0:   name[0] = VMAPNAME_UV;              return LXe_OK;
+        default:                                      return LXe_OUTOFBOUNDS;
+      }
+    }
+
+    return LXe_NOTFOUND;
   }
 
   LxResult SurfElement::tsrf_Bound(LXtTableauBox bbox)
@@ -669,19 +699,46 @@ namespace CanvasPI
     const char           *name   = NULL;
     unsigned              offset = 0;
 
+    // init offsets.
+    m_numOffsets = 0;
+    for (int i=0;i<MAX_NUM_VERTEX_FEATURE_OFFSETS;i++)
+      m_offsets[i] = -1;
+
+    // set flags.
+    bool hasUVs = (m_surf_def.m_userData && m_surf_def.m_userData->polymesh.hasUVWs());
+
+    // check.
     if (!vertex.set(vdesc_obj))
       return LXe_NOINTERFACE;
 
+    // base features.
     for (int i=0;i<4;i++)
     {
       tsrf_FeatureByIndex(LXiTBLX_BASEFEATURE, i, &name);
-        
       if (LXx_OK(vertex.Lookup(LXiTBLX_BASEFEATURE, name, &offset)))
-        m_offsets[i] = offset;
+        m_offsets[m_numOffsets++] = offset;
       else
-        m_offsets[i] = -1;
+        m_offsets[m_numOffsets++] = -1;
     }
 
+    // texture coordinates.
+    if (hasUVs)
+    {
+      tsrf_FeatureByIndex(LXi_VMAP_TEXTUREUV, 0, &name);
+      if (LXx_OK(vertex.Lookup(LXi_VMAP_TEXTUREUV, name, &offset)))
+      {
+        m_offsets[m_numOffsets++] = offset;
+        tsrf_FeatureByIndex(LXiTBLX_DPDU, 0, &name);
+        if (LXx_OK(vertex.Lookup(LXiTBLX_DPDU, name, &offset)))
+          m_offsets[m_numOffsets++] = offset;
+        else
+          m_offsets[m_numOffsets++] = -1;
+      }
+      else
+        m_offsets[m_numOffsets++] = -1;
+    }
+
+    // done.
     return LXe_OK;
   }
 
@@ -733,35 +790,61 @@ namespace CanvasPI
 
       // build the vertex list.
       {
-          unsigned    index;
-          float       vec[3 * (4 + 3)] = {0, 0, 0,
-                                          0, 0, 0,
-                                          0, 0, 0,
-                                          0, 0, 0,
-                                          0, 0, 0,
-                                          0, 0, 0,
-                                          0, 0, 0};
+          const int numVec = 3 * MAX_NUM_VERTEX_FEATURE_OFFSETS;
+          float vec[numVec];
+          for (int i=0;i<numVec;i++)
+            vec[i] = 0;
+
+          bool hasUVs = ud.polymesh.hasUVWs();
           float *vp = ud.polymesh.vertPositions.data();
           float *vn = ud.polymesh.vertNormals  .data();
-          for (unsigned int i=0;i<ud.polymesh.numVertices;i++,vp+=3,vn+=3)
+          float *vu = ud.polymesh.vertUVWs     .data();
+          for (unsigned int i=0;i<ud.polymesh.numVertices;i++,vp+=3,vn+=3,vu+=3)
           {
-              // position.
+            // position.
+            if (m_numOffsets > 0)
+            {
               vec[m_offsets[0] + 0] = vp[0];
               vec[m_offsets[0] + 1] = vp[1];
               vec[m_offsets[0] + 2] = vp[2];
+            }
+            // object position.
+            if (m_numOffsets > 1)
+            {
+              vec[m_offsets[1] + 0] = 0;
+              vec[m_offsets[1] + 1] = 0;
+              vec[m_offsets[1] + 2] = 0;
+            }
 
-              // normal.
+            // normal.
+            if (m_numOffsets > 2)
+            {
               vec[m_offsets[2] + 0] = vn[0];
               vec[m_offsets[2] + 1] = vn[1];
               vec[m_offsets[2] + 2] = vn[2];
+            }
 
-              // velocity.
+            // velocity.
+            if (m_numOffsets > 3)
+            {
               vec[m_offsets[3] + 0] = 0;
               vec[m_offsets[3] + 1] = 0;
               vec[m_offsets[3] + 2] = 0;
+            }
 
-              // add vertex.
-              soup.Vertex(vec, &index);
+            // texture coordinates.
+            if (m_numOffsets > 4)
+            {
+              if (hasUVs && m_offsets[4] != -1)
+              {
+                vec[m_offsets[4] + 0] = vu[0];
+                vec[m_offsets[4] + 1] = vu[1];
+              }
+            }
+
+            // add vertex.
+            unsigned index;
+            soup.Vertex(vec, &index);
           }
       }
 

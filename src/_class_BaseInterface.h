@@ -343,10 +343,15 @@ struct _polymesh
     if (numPolygons > 0 && polyNodeNormals.size() > 0)
     {
       // resize and zero-out.
-      vertNormals.resize       (3 * numVertices, 0.0f);
-      if (vertNormals.size() != 3 * numVertices)
-      { clear();
-        return -3;  }
+      try
+      {
+        vertNormals.resize(3 * numVertices, 0.0f);
+      }
+      catch (const std::bad_alloc &e)
+      {
+        clear();
+        return -3;
+      }
 
       // fill.
       uint32_t *pvi = polyVertices.data();
@@ -380,24 +385,68 @@ struct _polymesh
       }
     }
 
+    // create temporary array of num polygon neighbors per vertex, if needed.
+    std::vector<uint32_t> tmpVertNumPolyNeigh;
+    if (numPolygons)
+    {
+      if (   polyNodeUVWs  .size() > 0
+          || polyNodeColors.size() > 0 )
+      {
+        // resize and init array.
+        try
+        {
+          tmpVertNumPolyNeigh.resize(numVertices, 0);
+        }
+        catch (const std::bad_alloc &e)
+        {
+          clear();
+          return -3;
+        }
+
+        // fill.
+        uint32_t *pvi = polyVertices.data();
+        for (unsigned int i=0;i<numSamples;i++,pvi++)
+          tmpVertNumPolyNeigh.data()[*pvi]++;
+      }
+    }
+
     // create vertex UVWs from the polygon node UVWs.
     if (numPolygons > 0 && polyNodeUVWs.size() > 0)
     {
       // resize and zero-out.
-      vertUVWs.resize       (3 * numVertices, 0.0f);
-      if (vertUVWs.size() != 3 * numVertices)
-      { clear();
-        return -3;  }
+      try
+      {
+        vertUVWs.resize(3 * numVertices, 0.0f);
+      }
+      catch (const std::bad_alloc &e)
+      {
+        clear();
+        return -3;
+      }
 
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnu = polyNodeUVWs.data();
       for (unsigned int i=0;i<numSamples;i++,pvi++,pnu+=3)
       {
-        float *vn = vertUVWs.data() + (*pvi) * 3;
-        vn[0] += pnu[0];
-        vn[1] += pnu[1];
-        vn[2] += pnu[2];
+        float *vu = vertUVWs.data() + (*pvi) * 3;
+        vu[0] += pnu[0];
+        vu[1] += pnu[1];
+        vu[2] += pnu[2];
+      }
+
+      // normalize.
+      uint32_t *tn = tmpVertNumPolyNeigh.data();
+      float    *vu = vertUVWs.data();
+      for (unsigned int i=0;i<numVertices;i++,tn++,vu+=3)
+      {
+        if (*tn > 1)
+        {
+          float f = 1.0f / (float)*tn;
+          vu[0] *= f;
+          vu[1] *= f;
+          vu[2] *= f;
+        }
       }
     }
 
@@ -405,21 +454,41 @@ struct _polymesh
     if (numPolygons > 0 && polyNodeColors.size() > 0)
     {
       // resize and zero-out.
-      vertColors.resize       (4 * numVertices, 0.0f);
-      if (vertColors.size() != 4 * numVertices)
-      { clear();
-        return -3;  }
+      try
+      {
+        vertColors.resize(4 * numVertices, 0.0f);
+      }
+      catch (const std::bad_alloc &e)
+      {
+        clear();
+        return -3;
+      }
 
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnc = polyNodeColors.data();
       for (unsigned int i=0;i<numSamples;i++,pvi++,pnc+=4)
       {
-        float *vn = vertColors.data() + (*pvi) * 4;
-        vn[0] += pnc[0];
-        vn[1] += pnc[1];
-        vn[2] += pnc[2];
-        vn[3] += pnc[3];
+        float *vc = vertColors.data() + (*pvi) * 4;
+        vc[0] += pnc[0];
+        vc[1] += pnc[1];
+        vc[2] += pnc[2];
+        vc[3] += pnc[3];
+      }
+
+      // normalize.
+      uint32_t *tn = tmpVertNumPolyNeigh.data();
+      float    *vc = vertColors.data();
+      for (unsigned int i=0;i<numVertices;i++,tn++,vc+=4)
+      {
+        if (*tn > 1)
+        {
+          float f = 1.0f / (float)*tn;
+          vc[0] *= f;
+          vc[1] *= f;
+          vc[2] *= f;
+          vc[3] *= f;
+        }
       }
     }
 
@@ -473,41 +542,28 @@ struct _polymesh
     }
 
     // allocate member arrays.
-    vertPositions   .resize(3 * numVertices);
-    vertNormals     .resize(3 * numVertices, 0.0f);
-    polyNumVertices .resize(    numPolygons);
-    polyVertices    .resize(    numSamples);
-    polyNodeNormals .resize(3 * numSamples);
-    if ( vertPositions   .size() != 3 * numVertices
-      || vertNormals     .size() != 3 * numVertices
-      || polyNumVertices .size() !=     numPolygons
-      || polyVertices    .size() !=     numSamples
-      || polyNodeNormals .size() != 3 * numSamples  )
+    try
+    {
+      vertPositions   .resize(3 * numVertices);
+      vertNormals     .resize(3 * numVertices, 0.0f);
+      polyNumVertices .resize(    numPolygons);
+      polyVertices    .resize(    numSamples);
+      polyNodeNormals .resize(3 * numSamples);
+      if (in_nodeUVWs_size > 0)
+      {
+        vertUVWs    .resize(3 * numVertices, 0.0f);
+        polyNodeUVWs.resize(3 * numSamples);
+      }
+      if (in_nodeColors_size > 0)
+      {
+        vertColors    .resize(4 * numVertices, 0.0f);
+        polyNodeColors.resize(4 * numSamples);
+      }
+    }
+    catch (const std::bad_alloc &e)
     {
       clear();
       return -2;
-    }
-    if (in_nodeUVWs_size > 0)
-    {
-      vertUVWs              .resize(3 * numVertices, 0.0f);
-      polyNodeUVWs          .resize(3 * numSamples);
-      if (   vertUVWs    .size() != 3 * numVertices
-          || polyNodeUVWs.size() != 3 * numSamples)
-      {
-        clear();
-        return -2;
-      }
-    }
-    if (in_nodeColors_size > 0)
-    {
-      vertColors              .resize(4 * numVertices, 0.0f);
-      polyNodeColors          .resize(4 * numSamples);
-      if (   vertColors    .size() != 4 * numVertices
-          || polyNodeColors.size() != 4 * numSamples)
-      {
-        clear();
-        return -2;
-      }
     }
 
     // fill member arrays from input arrays.
@@ -649,7 +705,15 @@ struct _polymesh
     {
       // init temporary array of amounts of node values per vertex value.
       std::vector<short int> tmp;
-      tmp.resize(numVertices, 0);
+      try
+      {
+        tmp.resize(numVertices, 0);
+      }
+      catch (const std::bad_alloc &e)
+      {
+        clear();
+        return -3;
+      }
 
       // fill.
       uint32_t *pvi = polyVertices.data();
@@ -683,7 +747,15 @@ struct _polymesh
     {
       // init temporary array of amounts of node values per vertex value.
       std::vector<short int> tmp;
-      tmp.resize(numVertices, 0);
+      try
+      {
+        tmp.resize(numVertices, 0);
+      }
+      catch (const std::bad_alloc &e)
+      {
+        clear();
+        return -3;
+      }
 
       // fill.
       uint32_t *pvi = polyVertices.data();
@@ -744,47 +816,55 @@ struct _polymesh
     }
 
     // append inMesh' arrays to this' arrays.
-    uint32_t nThis, nIn, nSum;
-    nThis = vertPositions  .size(); nIn = inMesh.vertPositions  .size();  nSum = nThis + nIn; vertPositions  .resize(nSum); memcpy(vertPositions  .data() + nThis, inMesh.vertPositions  .data(), nIn * sizeof(float)   );
-    nThis = vertNormals    .size(); nIn = inMesh.vertNormals    .size();  nSum = nThis + nIn; vertNormals    .resize(nSum); memcpy(vertNormals    .data() + nThis, inMesh.vertNormals    .data(), nIn * sizeof(float)   );
-    nThis = polyNumVertices.size(); nIn = inMesh.polyNumVertices.size();  nSum = nThis + nIn; polyNumVertices.resize(nSum); memcpy(polyNumVertices.data() + nThis, inMesh.polyNumVertices.data(), nIn * sizeof(uint32_t));
-    nThis = polyVertices   .size(); nIn = inMesh.polyVertices   .size();  nSum = nThis + nIn; polyVertices   .resize(nSum); memcpy(polyVertices   .data() + nThis, inMesh.polyVertices   .data(), nIn * sizeof(uint32_t));
-    nThis = polyNodeNormals.size(); nIn = inMesh.polyNodeNormals.size();  nSum = nThis + nIn; polyNodeNormals.resize(nSum); memcpy(polyNodeNormals.data() + nThis, inMesh.polyNodeNormals.data(), nIn * sizeof(float)   );
-    if (hasUVWs() || inMesh.hasUVWs())
+    try
     {
-      if (inMesh.hasUVWs())
+      uint32_t nThis, nIn, nSum;
+      nThis = vertPositions  .size(); nIn = inMesh.vertPositions  .size();  nSum = nThis + nIn; vertPositions  .resize(nSum); memcpy(vertPositions  .data() + nThis, inMesh.vertPositions  .data(), nIn * sizeof(float)   );
+      nThis = vertNormals    .size(); nIn = inMesh.vertNormals    .size();  nSum = nThis + nIn; vertNormals    .resize(nSum); memcpy(vertNormals    .data() + nThis, inMesh.vertNormals    .data(), nIn * sizeof(float)   );
+      nThis = polyNumVertices.size(); nIn = inMesh.polyNumVertices.size();  nSum = nThis + nIn; polyNumVertices.resize(nSum); memcpy(polyNumVertices.data() + nThis, inMesh.polyNumVertices.data(), nIn * sizeof(uint32_t));
+      nThis = polyVertices   .size(); nIn = inMesh.polyVertices   .size();  nSum = nThis + nIn; polyVertices   .resize(nSum); memcpy(polyVertices   .data() + nThis, inMesh.polyVertices   .data(), nIn * sizeof(uint32_t));
+      nThis = polyNodeNormals.size(); nIn = inMesh.polyNodeNormals.size();  nSum = nThis + nIn; polyNodeNormals.resize(nSum); memcpy(polyNodeNormals.data() + nThis, inMesh.polyNodeNormals.data(), nIn * sizeof(float)   );
+      if (hasUVWs() || inMesh.hasUVWs())
       {
-        if (!hasUVWs())
+        if (inMesh.hasUVWs())
         {
-          vertUVWs    .resize(3 * numVertices, 0.0f);
-          polyNodeUVWs.resize(3 * numSamples,  0.0f);
+          if (!hasUVWs())
+          {
+            vertUVWs    .resize(3 * numVertices, 0.0f);
+            polyNodeUVWs.resize(3 * numSamples,  0.0f);
+          }
+          nThis = vertUVWs    .size(); nIn = inMesh.vertUVWs    .size();  nSum = nThis + nIn; vertUVWs    .resize(nSum); memcpy(vertUVWs    .data() + nThis, inMesh.vertUVWs    .data(), nIn * sizeof(float)   );
+          nThis = polyNodeUVWs.size(); nIn = inMesh.polyNodeUVWs.size();  nSum = nThis + nIn; polyNodeUVWs.resize(nSum); memcpy(polyNodeUVWs.data() + nThis, inMesh.polyNodeUVWs.data(), nIn * sizeof(float)   );
         }
-        nThis = vertUVWs    .size(); nIn = inMesh.vertUVWs    .size();  nSum = nThis + nIn; vertUVWs    .resize(nSum); memcpy(vertUVWs    .data() + nThis, inMesh.vertUVWs    .data(), nIn * sizeof(float)   );
-        nThis = polyNodeUVWs.size(); nIn = inMesh.polyNodeUVWs.size();  nSum = nThis + nIn; polyNodeUVWs.resize(nSum); memcpy(polyNodeUVWs.data() + nThis, inMesh.polyNodeUVWs.data(), nIn * sizeof(float)   );
+        else
+        {
+          nThis = vertUVWs    .size(); nIn = 3 * inMesh.numVertices;  nSum = nThis + nIn; vertUVWs    .resize(nSum, 0.0f);
+          nThis = polyNodeUVWs.size(); nIn = 3 * inMesh.numSamples;   nSum = nThis + nIn; polyNodeUVWs.resize(nSum, 0.0f); 
+        }
       }
-      else
+      if (hasColors() || inMesh.hasColors())
       {
-        nThis = vertUVWs    .size(); nIn = 3 * inMesh.numVertices;  nSum = nThis + nIn; vertUVWs    .resize(nSum, 0.0f);
-        nThis = polyNodeUVWs.size(); nIn = 3 * inMesh.numSamples;   nSum = nThis + nIn; polyNodeUVWs.resize(nSum, 0.0f); 
+        if (inMesh.hasColors())
+        {
+          if (!hasColors())
+          {
+            vertColors    .resize(4 * numVertices, 0.0f);
+            polyNodeColors.resize(4 * numSamples,  0.0f);
+          }
+          nThis = vertColors    .size(); nIn = inMesh.vertColors    .size();  nSum = nThis + nIn; vertColors    .resize(nSum); memcpy(vertColors    .data() + nThis, inMesh.vertColors    .data(), nIn * sizeof(float)   );
+          nThis = polyNodeColors.size(); nIn = inMesh.polyNodeColors.size();  nSum = nThis + nIn; polyNodeColors.resize(nSum); memcpy(polyNodeColors.data() + nThis, inMesh.polyNodeColors.data(), nIn * sizeof(float)   );
+        }
+        else
+        {
+          nThis = vertColors    .size(); nIn = 4 * inMesh.numVertices;  nSum = nThis + nIn; vertColors    .resize(nSum, 0.0f);
+          nThis = polyNodeColors.size(); nIn = 4 * inMesh.numSamples;   nSum = nThis + nIn; polyNodeColors.resize(nSum, 0.0f); 
+        }
       }
     }
-    if (hasColors() || inMesh.hasColors())
+    catch (const std::bad_alloc &e)
     {
-      if (inMesh.hasColors())
-      {
-        if (!hasColors())
-        {
-          vertColors    .resize(4 * numVertices, 0.0f);
-          polyNodeColors.resize(4 * numSamples,  0.0f);
-        }
-        nThis = vertColors    .size(); nIn = inMesh.vertColors    .size();  nSum = nThis + nIn; vertColors    .resize(nSum); memcpy(vertColors    .data() + nThis, inMesh.vertColors    .data(), nIn * sizeof(float)   );
-        nThis = polyNodeColors.size(); nIn = inMesh.polyNodeColors.size();  nSum = nThis + nIn; polyNodeColors.resize(nSum); memcpy(polyNodeColors.data() + nThis, inMesh.polyNodeColors.data(), nIn * sizeof(float)   );
-      }
-      else
-      {
-        nThis = vertColors    .size(); nIn = 4 * inMesh.numVertices;  nSum = nThis + nIn; vertColors    .resize(nSum, 0.0f);
-        nThis = polyNodeColors.size(); nIn = 4 * inMesh.numSamples;   nSum = nThis + nIn; polyNodeColors.resize(nSum, 0.0f); 
-      }
+      clear();
+      return -3;
     }
 
     // fix vertex indices.

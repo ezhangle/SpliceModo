@@ -55,6 +55,9 @@
 
 #define VALUE_TYPE_NAME     "+"VALUE_SERVER_NAME
 
+// [FE-UVs]
+#define VMAPNAME_UV   "CanvasUVs"
+
 /*
  *  This is our value data. When our value type is evaluated, the object returned
  *  will point to this class, allowing us to call functions on it to get and set
@@ -237,7 +240,6 @@ LxResult Value::val_Copy (ILxUnknownID other)
     if (data)
     {
       _data->SetString (data->GetString ());
-  feLog("Value::val_Copy(): copied \"" + data->GetString() + "\"");
       
       return LXe_OK;
     }
@@ -690,7 +692,7 @@ class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
         SurfDef     *Definition     ();
     
     private:
-        int          _offsets[4];
+        int          _offsets[6];   // [FE-UVs]
     
         SurfDef          _surf_def;
 };
@@ -703,7 +705,14 @@ unsigned int SurfElement::tsrf_FeatureCount (LXtID4 type)
      *  the standard set of 4 required features.
      */
     
-    return (type == LXiTBLX_BASEFEATURE ? 4 : 0);
+    // [FE-UVs]
+    unsigned int count = 0;
+
+    if      (type == LXiTBLX_BASEFEATURE)   count = 4;
+    else if (type == LXi_VMAP_TEXTUREUV)    count = 1;
+    else if (type == LXiTBLX_DPDU)          count = 1;
+
+    return count;
 }
 
 LxResult SurfElement::tsrf_FeatureByIndex (LXtID4 type, unsigned int index, const char **name)
@@ -714,32 +723,39 @@ LxResult SurfElement::tsrf_FeatureByIndex (LXtID4 type, unsigned int index, cons
      *  but we must provide these.
      */
 
-    if (type != LXiTBLX_BASEFEATURE)
-        return LXe_NOTFOUND;
+    // [FE-UVs]
 
-    switch (index)
+    if (type == LXiTBLX_BASEFEATURE)
     {
-        case 0:
-            name[0] = LXsTBLX_FEATURE_POS;
-            break;
-
-        case 1:
-            name[0] = LXsTBLX_FEATURE_OBJPOS;
-            break;
-        
-        case 2:
-            name[0] = LXsTBLX_FEATURE_NORMAL;
-            break;
-
-        case 3:
-            name[0] = LXsTBLX_FEATURE_VEL;
-            break;
-            
-        default:
-            return LXe_OUTOFBOUNDS;
+      switch (index)
+      {
+        case 0:   name[0] = LXsTBLX_FEATURE_POS;      return LXe_OK;
+        case 1:   name[0] = LXsTBLX_FEATURE_OBJPOS;   return LXe_OK;
+        case 2:   name[0] = LXsTBLX_FEATURE_NORMAL;   return LXe_OK;
+        case 3:   name[0] = LXsTBLX_FEATURE_VEL;      return LXe_OK;
+        default:                                      return LXe_OUTOFBOUNDS;
+      }
     }
-    
-    return LXe_OK;
+
+    if (type == LXi_VMAP_TEXTUREUV)
+    {
+      switch (index)
+      {
+        case 0:   name[0] = VMAPNAME_UV;              return LXe_OK;
+        default:                                      return LXe_OUTOFBOUNDS;
+      }
+    }
+
+    if (type == LXiTBLX_DPDU)
+    {
+      switch (index)
+      {
+        case 0:   name[0] = VMAPNAME_UV;              return LXe_OK;
+        default:                                      return LXe_OUTOFBOUNDS;
+      }
+    }
+
+    return LXe_NOTFOUND;
 }
 
 LxResult SurfElement::tsrf_Bound (LXtTableauBox bbox)
@@ -794,6 +810,23 @@ LxResult SurfElement::tsrf_SetVertex (ILxUnknownID vdesc_obj)
             _offsets[i] = -1;
     }
 
+    // [FE-UVs]
+    tsrf_FeatureByIndex(LXi_VMAP_TEXTUREUV, 0, &name);
+    if (LXx_OK(vertex.Lookup(LXi_VMAP_TEXTUREUV, name, &offset)))
+    {
+      _offsets[4] = offset;
+      tsrf_FeatureByIndex(LXiTBLX_DPDU, 0, &name);
+      if (LXx_OK(vertex.Lookup(LXiTBLX_DPDU, name, &offset)))
+        _offsets[5] = offset;
+      else
+        _offsets[5] = -1;
+    }
+    else
+    {
+      _offsets[4] = -1;
+      _offsets[5] = -1;
+    }
+
     return LXe_OK;
 }
 
@@ -814,8 +847,9 @@ LxResult SurfElement::tsrf_Sample (const LXtTableauBox bbox, float scale, ILxUnk
     LXtFVector       normal, zero;
     LxResult         result = LXe_OK;
     unsigned         index = 0;
-    float            features[4 * 3];
+    float            features[6 * 3]; // [FE-UVs]
     float            positions[4][3] = {{-1.0, 0.0, -1.0}, {1.0, 0.0, -1.0}, {1.0, 0.0, 1.0}, {-1.0, 0.0, 1.0}};
+    float            uvs[4][2] = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}};  // [FE-UVs]
     
     if (!soup.test ())
         return LXe_NOINTERFACE;
@@ -882,6 +916,15 @@ LxResult SurfElement::tsrf_Sample (const LXtTableauBox bbox, float scale, ILxUnk
 
         LXx_VCPY  (features + _offsets[3], features + _offsets[2]);
         
+        /*  [FE-UVs]
+         *  UVs.
+         */
+        if (_offsets[4] != -1)
+        {
+          features[_offsets[4] + 0] = uvs[i][0];
+          features[_offsets[4] + 1] = uvs[i][1];
+        }
+
         /*
          *  Add the array of features to the triangle soup to define the
          *  point.
@@ -1261,7 +1304,6 @@ LxResult Instance::pins_Newborn(ILxUnknownID original, unsigned flags)
       if (p)
       {
         p->SetString("abcdefghi");
-        feLog("pins_Newborn() string set to abcdefghi");
       }
     }
   }

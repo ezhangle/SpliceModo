@@ -864,7 +864,7 @@ struct _polymesh
     catch (const std::bad_alloc &e)
     {
       clear();
-      return -3;
+      return isValid();
     }
 
     // fix vertex indices.

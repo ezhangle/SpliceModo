@@ -949,7 +949,7 @@ void DFGUICmdHandlerDCC::dfgDoReorderPorts(
 
   char n[64];
   std::string indicesStr = "[";
-  for(size_t i=0;i<indices.size();i++)
+  for(int i=0;i<indices.size();i++)
   {
     if(i > 0)
       indicesStr += ", ";

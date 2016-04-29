@@ -857,9 +857,14 @@ namespace CanvasPI
           // go.
           for (unsigned int i=0;i<ud.polymesh.numPolygons;i++)
           {
-              // we only use triangles and quads.
-              if        (*pn == 3)    soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
-              else if (*pn == 4)    soup.Quad    ((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
+              if      (*pn == 3)    soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
+              else if (*pn == 4)    soup.Quad   ((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
+              else if (*pn >= 5)
+              {
+                // [FABMODO-23] triangulate polygons with five or more vertices.
+                for (uint32_t j=2;j<*pn;j++)
+                  soup.Polygon((unsigned int)pi[0], (unsigned int)pi[j - 1], (unsigned int)pi[j]);
+              }
 
               // next.
               pi += *pn;
@@ -1037,8 +1042,7 @@ namespace CanvasPI
     /*
       This function is called to return the GL count for the surface we're
       generating. The GL count should be the number of triangles generated
-      by our surface. As our sample surface is just a plane, we can return
-      a hardcoded value of 2.
+      by our surface.
     */
     *count = 0;
     if (m_surf_def.m_userData && m_surf_def.m_userData->polymesh.isValid())
@@ -1047,8 +1051,8 @@ namespace CanvasPI
       for (unsigned int i=0;i<mesh.numPolygons;i++)
       {
         unsigned int num = mesh.polyNumVertices[i];
-        if      (num == 3)   (*count) += 1;
-        else if (num == 4)   (*count) += 2;
+        if (num >= 3)
+          *count += num -2;
       }
     }
     return LXe_OK;

@@ -799,7 +799,7 @@ namespace CanvasPI
           float *vp = ud.polymesh.vertPositions.data();
           float *vn = ud.polymesh.vertNormals  .data();
           float *vu = ud.polymesh.vertUVWs     .data();
-          for (unsigned int i=0;i<ud.polymesh.numVertices;i++,vp+=3,vn+=3,vu+=3)
+          for (int i=0;i<ud.polymesh.numVertices;i++,vp+=3,vn+=3,vu+=3)
           {
             // position.
             if (m_numOffsets > 0)
@@ -855,7 +855,7 @@ namespace CanvasPI
           uint32_t *pi = ud.polymesh.polyVertices.data();
 
           // go.
-          for (unsigned int i=0;i<ud.polymesh.numPolygons;i++)
+          for (int i=0;i<ud.polymesh.numPolygons;i++)
           {
               if      (*pn == 3)    soup.Polygon((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2]);
               else if (*pn == 4)    soup.Quad   ((unsigned int)pi[0], (unsigned int)pi[1], (unsigned int)pi[2], (unsigned int)pi[3]);
@@ -1048,7 +1048,7 @@ namespace CanvasPI
     if (m_surf_def.m_userData && m_surf_def.m_userData->polymesh.isValid())
     {
       _polymesh &mesh = m_surf_def.m_userData->polymesh;
-      for (unsigned int i=0;i<mesh.numPolygons;i++)
+      for (int i=0;i<mesh.numPolygons;i++)
       {
         unsigned int num = mesh.polyNumVertices[i];
         if (num >= 3)

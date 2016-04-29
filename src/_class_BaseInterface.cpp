@@ -1170,18 +1170,18 @@ int BaseInterface::GetArgValueMat44(FabricCore::DFGBinding &binding, char const 
   return 0;
 }
 
-int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
-                                           char const * argName,
-                                           unsigned int                            &out_numVertices,
-                                           unsigned int                            &out_numPolygons,
-                                           unsigned int                            &out_numSamples,
-                                           std::vector <float>                     *out_positions,
-                                           std::vector <uint32_t>                  *out_polygonNumVertices,
-                                           std::vector <uint32_t>                  *out_polygonVertices,
-                                           std::vector <float>                     *out_polygonNodeNormals,
-                                           std::vector <float>                     *out_polygonNodeUVWs,
-                                           std::vector <float>                     *out_polygonNodeColors,
-                                           bool                                     strict)
+int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding  &binding,
+                                          char const              *argName,
+                                          int                     &out_numVertices,
+                                          int                     &out_numPolygons,
+                                          int                     &out_numSamples,
+                                          std::vector <float>     *out_positions,
+                                          std::vector <uint32_t>  *out_polygonNumVertices,
+                                          std::vector <uint32_t>  *out_polygonVertices,
+                                          std::vector <float>     *out_polygonNodeNormals,
+                                          std::vector <float>     *out_polygonNodeUVWs,
+                                          std::vector <float>     *out_polygonNodeColors,
+                                          bool                     strict)
 {
   // init output.
   out_numVertices = 0;
@@ -1212,12 +1212,12 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
     FabricCore::RTVal rtMesh = binding.getArgValue(argName);
 
     // get amount of points, polys, etc.
-    out_numVertices = rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
-    out_numPolygons = rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
-    out_numSamples  = rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
-    if (   out_numVertices == UINT_MAX
-        || out_numPolygons == UINT_MAX
-        || out_numSamples  == UINT_MAX)
+    out_numVertices = (int)rtMesh.callMethod("UInt64", "pointCount",         0, 0).getUInt64();
+    out_numPolygons = (int)rtMesh.callMethod("UInt64", "polygonCount",       0, 0).getUInt64();
+    out_numSamples  = (int)rtMesh.callMethod("UInt64", "polygonPointsCount", 0, 0).getUInt64();
+    if (   out_numVertices < 0
+        || out_numPolygons < 0
+        || out_numSamples  < 0)
     {
       out_numVertices = 0;
       out_numPolygons = 0;
@@ -1235,8 +1235,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
         std::vector <float> &data = *out_positions;
 
         // resize output array(s).
-            data.   resize(3 * out_numVertices);
-        if (data.size() != 3 * out_numVertices)
+            data.        resize(3 * out_numVertices);
+        if ((int)data.size() != 3 * out_numVertices)
         { errID = -3;
           break;  }
 
@@ -1259,12 +1259,12 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
         std::vector <uint32_t> &dataIdx = (out_polygonVertices    ? *out_polygonVertices    : tmpIdx);
 
         // resize output array(s).
-            dataNum.   resize(out_numPolygons);
-        if (dataNum.size() != out_numPolygons)
+            dataNum.        resize(out_numPolygons);
+        if ((int)dataNum.size() != out_numPolygons)
         { errID = -3;
           break;  }
-            dataIdx.   resize(out_numSamples);
-        if (dataIdx.size() != out_numSamples)
+            dataIdx.        resize(out_numSamples);
+        if ((int)dataIdx.size() != out_numSamples)
         { errID = -3;
           break;  }
 
@@ -1283,8 +1283,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
         std::vector <float> &data = *out_polygonNodeNormals;
 
         // resize output array(s).
-            data.   resize(3 * out_numSamples);
-        if (data.size() != 3 * out_numSamples)
+            data.        resize(3 * out_numSamples);
+        if ((int)data.size() != 3 * out_numSamples)
         { errID = -3;
           break;  }
 
@@ -1304,8 +1304,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
           std::vector <float> &data = *out_polygonNodeUVWs;
 
           // resize output array(s).
-              data.   resize(3 * out_numSamples);
-          if (data.size() != 3 * out_numSamples)
+              data.        resize(3 * out_numSamples);
+          if ((int)data.size() != 3 * out_numSamples)
           { errID = -3;
             break;  }
 
@@ -1327,8 +1327,8 @@ int BaseInterface::GetArgValuePolygonMesh(FabricCore::DFGBinding &binding,
           std::vector <float> &data = *out_polygonNodeColors;
 
           // resize output array(s).
-              data.   resize(4 * out_numSamples);
-          if (data.size() != 4 * out_numSamples)
+              data.        resize(4 * out_numSamples);
+          if ((int)data.size() != 4 * out_numSamples)
           { errID = -3;
             break;  }
 

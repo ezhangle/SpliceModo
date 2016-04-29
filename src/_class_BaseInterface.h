@@ -134,17 +134,17 @@ class BaseInterface
   //          strict      true: the type must match perfectly, false: the type must 'kind of' match and will be converted if necessary (and if possible).
   // returns: 0 on success, -1 wrong port type, -2 invalid port, -3 memory error, -4 Fabric exception.
   static int GetArgValuePolygonMesh(FabricCore::DFGBinding    &binding,
-                                     char const               *argName,
-                                     unsigned int             &out_numVertices,                       // amount of vertices.
-                                     unsigned int             &out_numPolygons,                       // amount of polygons.
-                                     unsigned int             &out_numSamples,                        // amount of samples.
-                                     std::vector <float>      *out_positions              = NULL,     // vertex positions (as a flat array).
-                                     std::vector <uint32_t>   *out_polygonNumVertices     = NULL,     // polygon vertex counts.
-                                     std::vector <uint32_t>   *out_polygonVertices        = NULL,     // polygon vertex indices.
-                                     std::vector <float>      *out_polygonNodeNormals     = NULL,     // polygon node normals.
-                                     std::vector <float>      *out_polygonNodeUVWs        = NULL,     // polygon node UVWs.
-                                     std::vector <float>      *out_polygonNodeColors      = NULL,     // polygon node colors.
-                                     bool                      strict                     = false);
+                                    char const                *argName,
+                                    int                       &out_numVertices,                       // amount of vertices.
+                                    int                       &out_numPolygons,                       // amount of polygons.
+                                    int                       &out_numSamples,                        // amount of samples.
+                                    std::vector <float>       *out_positions              = NULL,     // vertex positions (as a flat array).
+                                    std::vector <uint32_t>    *out_polygonNumVertices     = NULL,     // polygon vertex counts.
+                                    std::vector <uint32_t>    *out_polygonVertices        = NULL,     // polygon vertex indices.
+                                    std::vector <float>       *out_polygonNodeNormals     = NULL,     // polygon node normals.
+                                    std::vector <float>       *out_polygonNodeUVWs        = NULL,     // polygon node UVWs.
+                                    std::vector <float>       *out_polygonNodeColors      = NULL,     // polygon node colors.
+                                    bool                       strict                     = false);
 
   // sets the value of an argument (= a port).
   static void SetValueOfArgBoolean      (FabricCore::Client &client, FabricCore::DFGBinding &binding, char const *argName, const bool                  val);
@@ -186,9 +186,9 @@ struct _polymesh
         polyNodeColors;
   */
 
-  unsigned int            numVertices;
-  unsigned int            numPolygons;
-  unsigned int            numSamples;
+  int                     numVertices;
+  int                     numPolygons;
+  int                     numSamples;
   std::vector <float>     vertPositions;
   std::vector <float>     vertNormals;
   std::vector <float>     vertUVWs;
@@ -259,11 +259,11 @@ struct _polymesh
     return (   numVertices >= 0
             && numPolygons >= 0
             && numSamples  >= 0
-            && vertPositions  .size() == 3 * numVertices
-            && vertNormals    .size() == 3 * numVertices
-            && polyNumVertices.size() ==     numPolygons
-            && polyVertices   .size() ==     numSamples
-            && polyNodeNormals.size() == 3 * numSamples
+            && (int)vertPositions  .size() == 3 * numVertices
+            && (int)vertNormals    .size() == 3 * numVertices
+            && (int)polyNumVertices.size() ==     numPolygons
+            && (int)polyVertices   .size() ==     numSamples
+            && (int)polyNodeNormals.size() == 3 * numSamples
            );
   }
 
@@ -276,13 +276,13 @@ struct _polymesh
   // returns true if this mesh has UVWs.
   bool hasUVWs(void) const
   {
-    return (vertUVWs.size() == 3 * numVertices && polyNodeUVWs.size() == 3 * numSamples);
+    return ((int)vertUVWs.size() == 3 * numVertices && (int)polyNodeUVWs.size() == 3 * numSamples);
   }
 
   // returns true if this mesh has Colors.
   bool hasColors(void) const
   {
-    return (vertColors.size() == 4 * numVertices && polyNodeColors.size() == 4 * numSamples);
+    return ((int)vertColors.size() == 4 * numVertices && (int)polyNodeColors.size() == 4 * numSamples);
   }
 
   // calculate bounding box (i.e. set member bbox).
@@ -299,7 +299,7 @@ struct _polymesh
       bbox[3] = pv[0];
       bbox[4] = pv[1];
       bbox[5] = pv[2];
-      for (unsigned int i=0;i<numVertices;i++,pv+=3)
+      for (int i=0;i<numVertices;i++,pv+=3)
       {
         bbox[0] = std::min(bbox[0], pv[0]);
         bbox[1] = std::min(bbox[1], pv[1]);
@@ -356,7 +356,7 @@ struct _polymesh
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnn = polyNodeNormals.data();
-      for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
+      for (int i=0;i<numSamples;i++,pvi++,pnn+=3)
       {
         float *vn = vertNormals.data() + (*pvi) * 3;
         vn[0] += pnn[0];
@@ -366,7 +366,7 @@ struct _polymesh
 
       // normalize vertex normals.
       float *vn = vertNormals.data();
-      for (unsigned int i=0;i<numVertices;i++,vn+=3)
+      for (int i=0;i<numVertices;i++,vn+=3)
       {
         float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
         if (f > 1.0e-012f)
@@ -405,7 +405,7 @@ struct _polymesh
 
         // fill.
         uint32_t *pvi = polyVertices.data();
-        for (unsigned int i=0;i<numSamples;i++,pvi++)
+        for (int i=0;i<numSamples;i++,pvi++)
           tmpVertNumPolyNeigh.data()[*pvi]++;
       }
     }
@@ -427,7 +427,7 @@ struct _polymesh
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnu = polyNodeUVWs.data();
-      for (unsigned int i=0;i<numSamples;i++,pvi++,pnu+=3)
+      for (int i=0;i<numSamples;i++,pvi++,pnu+=3)
       {
         float *vu = vertUVWs.data() + (*pvi) * 3;
         vu[0] += pnu[0];
@@ -438,7 +438,7 @@ struct _polymesh
       // normalize.
       uint32_t *tn = tmpVertNumPolyNeigh.data();
       float    *vu = vertUVWs.data();
-      for (unsigned int i=0;i<numVertices;i++,tn++,vu+=3)
+      for (int i=0;i<numVertices;i++,tn++,vu+=3)
       {
         if (*tn > 1)
         {
@@ -467,7 +467,7 @@ struct _polymesh
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnc = polyNodeColors.data();
-      for (unsigned int i=0;i<numSamples;i++,pvi++,pnc+=4)
+      for (int i=0;i<numSamples;i++,pvi++,pnc+=4)
       {
         float *vc = vertColors.data() + (*pvi) * 4;
         vc[0] += pnc[0];
@@ -479,7 +479,7 @@ struct _polymesh
       // normalize.
       uint32_t *tn = tmpVertNumPolyNeigh.data();
       float    *vc = vertColors.data();
-      for (unsigned int i=0;i<numVertices;i++,tn++,vc+=4)
+      for (int i=0;i<numVertices;i++,tn++,vc+=4)
       {
         if (*tn > 1)
         {
@@ -532,10 +532,10 @@ struct _polymesh
     numSamples  = in_polyVertices_size;
 
     // check.
-    if (    numVertices * 3 != in_vertPositions_size
-        || (numSamples  * 3 != in_nodeNormals_size && in_nodeNormals_size > 0)
-        || (numSamples  * 3 != in_nodeUVWs_size    && in_nodeUVWs_size    > 0)
-        || (numSamples  * 4 != in_nodeColors_size  && in_nodeColors_size  > 0))
+    if (    (unsigned int)numVertices * 3 != in_vertPositions_size
+        || ((unsigned int)numSamples  * 3 != in_nodeNormals_size && in_nodeNormals_size > 0)
+        || ((unsigned int)numSamples  * 3 != in_nodeUVWs_size    && in_nodeUVWs_size    > 0)
+        || ((unsigned int)numSamples  * 4 != in_nodeColors_size  && in_nodeColors_size  > 0))
     {
       clear();
       return -2;
@@ -571,7 +571,7 @@ struct _polymesh
       // vertex positions.
       double *src = (double *)in_vertPositions;
       float  *dst = vertPositions.data();
-      for (unsigned int i=0;i<numVertices;i++,src+=3,dst+=3)
+      for (int i=0;i<numVertices;i++,src+=3,dst+=3)
       {
         dst[0] = (float)src[0];
         dst[1] = (float)src[1];
@@ -599,7 +599,7 @@ struct _polymesh
         unsigned int *pn  = polyNumVertices.data();
         unsigned int *pi  = polyVertices   .data();
         float        *pnn = polyNodeNormals.data();
-        for (unsigned int i=0;i<numPolygons;i++,pn++)
+        for (int i=0;i<numPolygons;i++,pn++)
         {
           if (*pn <= 2)
           {
@@ -671,7 +671,7 @@ struct _polymesh
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnn = polyNodeNormals.data();
-      for (unsigned int i=0;i<numSamples;i++,pvi++,pnn+=3)
+      for (int i=0;i<numSamples;i++,pvi++,pnn+=3)
       {
         float *vn = vertNormals.data() + (*pvi) * 3;
         vn[0] += pnn[0];
@@ -681,7 +681,7 @@ struct _polymesh
 
       // normalize vertex normals.
       float *vn = vertNormals.data();
-      for (unsigned int i=0;i<numVertices;i++,vn+=3)
+      for (int i=0;i<numVertices;i++,vn+=3)
       {
         float f = vn[0] * vn[0] + vn[1] * vn[1] + vn[2] * vn[2];
         if (f > 1.0e-012f)
@@ -718,7 +718,7 @@ struct _polymesh
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnu = polyNodeUVWs.data();
-      for (unsigned int i=0;i<numSamples;i++,pvi++,pnu+=3)
+      for (int i=0;i<numSamples;i++,pvi++,pnu+=3)
       {
         float *vu = vertUVWs.data() + (*pvi) * 3;
         vu[0] += pnu[0];
@@ -730,7 +730,7 @@ struct _polymesh
       // average the vertex values.
       float     *vu = vertUVWs.data();
       short int *vt = tmp.data();
-      for (unsigned int i=0;i<numVertices;i++,vu+=3,vt++)
+      for (int i=0;i<numVertices;i++,vu+=3,vt++)
       {
         if (*vt > 0)
         {
@@ -760,7 +760,7 @@ struct _polymesh
       // fill.
       uint32_t *pvi = polyVertices.data();
       float    *pnc = polyNodeColors.data();
-      for (unsigned int i=0;i<numSamples;i++,pvi++,pnc+=4)
+      for (int i=0;i<numSamples;i++,pvi++,pnc+=4)
       {
         float *vc = vertColors.data() + (*pvi) * 4;
         vc[0] += pnc[0];
@@ -773,7 +773,7 @@ struct _polymesh
       // average the vertex values.
       float     *vc = vertColors.data();
       short int *vt = tmp.data();
-      for (unsigned int i=0;i<numVertices;i++,vc+=4,vt++)
+      for (int i=0;i<numVertices;i++,vc+=4,vt++)
       {
         if (*vt > 0)
         {
@@ -857,7 +857,7 @@ struct _polymesh
         else
         {
           nThis = vertColors    .size(); nIn = 4 * inMesh.numVertices;  nSum = nThis + nIn; vertColors    .resize(nSum, 0.0f);
-          nThis = polyNodeColors.size(); nIn = 4 * inMesh.numSamples;   nSum = nThis + nIn; polyNodeColors.resize(nSum, 0.0f); 
+          nThis = polyNodeColors.size(); nIn = 4 * inMesh.numSamples;   nSum = nThis + nIn; polyNodeColors.resize(nSum, 0.0f);
         }
       }
     }
@@ -869,7 +869,7 @@ struct _polymesh
 
     // fix vertex indices.
     uint32_t *pi = polyVertices.data() + numSamples;
-    for (unsigned int i=0;i<inMesh.numSamples;i++,pi++)
+    for (int i=0;i<inMesh.numSamples;i++,pi++)
       *pi += numVertices;
 
     // fix amounts.

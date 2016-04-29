@@ -116,7 +116,6 @@ elif FABRIC_BUILD_OS == 'Linux':
 elif FABRIC_BUILD_OS == 'Darwin':
   env.Append(CCFLAGS = ['-Wno-#warnings'])
   env.Append(CCFLAGS = ['-Wno-missing-braces'])
-  env.Append(CCFLAGS = ['-Wno-tautological-compare'])
   env.Append(CCFLAGS = ['-Wno-unused-private-field'])
   env.Append(CCFLAGS = ['-Wno-dangling-else'])
   env.Append(CCFLAGS = ['-Wno-deprecated-writable-strings'])

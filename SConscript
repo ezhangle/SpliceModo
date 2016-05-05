@@ -186,6 +186,7 @@ modoFiles = []
 modoFiles.append(installedModule)
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('index.cfg'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('startup_script.py'))
+modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('setup_script.py'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_FabricCanvasExportGraph.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_FabricCanvasImportGraph.pl'))
 modoFiles += env.Install(STAGE_DIR, env.Dir('src').File('btn_FabricCanvasOpenCanvas.pl'))

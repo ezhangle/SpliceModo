@@ -60,7 +60,7 @@ BaseInterface::BaseInterface()
       char fabric_exts_path[512];
       char *ptr_fabric_dfg_path  = fabric_dfg_path;
       char *ptr_fabric_exts_path = fabric_exts_path;
-      if (!ModoTools::checkFabricEnvVariables(ptr_fabric_dfg_path, ptr_fabric_exts_path, true))
+      if (!ModoTools::checkFabricEnvVariables(NULL, ptr_fabric_dfg_path, ptr_fabric_exts_path, true))
       {
         if (*ptr_fabric_dfg_path != '\0')
         { options.canvasPresetDirCStrs = &ptr_fabric_dfg_path;

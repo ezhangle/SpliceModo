@@ -24,6 +24,8 @@ void (*BaseInterface::s_logErrorFunc)(void *, const char *, unsigned int) = NULL
 std::map <unsigned int, BaseInterface*>   BaseInterface::s_instances;
 bool                                      BaseInterface::s_persistClient = true;
 
+char s_fabric_dir[512] = "";
+
 BaseInterface::BaseInterface()
 {
   //
@@ -37,6 +39,17 @@ BaseInterface::BaseInterface()
   {
     try
     {
+      // check the FABRIC_DIR environment
+      // variable and set it if necessary.
+      char *envVar_fabric_dir = getenv("FABRIC_DIR");
+      if (!envVar_fabric_dir || *envVar_fabric_dir == '\0')
+      {
+        char fabric_dir[512];
+        ModoTools::checkFabricEnvVariables(fabric_dir, NULL, NULL, false);
+        sprintf(s_fabric_dir, "FABRIC_DIR=%s", fabric_dir);
+        putenv(s_fabric_dir);
+      }
+
       // setup options for creation of client
       FabricCore::Client::CreateOptions options;
       memset(&options, 0, sizeof(options));

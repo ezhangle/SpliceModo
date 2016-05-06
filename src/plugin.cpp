@@ -92,15 +92,6 @@ void initialize()
   }
 
   // Modo.
-  // [FABMODO-1] if the FABRIC_DIR environment variable is empty
-  //             or not set then we do not register the Fabric
-  //             plugins and commands, so that 1.) the user knows
-  //             something is not correct and 2.) we don't get a
-  //             crash when exiting Modo.
-  // Note: we don't log anything because Modo crashes when
-  //       logging something before it is fully loaded.
-  char *envVar_fabric_dir = getenv("FABRIC_DIR");
-  if (envVar_fabric_dir && *envVar_fabric_dir != '\0')
   {
     FabricCanvasExportGraph :: Command:: initialize();
     FabricCanvasGetResult   :: Command:: initialize();

@@ -6,7 +6,7 @@ import os
 fabricDir = os.getenv('FABRIC_DIR', "")
 if fabricDir == "":
 	lx.eval("dialog.setup fileOpen")
-	lx.eval("dialog.title {Fabric Engine}")
+	lx.eval("dialog.title {Fabric Engine - please select setup_script.py}")
 	lx.eval("dialog.fileTypeCustom setup_script {setup_script} {*.py} {py}")
 	lx.eval("dialog.result {setup_script.py}")
 	try:

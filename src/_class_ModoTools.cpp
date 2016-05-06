@@ -17,24 +17,26 @@ LXtTextValueHint hint_FabricOpacity[] =
   -1,         NULL
 };
 
-bool ModoTools::checkFabricEnvVariables(char *out_dfg_path, char *out_exts_path, bool showMsgbox)
+bool ModoTools::checkFabricEnvVariables(char *out_fabric_dir, char *out_dfg_path, char *out_exts_path, bool showMsgbox)
 {
   // init outputs.
-  if (out_dfg_path)   *out_dfg_path  = '\0';
-  if (out_exts_path)  *out_exts_path = '\0';
+  if (out_fabric_dir) *out_fabric_dir = '\0';
+  if (out_dfg_path)   *out_dfg_path   = '\0';
+  if (out_exts_path)  *out_exts_path  = '\0';
 
   // get the current values of the FABRIC environment variables.
-  char *envVar_dfg_path  = getenv("FABRIC_DFG_PATH");
-  char *envVar_exts_path = getenv("FABRIC_EXTS_PATH");
+  char *envVar_fabric_dir = getenv("FABRIC_DIR");
+  char *envVar_dfg_path   = getenv("FABRIC_DFG_PATH");
+  char *envVar_exts_path  = getenv("FABRIC_EXTS_PATH");
 
   // all environment variables set?
-  if (   envVar_dfg_path  && *envVar_dfg_path  != '\0'
-      && envVar_exts_path && *envVar_exts_path != '\0')
+  if (   envVar_fabric_dir && *envVar_fabric_dir != '\0'
+      && envVar_dfg_path   && *envVar_dfg_path   != '\0'
+      && envVar_exts_path  && *envVar_exts_path  != '\0')
     return true;
 
-  // try to find the Fabric directory.
+  // get the Fabric directory.
   char fabric_dir[512] = "";
-  char *envVar_fabric_dir = getenv("FABRIC_DIR");
   if (envVar_fabric_dir && *envVar_fabric_dir != '\0')
   {
     // the FABRIC_DIR environment variable is set so we use that.
@@ -72,6 +74,14 @@ bool ModoTools::checkFabricEnvVariables(char *out_dfg_path, char *out_exts_path,
       }
     }
   }
+
+  // set the output fabric dir.
+  if (!envVar_fabric_dir || *envVar_fabric_dir == '\0')
+    if (out_fabric_dir)
+    {
+      sprintf(out_fabric_dir, "%s", fabric_dir);
+      feLog(std::string("the environment variable FABRIC_DIR is not set, using \"") + std::string(out_fabric_dir) + std::string("\" instead."));
+    }
 
   // set the output dfg path.
   if (!envVar_dfg_path || *envVar_dfg_path == '\0')

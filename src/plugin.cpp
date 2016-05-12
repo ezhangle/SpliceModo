@@ -120,6 +120,7 @@ void initialize()
     FabricView                        :: initialize();
     //
     FabricCanvasAddBackDrop           :: initialize();
+    FabricCanvasAddBlock              :: initialize();
     FabricCanvasAddFunc               :: initialize();
     FabricCanvasAddGet                :: initialize();
     FabricCanvasAddGraph              :: initialize();

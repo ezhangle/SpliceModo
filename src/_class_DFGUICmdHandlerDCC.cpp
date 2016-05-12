@@ -520,6 +520,27 @@ QString DFGUICmdHandlerDCC::dfgDoAddPort(
   return result;
 }
 
+QString DFGUICmdHandlerDCC::dfgDoAddBlock(
+  FabricCore::DFGBinding const &binding,
+  QString execPath,
+  FabricCore::DFGExec const &exec,
+  QString desiredName,
+  QPointF pos
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_AddPort::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(desiredName));
+  EncodePosition(pos, args);
+
+  QString result;
+  execCmd(cmdName, args, result);
+  return result;
+}
+
 QString DFGUICmdHandlerDCC::dfgDoCreatePreset(
   FabricCore::DFGBinding const &binding,
   QString execPath,
@@ -1007,6 +1028,7 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddVar::             CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddVar             (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddGet::             CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddGet             (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddSet::             CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddSet             (in_args);
+  else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBlock::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddBlock           (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddPort::            CmdName().c_str())    cmd = createAndExecuteDFGCommand_AddPort            (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditPort::           CmdName().c_str())    cmd = createAndExecuteDFGCommand_EditPort           (in_args);
   else if (in_cmdName == FabricUI::DFG::DFGUICmd_RemovePort::         CmdName().c_str())    cmd = createAndExecuteDFGCommand_RemovePort         (in_args);
@@ -1066,6 +1088,10 @@ FabricUI::DFG::DFGUICmd *DFGUICmdHandlerDCC::createAndExecuteDFGCommand(std::str
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddPort::            CmdName().c_str())    {
                                                                                                 FabricUI::DFG::DFGUICmd_AddPort &c = *(FabricUI::DFG::DFGUICmd_AddPort *)cmd;
                                                                                                 s_lastReturnValue = c.getActualPortName();
+                                                                                              }
+    else if (in_cmdName == FabricUI::DFG::DFGUICmd_AddBlock::            CmdName().c_str())   {
+                                                                                                FabricUI::DFG::DFGUICmd_AddBlock &c = *(FabricUI::DFG::DFGUICmd_AddBlock *)cmd;
+                                                                                                s_lastReturnValue = c.getActualName();
                                                                                               }
     else if (in_cmdName == FabricUI::DFG::DFGUICmd_EditPort::           CmdName().c_str())    {
                                                                                                 FabricUI::DFG::DFGUICmd_EditPort &c = *(FabricUI::DFG::DFGUICmd_EditPort *)cmd;
@@ -1551,6 +1577,45 @@ FabricUI::DFG::DFGUICmd_AddPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_
                                               portToConnectWith,
                                               extDep,
                                               metaData);
+    try
+    {
+      cmd->doit();
+    }
+    catch(FabricCore::Exception e)
+    {
+      feLogError(e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");
+    }
+  }
+
+  return cmd;
+}
+
+FabricUI::DFG::DFGUICmd_AddBlock *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_AddBlock(std::vector<std::string> &args)
+{
+  FabricUI::DFG::DFGUICmd_AddBlock *cmd = NULL;
+  if (args.size() == 8)
+  {
+    unsigned int ai = 0;
+
+    FabricCore::DFGBinding binding;
+    QString execPath;
+    FabricCore::DFGExec exec;
+    if (!DecodeExec(args, ai, binding, execPath, exec))
+      return cmd;
+
+    QString desiredName;
+    if (!DecodeString(args, ai, desiredName))
+      return cmd;
+
+    QPointF position;
+    if (!DecodePosition(args, ai, position))
+      return cmd;
+
+    cmd = new FabricUI::DFG::DFGUICmd_AddBlock(binding,
+                                              execPath,
+                                              exec,
+                                              desiredName,
+                                              position);
     try
     {
       cmd->doit();
@@ -2613,6 +2678,23 @@ __CanvasCmd_constructor_begin__
     addArgStr("portToConnect");
     addArgStr("extDep");
     addArgStr("uiMetadata");
+  }
+__CanvasCmd_constructor_finish__
+__CanvasCmd_execute__
+#undef  __CanvasCmdNumArgs__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
+
+#define __CanvasCmdNumArgs__     5
+#define __CanvasCmdClass__  FabricCanvasAddBlock
+#define __CanvasCmdName__  "FabricCanvasAddBlock"
+__CanvasCmd_constructor_begin__
+  {
+    addArgStr("binding");
+    addArgStr("execPath");
+    addArgStr("desiredName");
+    addArgStr("xPos");
+    addArgStr("yPos");
   }
 __CanvasCmd_constructor_finish__
 __CanvasCmd_execute__

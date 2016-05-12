@@ -281,6 +281,14 @@ protected:
     FabricCore::DFGBinding const &binding,
     QList<int> diagIndices
     );
+  
+  virtual QString dfgDoAddBlock(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec,
+    QString desiredName,
+    QPointF pos
+    );
 
 protected:
     
@@ -303,6 +311,7 @@ public:
   static FabricUI::DFG::DFGUICmd_AddGet               *createAndExecuteDFGCommand_AddGet              (std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddSet               *createAndExecuteDFGCommand_AddSet              (std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_AddPort              *createAndExecuteDFGCommand_AddPort             (std::vector<std::string> &args);
+  static FabricUI::DFG::DFGUICmd_AddBlock             *createAndExecuteDFGCommand_AddBlock            (std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_EditPort             *createAndExecuteDFGCommand_EditPort            (std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_RemovePort           *createAndExecuteDFGCommand_RemovePort          (std::vector<std::string> &args);
   static FabricUI::DFG::DFGUICmd_MoveNodes            *createAndExecuteDFGCommand_MoveNodes           (std::vector<std::string> &args);
@@ -445,6 +454,14 @@ public:
     }
     else if (cmdName == FabricUI::DFG::DFGUICmd_AddPort            ::CmdName().c_str())
     { typedef           FabricUI::DFG::DFGUICmd_AddPort T;
+      if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
+      else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
+      else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
+      else if (doWhat == doWhatIDs_DELETE) { delete ((T *)cmd);
+                                             cmd = NULL; }
+    }
+    else if (cmdName == FabricUI::DFG::DFGUICmd_AddBlock           ::CmdName().c_str())
+    { typedef           FabricUI::DFG::DFGUICmd_AddBlock T;
       if      (doWhat == doWhatIDs_DOIT)   ((T *)cmd)->doit();
       else if (doWhat == doWhatIDs_UNDO)   ((T *)cmd)->undo();
       else if (doWhat == doWhatIDs_REDO)   ((T *)cmd)->redo();
@@ -692,6 +709,12 @@ public:
 
 #define __CanvasCmdClass__   FabricCanvasAddPort
 #define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddPort::CmdName()
+        __CanvasCmd__
+#undef  __CanvasCmdClass__
+#undef  __CanvasCmdName__
+
+#define __CanvasCmdClass__   FabricCanvasAddBlock
+#define __CanvasCmdName__    FabricUI::DFG::DFGUICmd_AddBlock::CmdName()
         __CanvasCmd__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__

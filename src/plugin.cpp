@@ -25,10 +25,20 @@ class CItemLog : public CLxLogMessage
     const char *GetCopyright()  { return "n.a."; }
 };
 CItemLog gLog;
+void dccLogMessage(const uint32_t severity, const std::string &prefix, const std::string &message)
+{
+  if (message.length() <= 1000)
+    gLog.Message(severity, prefix.c_str(), message.c_str(), " ");
+  else
+  {
+    std::string cropped = message.substr(0, 1000) + " [long message, only first 1000 characters displayed]";
+    gLog.Message(severity, prefix.c_str(), cropped.c_str(), " ");
+  }
+}
 void feLog(void *userData, const char *s, unsigned int length)
 {
   const char *p = (s != NULL ? s : "s == NULL");
-  gLog.Message(LXe_INFO, "[FABRIC]", p, " ");
+  dccLogMessage(LXe_INFO, "[FABRIC]", p);
   FabricUI::DFG::DFGLogWidget::log(p);
 }
 void feLog(void *userData, const std::string &s)
@@ -42,7 +52,7 @@ void feLog(const std::string &s)
 void feLogError(void *userData, const char *s, unsigned int length)
 {
   const char *p = (s != NULL ? s : "s == NULL");
-  gLog.Message(LXe_FAILED, "[FABRIC ERROR]", p, " ");
+  dccLogMessage(LXe_FAILED, "[FABRIC ERROR]", p);
   std::string t = p;
   t = "Error: " + t;
   FabricUI::DFG::DFGLogWidget::log(t.c_str());

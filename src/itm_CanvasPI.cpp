@@ -178,9 +178,6 @@ namespace CanvasPI
     {
       try
       {
-        char        serr[256];
-        std::string err = "";
-
         for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
         {
           // if the port has the wrong type then skip it.
@@ -190,14 +187,15 @@ namespace CanvasPI
           // get pointer at matching channel definition.
           const char *portName = graph.getExecPortName(fi);
           bool storable = true;
-
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_userData->usrChan);
           if (!cd)
-          { err = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
-            break;  }
+          { std::string err = "(step 1/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+            feLogError(err);
+            continue;  }
           if (cd->eval_index < 0)
-          { err = "(step 1/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
-            break;  }
+          { std::string err = "(step 1/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
+            feLogError(err);
+            continue;  }
 
           // "DFG port value = item user channel".
           int retGet = 0;
@@ -283,9 +281,9 @@ namespace CanvasPI
                                                           }
           else
           {
-            storable = false;
-            err = "the port \"" + std::string(portName) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
-            break;
+            std::string err = "the port \"" + std::string(portName) + "\" has the unsupported data type \"" + port__resolvedType + "\"";
+            feLogError(err);
+            continue;
           }
 
           if( storable ) {
@@ -300,17 +298,11 @@ namespace CanvasPI
           // error getting value from user channel?
           if (retGet != 0)
           {
+            char serr[64];
             snprintf(serr, sizeof(serr), "%d", retGet);
-            err = "failed to get value from user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
-            break;
+            std::string err = "failed to get value from user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
+            continue;
           }
-        }
-
-        // error?
-        if (err != "")
-        {
-          feLogError(err);
-          return LXe_OK;
         }
       }
       catch (FabricCore::Exception e)
@@ -338,9 +330,6 @@ namespace CanvasPI
     {
       try
       {
-        char        serr[256];
-        std::string err = "";
-
         for (unsigned int fi=0;fi<graph.getExecPortCount();fi++)
         {
           // if the port has the wrong type then skip it.
@@ -353,11 +342,13 @@ namespace CanvasPI
           const char *portName = graph.getExecPortName(fi);
           ModoTools::UsrChnDef *cd = ModoTools::usrChanGetFromName(portName, m_userData->usrChan);
           if (!cd)
-          { err = "(step 3/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
-            break;  }
+          { std::string err = "(step 3/3) unable to find a user channel that matches the port \"" + std::string(portName) + "\"";
+            feLogError(err);
+            continue;  }
           if (cd->eval_index < 0)
-          { err = "(step 3/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
-            break;  }
+          { std::string err = "(step 3/3) user channel evaluation index of port \"" + std::string(portName) + "\" is -1";
+            feLogError(err);
+            continue;  }
 
           // "item user channel = DFG port value".
           int dataType = attr.Type(cd->eval_index);
@@ -399,8 +390,9 @@ namespace CanvasPI
                 CLxUser_Quaternion usrQuaternion;
                 LXtQuaternion      q;
                 if (!attr.ObjectRW(cd->eval_index, usrQuaternion) || !usrQuaternion.test())
-                { err = "the function ObjectRW() failed for the user channel  \"" + std::string(portName) + "\"";
-                  break;  }
+                { std::string err = "the function ObjectRW() failed for the user channel  \"" + std::string(portName) + "\"";
+                  feLogError(err);
+                  continue;  }
                 for (int i = 0; i < 4; i++)   q[i] = val[i];
                 usrQuaternion.SetQuaternion(q);
               }
@@ -415,8 +407,9 @@ namespace CanvasPI
                 LXtMatrix4     m44;
 
                 if (!attr.ObjectRW(cd->eval_index, usrMatrix) || !usrMatrix.test())
-                { err = "the function ObjectRW() failed for the user channel  \"" + std::string(portName) + "\"";
-                  break;  }
+                { std::string err = "the function ObjectRW() failed for the user channel  \"" + std::string(portName) + "\"";
+                  feLogError(err);
+                  continue;  }
 
                 for (int j = 0; j < 4; j++)
                   for (int i = 0; i < 4; i++)
@@ -427,11 +420,13 @@ namespace CanvasPI
             }
             else
             {
+              std::string err;
               const char *typeName = NULL;
               attr.TypeName(cd->eval_index, &typeName);
               if (typeName)   err = "the user channel  \"" + std::string(portName) + "\" has the unsupported data type \"" + typeName + "\"";
               else            err = "the user channel  \"" + std::string(portName) + "\" has the unsupported data type \"NULL\"";
-              break;
+              feLogError(err);
+              continue;
             }
           }
           else
@@ -446,8 +441,9 @@ namespace CanvasPI
               else if (cd->isRGBAr)     {   N = 4;  retGet = BaseInterface::GetArgValueRGBA(binding, portName, val);   }
               else
               {
-                err = "something is wrong with the flags in ModoTools::UsrChnDef";
-                break;
+                std::string err = "something is wrong with the flags in ModoTools::UsrChnDef";
+                feLogError(err);
+                continue;
               }
 
               if (retGet == 0 && val.size() == N)
@@ -460,25 +456,20 @@ namespace CanvasPI
           // error getting value from DFG port?
           if (retGet != 0)
           {
+            char serr[64];
             snprintf(serr, sizeof(serr), "%d", retGet);
-            err = "failed to get value from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
-            break;
+            std::string err = "failed to get value from DFG port \"" + std::string(portName) + "\" (returned " + serr + ")";
+            continue;
           }
 
           // error setting value of user channel?
           if (retSet != 0)
           {
+            char serr[64];
             snprintf(serr, sizeof(serr), "%d", retGet);
-            err = "failed to set value of user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
-            break;
+            std::string err = "failed to set value of user channel \"" + std::string(portName) + "\" (returned " + serr + ")";
+            continue;
           }
-        }
-
-        // error?
-        if (err != "")
-        {
-          feLogError(err);
-          return LXe_OK;
         }
       }
       catch (FabricCore::Exception e)

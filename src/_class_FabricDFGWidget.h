@@ -33,6 +33,7 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
  public slots:
   virtual void onUndo();
   virtual void onRedo();
+  virtual void onSelectCanvasNodeInDCC();
   virtual void onPortRenamed(QString path, QString newName);
   void onDefaultValueChanged();
 

@@ -151,6 +151,10 @@ void FabricDFGWidget::onRedo()
   ModoTools::ExecuteCommand("app.redo", err);
 }
 
+void FabricDFGWidget::onSelectCanvasNodeInDCC()
+{
+}
+
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 {
   // ... rename the dynamic attribute also in modo

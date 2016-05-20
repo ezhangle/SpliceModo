@@ -7,6 +7,7 @@ import os, sys, platform, copy
 Import(
   'parentEnv',
   'FABRIC_DIR',
+  'FABRIC_SPLICE_VERSION',
   'STAGE_DIR',
   'FABRIC_BUILD_OS',
   'FABRIC_BUILD_TYPE',
@@ -180,7 +181,7 @@ else:
 
 installedModule = env.Install(installDir, modoModule)
 
-FABRIC_CORE_VERSION = '2.2'
+FABRIC_CORE_VERSION = FABRIC_SPLICE_VERSION.rpartition('.')[0]
 
 modoFiles = []
 modoFiles.append(installedModule)

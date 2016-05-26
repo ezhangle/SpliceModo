@@ -155,6 +155,14 @@ void FabricDFGWidget::onSelectCanvasNodeInDCC()
 {
 }
 
+void FabricDFGWidget::onImportGraphInDCC()
+{
+}
+
+void FabricDFGWidget::onExportGraphInDCC()
+{
+}
+
 void FabricDFGWidget::onPortRenamed(QString path, QString newName)
 {
   // ... rename the dynamic attribute also in modo

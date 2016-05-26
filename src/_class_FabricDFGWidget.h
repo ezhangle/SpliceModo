@@ -34,6 +34,8 @@ class FabricDFGWidget : public DFG::DFGCombinedWidget
   virtual void onUndo();
   virtual void onRedo();
   virtual void onSelectCanvasNodeInDCC();
+  virtual void onImportGraphInDCC();
+  virtual void onExportGraphInDCC();
   virtual void onPortRenamed(QString path, QString newName);
   void onDefaultValueChanged();
 

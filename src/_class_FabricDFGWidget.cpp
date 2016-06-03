@@ -3,6 +3,7 @@
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QLabel>
 #include <QtGui/QDockWidget>
+#include <QtGui/QMainWindow>
 
 #include "plugin.h"
 

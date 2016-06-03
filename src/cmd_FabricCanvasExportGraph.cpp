@@ -1,3 +1,5 @@
+#include <QtGui/QMainWindow>
+
 #include "plugin.h"
 
 #include "_class_BaseInterface.h"

@@ -209,8 +209,7 @@ void FabricDFGWidget::refreshGraph(void)
     if (!getDfgWidget())    return;
 
     FabricCore::DFGBinding binding = m_baseInterface->getBinding();
-    FabricCore::DFGExec exec = binding.getExec();
-    getDfgWidget()->getUIController()->setBindingExec(binding, FTL::StrRef(), exec);
+    getDfgWidget()->replaceBinding(binding);
   }
   catch (FabricCore::Exception e)
   {

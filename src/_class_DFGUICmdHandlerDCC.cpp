@@ -520,25 +520,37 @@ QString DFGUICmdHandlerDCC::dfgDoAddPort(
   return result;
 }
 
-QString DFGUICmdHandlerDCC::dfgDoAddBlock(
-  FabricCore::DFGBinding const &binding,
-  QString execPath,
-  FabricCore::DFGExec const &exec,
-  QString desiredName,
-  QPointF pos
-  )
+QString DFGUICmdHandlerDCC::dfgDoAddInstPort(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec,
+    QString instName,
+    QString desiredPortName,
+    FabricCore::DFGPortType portType,
+    QString typeSpec,
+    QString pathToConnect,
+    FabricCore::DFGPortType connectType,
+    QString extDep,
+    QString metaData
+    )
 {
-  std::string cmdName(FabricUI::DFG::DFGUICmd_AddPort::CmdName());
-  std::vector<std::string> args;
+  // TODO
+}
 
-  args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(ToStdString(execPath));
-  args.push_back(ToStdString(desiredName));
-  EncodePosition(pos, args);
-
-  QString result;
-  execCmd(cmdName, args, result);
-  return result;
+QString DFGUICmdHandlerDCC::dfgDoAddInstBlockPort(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec,
+    QString instName,
+    QString blockName,
+    QString desiredPortName,
+    QString typeSpec,
+    QString pathToConnect,
+    QString extDep,
+    QString metaData
+    )
+{
+  // TODO
 }
 
 QString DFGUICmdHandlerDCC::dfgDoCreatePreset(
@@ -671,32 +683,6 @@ QString DFGUICmdHandlerDCC::dfgDoImplodeNodes(
   QString result;
   execCmd(cmdName, args, result);
   return result;
-}
-
-void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
-  FabricCore::DFGBinding const &binding,
-  QList<int> diagIndices
-  )
-{
-  std::string cmdName(FabricUI::DFG::DFGUICmd_DismissLoadDiags::CmdName());
-  std::vector<std::string> args;
-
-  args.push_back(getDCCObjectNameFromBinding(binding));
-
-  char n[64];
-  std::string indicesStr = "[";
-  for(int i=0;i<diagIndices.size();i++)
-  {
-    if(i > 0)
-      indicesStr += ", ";
-    sprintf(n, "%d", diagIndices[i]);
-    indicesStr += n;
-  }
-  indicesStr += "]";
-  args.push_back(indicesStr);
-
-  std::string output;
-  execDFGCmdViaDCC(cmdName, args, output);
 }
 
 QStringList DFGUICmdHandlerDCC::dfgDoExplodeNode(
@@ -877,40 +863,6 @@ void DFGUICmdHandlerDCC::dfgDoSetArgValue(
   execDFGCmdViaDCC(cmdName, args, output);
 }
 
-void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
-    FabricCore::DFGBinding const &binding,
-    QString execPath,
-    FabricCore::DFGExec const &exec,
-    QStringList extDeps
-  )
-{
-  std::string cmdName(FabricUI::DFG::DFGUICmd_SetExtDeps::CmdName());
-  std::vector<std::string> args;
-
-  args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(ToStdString(execPath));
-  args.push_back(EncodeNames(extDeps));
-
-  std::string output;
-  execDFGCmdViaDCC(cmdName, args, output);
-}
-
-void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
-    FabricCore::DFGBinding const &binding,
-    QString execPath,
-    FabricCore::DFGExec const &exec
-  )
-{
-  std::string cmdName(FabricUI::DFG::DFGUICmd_SplitFromPreset::CmdName());
-  std::vector<std::string> args;
-
-  args.push_back(getDCCObjectNameFromBinding(binding));
-  args.push_back(ToStdString(execPath));
-
-  std::string output;
-  execDFGCmdViaDCC(cmdName, args, output);
-}
-
 void DFGUICmdHandlerDCC::dfgDoSetPortDefaultValue(
   FabricCore::DFGBinding const &binding,
   QString execPath,
@@ -982,6 +934,94 @@ void DFGUICmdHandlerDCC::dfgDoReorderPorts(
 
   std::string output;
   execDFGCmdViaDCC(cmdName, args, output);
+}
+
+void DFGUICmdHandlerDCC::dfgDoSetExtDeps(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec,
+    QStringList extDeps
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_SetExtDeps::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+  args.push_back(EncodeNames(extDeps));
+
+  std::string output;
+  execDFGCmdViaDCC(cmdName, args, output);
+}
+
+void DFGUICmdHandlerDCC::dfgDoSplitFromPreset(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_SplitFromPreset::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+
+  std::string output;
+  execDFGCmdViaDCC(cmdName, args, output);
+}
+
+void DFGUICmdHandlerDCC::dfgDoDismissLoadDiags(
+  FabricCore::DFGBinding const &binding,
+  QList<int> diagIndices
+  )
+{
+  std::string cmdName(FabricUI::DFG::DFGUICmd_DismissLoadDiags::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+
+  char n[64];
+  std::string indicesStr = "[";
+  for(int i=0;i<diagIndices.size();i++)
+  {
+    if(i > 0)
+      indicesStr += ", ";
+    sprintf(n, "%d", diagIndices[i]);
+    indicesStr += n;
+  }
+  indicesStr += "]";
+  args.push_back(indicesStr);
+
+  std::string output;
+  execDFGCmdViaDCC(cmdName, args, output);
+}
+
+QString DFGUICmdHandlerDCC::dfgDoAddBlock(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec,
+    QString desiredName,
+    QPointF pos
+    )
+{
+  // TODO
+}
+
+QString DFGUICmdHandlerDCC::dfgDoAddBlockPort(
+    FabricCore::DFGBinding const &binding,
+    QString execPath,
+    FabricCore::DFGExec const &exec,
+    QString blockName,
+    QString desiredPortName,
+    FabricCore::DFGPortType portType,
+    QString typeSpec,
+    QString pathToConnect,
+    FabricCore::DFGPortType connectType,
+    QString extDep,
+    QString metaData
+    )
+{
+  // TODO
 }
 
 std::string DFGUICmdHandlerDCC::getDCCObjectNameFromBinding(FabricCore::DFGBinding const &binding)

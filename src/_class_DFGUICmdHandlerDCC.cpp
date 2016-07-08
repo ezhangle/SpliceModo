@@ -534,7 +534,49 @@ QString DFGUICmdHandlerDCC::dfgDoAddInstPort(
     QString metaData
     )
 {
-  // TODO
+  std::string cmdName(FabricUI::DFG::DFGUICmd_AddInstPort::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(instName));
+  args.push_back(ToStdString(desiredPortName));
+  FTL::CStrRef portTypeStr;
+  switch ( portType )
+  {
+    case FabricCore::DFGPortType_In:
+      portTypeStr = FTL_STR("In");
+      break;
+    case FabricCore::DFGPortType_IO:
+      portTypeStr = FTL_STR("IO");
+      break;
+    case FabricCore::DFGPortType_Out:
+      portTypeStr = FTL_STR("Out");
+      break;
+  }
+  args.push_back(portTypeStr);
+  args.push_back(ToStdString(typeSpec));
+  args.push_back(ToStdString(pathToConnect));
+  FTL::CStrRef connectTypeStr;
+  switch ( connectType )
+  {
+    case FabricCore::DFGPortType_In:
+      connectTypeStr = FTL_STR("In");
+      break;
+    case FabricCore::DFGPortType_IO:
+      connectTypeStr = FTL_STR("IO");
+      break;
+    case FabricCore::DFGPortType_Out:
+      connectTypeStr = FTL_STR("Out");
+      break;
+  }
+  args.push_back(connectTypeStr);
+  args.push_back(ToStdString(extDep));
+  args.push_back(ToStdString(metaData));
+
+  QString result;
+  execCmd(cmdName, args, result);
+  return result;
 }
 
 QString DFGUICmdHandlerDCC::dfgDoAddInstBlockPort(
@@ -550,7 +592,22 @@ QString DFGUICmdHandlerDCC::dfgDoAddInstBlockPort(
     QString metaData
     )
 {
-  // TODO
+  std::string cmdName(FabricUI::DFG::DFGUICmd_AddInstBlockPort::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(instName));
+  args.push_back(ToStdString(blockName));
+  args.push_back(ToStdString(desiredPortName));
+  args.push_back(ToStdString(typeSpec));
+  args.push_back(ToStdString(pathToConnect));
+  args.push_back(ToStdString(extDep));
+  args.push_back(ToStdString(metaData));
+
+  QString result;
+  execCmd(cmdName, args, result);
+  return result;
 }
 
 QString DFGUICmdHandlerDCC::dfgDoCreatePreset(
@@ -1004,7 +1061,17 @@ QString DFGUICmdHandlerDCC::dfgDoAddBlock(
     QPointF pos
     )
 {
-  // TODO
+  std::string cmdName(FabricUI::DFG::DFGUICmd_AddBlock::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(desiredName));
+  EncodePosition(pos, args);
+
+  QString result;
+  execCmd(cmdName, args, result);
+  return result;
 }
 
 QString DFGUICmdHandlerDCC::dfgDoAddBlockPort(
@@ -1021,7 +1088,49 @@ QString DFGUICmdHandlerDCC::dfgDoAddBlockPort(
     QString metaData
     )
 {
-  // TODO
+  std::string cmdName(FabricUI::DFG::DFGUICmd_AddBlockPort::CmdName());
+  std::vector<std::string> args;
+
+  args.push_back(getDCCObjectNameFromBinding(binding));
+  args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(blockName));
+  args.push_back(ToStdString(desiredPortName));
+  FTL::CStrRef portTypeStr;
+  switch ( portType )
+  {
+    case FabricCore::DFGPortType_In:
+      portTypeStr = FTL_STR("In");
+      break;
+    case FabricCore::DFGPortType_IO:
+      portTypeStr = FTL_STR("IO");
+      break;
+    case FabricCore::DFGPortType_Out:
+      portTypeStr = FTL_STR("Out");
+      break;
+  }
+  args.push_back(portTypeStr);
+  args.push_back(ToStdString(typeSpec));
+  args.push_back(ToStdString(pathToConnect));
+  FTL::CStrRef connectTypeStr;
+  switch ( connectType )
+  {
+    case FabricCore::DFGPortType_In:
+      connectTypeStr = FTL_STR("In");
+      break;
+    case FabricCore::DFGPortType_IO:
+      connectTypeStr = FTL_STR("IO");
+      break;
+    case FabricCore::DFGPortType_Out:
+      connectTypeStr = FTL_STR("Out");
+      break;
+  }
+  args.push_back(connectTypeStr);
+  args.push_back(ToStdString(extDep));
+  args.push_back(ToStdString(metaData));
+
+  QString result;
+  execCmd(cmdName, args, result);
+  return result;
 }
 
 std::string DFGUICmdHandlerDCC::getDCCObjectNameFromBinding(FabricCore::DFGBinding const &binding)

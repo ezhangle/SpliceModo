@@ -639,6 +639,7 @@ QString DFGUICmdHandlerDCC::dfgDoEditPort(
   FabricCore::DFGExec const &exec,
   QString oldPortName,
   QString desiredNewPortName,
+  FabricCore::DFGPortType portType,
   QString typeSpec,
   QString extDep,
   QString uiMetadata
@@ -651,6 +652,20 @@ QString DFGUICmdHandlerDCC::dfgDoEditPort(
   args.push_back(ToStdString(execPath));
   args.push_back(ToStdString(oldPortName));
   args.push_back(ToStdString(desiredNewPortName));
+  FTL::CStrRef portTypeStr;
+  switch ( portType )
+  {
+    case FabricCore::DFGPortType_In:
+      portTypeStr = FTL_STR("In");
+      break;
+    case FabricCore::DFGPortType_IO:
+      portTypeStr = FTL_STR("IO");
+      break;
+    case FabricCore::DFGPortType_Out:
+      portTypeStr = FTL_STR("Out");
+      break;
+  }
+  args.push_back(portTypeStr);
   args.push_back(ToStdString(typeSpec));
   args.push_back(ToStdString(extDep));
   args.push_back(ToStdString(uiMetadata));
@@ -968,6 +983,7 @@ void DFGUICmdHandlerDCC::dfgDoReorderPorts(
   FabricCore::DFGBinding const &binding,
   QString execPath,
   FabricCore::DFGExec const &exec,
+  QString itemPath,
   QList<int> indices
   )
 {
@@ -976,6 +992,7 @@ void DFGUICmdHandlerDCC::dfgDoReorderPorts(
 
   args.push_back(getDCCObjectNameFromBinding(binding));
   args.push_back(ToStdString(execPath));
+  args.push_back(ToStdString(itemPath));
 
   char n[64];
   std::string indicesStr = "[";
@@ -1960,7 +1977,7 @@ FabricUI::DFG::DFGUICmd_CreatePreset *DFGUICmdHandlerDCC::createAndExecuteDFGCom
 FabricUI::DFG::DFGUICmd_EditPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_EditPort(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_EditPort *cmd = NULL;
-  if (args.size() == 7)
+  if (args.size() == 8)
   {
     unsigned int ai = 0;
 
@@ -1977,6 +1994,23 @@ FabricUI::DFG::DFGUICmd_EditPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
     QString desiredPortName;
     if (!DecodeString(args, ai, desiredPortName))
       return cmd;
+
+    QString portTypeString;
+    if (!DecodeString(args, ai, portTypeString))
+      return cmd;
+    FabricCore::DFGPortType portType;
+    if      (portTypeString == "In"  || portTypeString == "in" )  portType = FabricCore::DFGPortType_In;
+    else if (portTypeString == "IO"  || portTypeString == "io" )  portType = FabricCore::DFGPortType_IO;
+    else if (portTypeString == "Out" || portTypeString == "out")  portType = FabricCore::DFGPortType_Out;
+    else
+    {
+      std::string msg;
+      msg += "[DFGUICmd] Unrecognize port type \"";
+      msg += ToStdString(portTypeString);
+      msg += "\"";
+      feLogError(msg);
+      return cmd;
+    }
 
     QString typeSpec;
     if (!DecodeString(args, ai, typeSpec))
@@ -1995,6 +2029,7 @@ FabricUI::DFG::DFGUICmd_EditPort *DFGUICmdHandlerDCC::createAndExecuteDFGCommand
                                                exec,
                                                oldPortName,
                                                desiredPortName,
+                                               portType,
                                                typeSpec,
                                                extDep,
                                                metaData);
@@ -2595,7 +2630,7 @@ FabricUI::DFG::DFGUICmd_SetRefVarPath *DFGUICmdHandlerDCC::createAndExecuteDFGCo
 FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCommand_ReorderPorts(std::vector<std::string> &args)
 {
   FabricUI::DFG::DFGUICmd_ReorderPorts *cmd = NULL;
-  if (args.size() == 3)
+  if (args.size() == 4)
   {
     unsigned int ai = 0;
 
@@ -2603,6 +2638,10 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     QString execPath;
     FabricCore::DFGExec exec;
     if (!DecodeExec(args, ai, binding, execPath, exec))
+      return cmd;
+
+    QString itemPath;
+    if (!DecodeName(args, ai, itemPath))
       return cmd;
 
     QString indicesStr;
@@ -2631,6 +2670,7 @@ FabricUI::DFG::DFGUICmd_ReorderPorts *DFGUICmdHandlerDCC::createAndExecuteDFGCom
     cmd = new FabricUI::DFG::DFGUICmd_ReorderPorts(binding,
                                                    execPath,
                                                    exec,
+                                                   itemPath,
                                                    indices);
     try
     {
@@ -3162,7 +3202,7 @@ __CanvasCmd_execute__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__
 
-#define __CanvasCmdNumArgs__     7
+#define __CanvasCmdNumArgs__     8
 #define __CanvasCmdClass__  FabricCanvasEditPort
 #define __CanvasCmdName__  "FabricCanvasEditPort"
 __CanvasCmd_constructor_begin__
@@ -3172,6 +3212,7 @@ __CanvasCmd_constructor_begin__
     addArgStr("oldPortName");
     addArgStr("desiredNewPortName");
     addArgStr("typeSpec");
+    addArgStr("portType");
     addArgStr("extDep");
     addArgStr("uiMetadata");
   }
@@ -3411,13 +3452,14 @@ __CanvasCmd_execute__
 #undef  __CanvasCmdClass__
 #undef  __CanvasCmdName__
 
-#define __CanvasCmdNumArgs__     3
+#define __CanvasCmdNumArgs__     4
 #define __CanvasCmdClass__  FabricCanvasReorderPorts
 #define __CanvasCmdName__  "FabricCanvasReorderPorts"
 __CanvasCmd_constructor_begin__
   {
     addArgStr("binding");
     addArgStr("execPath");
+    addArgStr("itemPath");
     addArgStr("indices");
   }
 __CanvasCmd_constructor_finish__

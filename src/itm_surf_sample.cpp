@@ -667,7 +667,7 @@ int SurfDef::Compare (SurfDef *other)
  *  easily be queried.
  */
 
-class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
+class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_SurfaceBin, public CLxImpl_StringTag
 {
     public:
         static void initialize ()
@@ -676,11 +676,14 @@ class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
 
             srv = new CLxPolymorph                          <SurfElement>;
             srv->AddInterface       (new CLxIfc_TableauSurface      <SurfElement>);
+            srv->AddInterface       (new CLxIfc_SurfaceBin      <SurfElement>);
             srv->AddInterface       (new CLxIfc_StringTag           <SurfElement>);
 
             lx::AddSpawner          (SERVER_NAME".elmt", srv);
         }
-    
+
+        LxResult	 surfbin_GetBBox (LXtBBox *bbox) LXx_OVERRIDE;
+
         unsigned int     tsrf_FeatureCount  (LXtID4 type)                               LXx_OVERRIDE;
         LxResult     tsrf_FeatureByIndex    (LXtID4 type, unsigned int index, const char **name)            LXx_OVERRIDE;
         LxResult     tsrf_Bound     (LXtTableauBox bbox)                            LXx_OVERRIDE;
@@ -696,6 +699,19 @@ class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
     
         SurfDef          _surf_def;
 };
+
+LxResult	 SurfElement::surfbin_GetBBox (LXtBBox *bbox)
+{
+    LXtTableauBox	tBox;
+    LxResult	result = tsrf_Bound (tBox);
+
+    LXx_V3SET (bbox->min, tBox[0], tBox[1], tBox[2]);
+    LXx_V3SET (bbox->max, tBox[3], tBox[4], tBox[5]);
+    LXx_V3SET (bbox->extent, tBox[3] - tBox[0], tBox[4] - tBox[1], tBox[5] - tBox[2]);
+    LXx_VCLR (bbox->center);
+
+    return LXe_OK;
+}
 
 unsigned int SurfElement::tsrf_FeatureCount (LXtID4 type)
 {

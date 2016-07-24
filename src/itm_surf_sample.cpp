@@ -700,17 +700,17 @@ class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_SurfaceBin, pu
         SurfDef          _surf_def;
 };
 
-LxResult	 SurfElement::surfbin_GetBBox (LXtBBox *bbox)
+LxResult SurfElement::surfbin_GetBBox (LXtBBox *bbox)
 {
     LXtTableauBox	tBox;
-    LxResult	result = tsrf_Bound (tBox);
+    LxResult result = tsrf_Bound (tBox);
 
     LXx_V3SET (bbox->min, tBox[0], tBox[1], tBox[2]);
     LXx_V3SET (bbox->max, tBox[3], tBox[4], tBox[5]);
     LXx_V3SET (bbox->extent, tBox[3] - tBox[0], tBox[4] - tBox[1], tBox[5] - tBox[2]);
-    LXx_VCLR (bbox->center);
+    LXx_VCLR  (bbox->center);
 
-    return LXe_OK;
+    return result;
 }
 
 unsigned int SurfElement::tsrf_FeatureCount (LXtID4 type)

@@ -830,9 +830,10 @@ namespace CanvasPI
             // object position.
             if (m_numOffsets > 1)
             {
-              vec[m_offsets[1] + 0] = 0;
-              vec[m_offsets[1] + 1] = 0;
-              vec[m_offsets[1] + 2] = 0;
+              // [FE-7139]
+              vec[m_offsets[1] + 0] = vp[0];
+              vec[m_offsets[1] + 1] = vp[1];
+              vec[m_offsets[1] + 2] = vp[2];
             }
 
             // normal.

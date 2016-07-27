@@ -936,7 +936,6 @@ namespace CanvasPI
     }
     
     LxResult  surf_GetBBox    (LXtBBox *bbox)                                           LXx_OVERRIDE;
-    LxResult  surf_FrontBBox  (const LXtVector pos, const LXtVector dir, LXtBBox *bbox) LXx_OVERRIDE;
     LxResult  surf_BinCount   (unsigned int *count)                                     LXx_OVERRIDE;
     LxResult  surf_BinByIndex (unsigned int index, void **ppvObj)                       LXx_OVERRIDE;
     LxResult  surf_TagCount   (LXtID4 type, unsigned int *count)                        LXx_OVERRIDE;
@@ -974,16 +973,6 @@ namespace CanvasPI
     }
     
     return LXe_OK;
-  }
-
-  LxResult Surface::surf_FrontBBox(const LXtVector pos, const LXtVector dir, LXtBBox *bbox)
-  {
-    /*
-      FrontBBox is called to get the bounding box for a particular raycast.
-      For simplicity, we'll fall through to the GetBBox function.
-    */
-    
-    return surf_GetBBox(bbox);
   }
 
   LxResult Surface::surf_BinCount(unsigned int *count)

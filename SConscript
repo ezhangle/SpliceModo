@@ -34,6 +34,9 @@ modoFlags = {
   'CPPPATH': [
       MODO_INCLUDE_DIR,
       os.path.join(os.path.join(os.path.split(str(MODO_BIN_DIR))[0], 'include')),
+      os.path.join(os.path.join(os.path.split(str(MODO_BIN_DIR))[0], 'include', 'QtCore')),
+      os.path.join(os.path.join(os.path.split(str(MODO_BIN_DIR))[0], 'include', 'QtGui')),
+      os.path.join(os.path.join(os.path.split(str(MODO_BIN_DIR))[0], 'include', 'QtOpenGL')),
       env.Dir('lib'),
       env.Dir('plugin')
     ],

@@ -1,4 +1,4 @@
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 
 #include "plugin.h"
 

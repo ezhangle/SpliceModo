@@ -3,11 +3,11 @@
 #define SRC__CLASS_FABRICDFGWIDGET_H_
 
 // includes.
-#include <QtGui/QWidget>
-#include <QtGui/QFileDialog>
-#include <QtGui/QSplitter>
-#include <QtGui/QDockWidget>
-#include <QtGui/QShowEvent>
+#include <QWidget>
+#include <QFileDialog>
+#include <QSplitter>
+#include <QDockWidget>
+#include <QShowEvent>
 
 #include <ASTWrapper/KLASTManager.h>
 #include <map>

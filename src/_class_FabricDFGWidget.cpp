@@ -1,9 +1,9 @@
-#include <QtGui/QApplication>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QDockWidget>
-#include <QtGui/QMainWindow>
+#include <QApplication>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QDockWidget>
+#include <QMainWindow>
 
 #include "plugin.h"
 

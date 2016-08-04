@@ -28,7 +28,7 @@ class BaseInterface
   void *m_ILxUnknownID_CanvasIM;       // ILxUnknownID of the Modo item modifier node   "CanvasIM").      Cast this to ILxUnknownID.
   void *m_ILxUnknownID_CanvasPI;       // ILxUnknownID of the Modo procedural item node "CanvasPI").      Cast this to ILxUnknownID.
   
-  bool  m_evaluating;
+  bool  m_evaluating; // [FE-5579]
 
   // instance management
   // right now there are no locks in place,
@@ -53,6 +53,8 @@ class BaseInterface
   static void setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *, unsigned int));
 
   // binding notifications.
+  static void handleBindingNotification(BaseInterface &b, FabricCore::Variant &notification, std::string &nDesc);
+  static void handleQueuedBindingNotification(BaseInterface &b);  // [FE-6652]
   static void bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength);
 
   // client persistence
@@ -79,6 +81,7 @@ class BaseInterface
   FabricCore::DFGBinding                           m_binding;
   DFGUICmdHandlerDCC                              *m_cmdHandler;
   static std::map<unsigned int, BaseInterface*>    s_instances;
+  std::vector<std::string>                         m_queuedNotifications;
   
   // returns true if the binding's executable has a port called portName that matches the port type (input/output).
   // params:  in_portName     name of the port.

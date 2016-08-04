@@ -138,6 +138,7 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
       return LXe_OK; }
 
+    // [FE-5579]
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
     FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );

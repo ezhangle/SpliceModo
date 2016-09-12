@@ -274,53 +274,19 @@ void BaseInterface::setLogErrorFunc(void (*in_logErrorFunc)(void *, const char *
   s_logErrorFunc = in_logErrorFunc;
 }
 
-void BaseInterface::bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength)
+void BaseInterface::handleBindingNotification(BaseInterface &b, FabricCore::Variant &notification, std::string &nDesc)
 {
-  // check pointers.
-  if (!userData || !jsonCString)
-    return;
-
-  // debug log.
-  bool debugLog = false;
-
-  // go.
   try
   {
-    // get the base interface, its graph and the notification variant.
-    BaseInterface        *b             = static_cast<BaseInterface *>(userData);
-    FabricCore::DFGExec   graph         = b->getBinding().getExec();
-    FabricCore::Variant   notification  = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
-
-    // get the notification's description and possibly the value of name.
-    const FabricCore::Variant *vDesc = notification.getDictValue("desc");
-    if (!vDesc)   return;
-    std::string nDesc = vDesc->getStringData();
-
-    // currently evaluating?
-    if (b->IsEvaluating())
-    {
-      if (debugLog)
-      {
-        std::string s = "currently evaluating, ignoring notification \"" + nDesc + "\".";
-        logFunc(NULL, s.c_str(), s.length());
-      }
-      return; // ignore the notification and leave early.
-    }
-    else if (debugLog)
-    {
-      std::string s = "BaseInterface::bindingNotificationCallback(), nDesc = \"" + nDesc + "\"";
-      logFunc(NULL, s.c_str(), s.length());
-    }
-
     // get the Modo item's ILxUnknownID.
     void             *unknownID = NULL;
-    if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasIM;
-    if (!unknownID)   unknownID = b->m_ILxUnknownID_CanvasPI;
+    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasIM;
+    if (!unknownID)   unknownID = b.m_ILxUnknownID_CanvasPI;
 
     // handle notification.
     std::string err = "";
     {
-      if      (nDesc == "")
+      if      (nDesc.empty())
       {
         // do nothing.
       }
@@ -350,8 +316,9 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
           }
 
           // create new channel
+          FabricCore::DFGExec graph = b.getBinding().getExec();
           if (graph.isValid() && graph.getExecPortResolvedType(name.c_str()) != std::string("PolygonMesh"))
-            b->CreateModoUserChannelForPort(b->getBinding(), name.c_str());
+            b.CreateModoUserChannelForPort(b.getBinding(), name.c_str());
         }
       }
 
@@ -396,7 +363,7 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
       else if (   nDesc == "varInserted"
                || nDesc == "varRemoved" )
       {
-        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(b);
+        FabricDFGWidget *w = FabricDFGWidget::getWidgetforBaseInterface(&b);
         if (   w
             && w->getDfgWidget()
             && w->getDfgWidget()->getUIController())
@@ -413,9 +380,75 @@ void BaseInterface::bindingNotificationCallback(void *userData, char const *json
   }
   catch (FabricCore::Exception e)
   {
+    std::string s = std::string("BaseInterface::handleBindingNotification(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
+    logErrorFunc(NULL, s.c_str(), s.length());
+  }
+}
+
+void BaseInterface::handleQueuedBindingNotification(BaseInterface &b)
+{
+  try
+  {
+    while (b.m_queuedNotifications.size())
+    {
+      std::string queuedNotification = b.m_queuedNotifications.front();
+      b.m_queuedNotifications.erase(b.m_queuedNotifications.begin());
+
+      FabricCore::Variant        notification = FabricCore::Variant::CreateFromJSON(queuedNotification.c_str(), queuedNotification.length());
+      const FabricCore::Variant *vDesc        = notification.getDictValue("desc");
+      std::string                nDesc        = (vDesc ? vDesc->getStringData() : "");
+
+      handleBindingNotification(b, notification, nDesc);
+    }
+  }
+  catch (FabricCore::Exception e)
+  {
+    std::string s = std::string("BaseInterface::handleQueuedBindingNotification(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
+    logErrorFunc(NULL, s.c_str(), s.length());
+  }
+}
+
+void BaseInterface::bindingNotificationCallback(void *userData, char const *jsonCString, uint32_t jsonLength)
+{
+  // check pointers.
+  if (!userData || !jsonCString)
+    return;
+
+  // go.
+  try
+  {
+    // get the base interface, the notification variant and the notification's name.
+    BaseInterface             &b            = *static_cast<BaseInterface *>(userData);
+    FabricCore::Variant        notification = FabricCore::Variant::CreateFromJSON(jsonCString, jsonLength);
+    const FabricCore::Variant *vDesc        = notification.getDictValue("desc");
+    std::string                nDesc        = (vDesc ? vDesc->getStringData() : "");
+
+    // if we are currently evaluating then
+    // queue the notification and leave early.
+    if (b.IsEvaluating())
+    {
+      // only queue important notifications.
+      if (   nDesc == "argTypeChanged"
+          || nDesc == "argRenamed"
+          || nDesc == "argRemoved"
+          || nDesc == "varInserted"
+          || nDesc == "varRemoved")
+      {
+        b.m_queuedNotifications.push_back(jsonCString);
+      }
+      return;
+    }
+
+    // [FE-6652] handled queued notifications.
+    BaseInterface::handleQueuedBindingNotification(b);
+
+    // handle the notification.
+    handleBindingNotification(b, notification, nDesc);
+  }
+  catch (FabricCore::Exception e)
+  {
     std::string s = std::string("BaseInterface::bindingNotificationCallback(): ") + (e.getDesc_cstr() ? e.getDesc_cstr() : "\"\"");;
     logErrorFunc(NULL, s.c_str(), s.length());
-    return;
   }
 }
 

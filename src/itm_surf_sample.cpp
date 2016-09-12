@@ -667,7 +667,7 @@ int SurfDef::Compare (SurfDef *other)
  *  easily be queried.
  */
 
-class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
+class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_SurfaceBin, public CLxImpl_StringTag
 {
     public:
         static void initialize ()
@@ -676,11 +676,14 @@ class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
 
             srv = new CLxPolymorph                          <SurfElement>;
             srv->AddInterface       (new CLxIfc_TableauSurface      <SurfElement>);
+            srv->AddInterface       (new CLxIfc_SurfaceBin      <SurfElement>);
             srv->AddInterface       (new CLxIfc_StringTag           <SurfElement>);
 
             lx::AddSpawner          (SERVER_NAME".elmt", srv);
         }
-    
+
+        LxResult	 surfbin_GetBBox (LXtBBox *bbox) LXx_OVERRIDE;
+
         unsigned int     tsrf_FeatureCount  (LXtID4 type)                               LXx_OVERRIDE;
         LxResult     tsrf_FeatureByIndex    (LXtID4 type, unsigned int index, const char **name)            LXx_OVERRIDE;
         LxResult     tsrf_Bound     (LXtTableauBox bbox)                            LXx_OVERRIDE;
@@ -696,6 +699,30 @@ class SurfElement : public CLxImpl_TableauSurface, public CLxImpl_StringTag
     
         SurfDef          _surf_def;
 };
+
+LxResult SurfElement::surfbin_GetBBox (LXtBBox *bbox)
+{
+  LXtTableauBox	tBox;
+  LxResult result = tsrf_Bound (tBox);
+
+  bbox->min[0] = tBox[0];
+  bbox->min[1] = tBox[1];
+  bbox->min[2] = tBox[2];
+
+  bbox->max[0] = tBox[3];
+  bbox->max[1] = tBox[4];
+  bbox->max[2] = tBox[5];
+
+  bbox->extent[0] = bbox->max[0] - bbox->min[0];
+  bbox->extent[1] = bbox->max[1] - bbox->min[1];
+  bbox->extent[2] = bbox->max[2] - bbox->min[2];
+
+  bbox->center[0] = 0.5f * (bbox->min[0] + bbox->max[0]);
+  bbox->center[1] = 0.5f * (bbox->min[1] + bbox->max[1]);
+  bbox->center[2] = 0.5f * (bbox->min[2] + bbox->max[2]);
+
+  return result;
+}
 
 unsigned int SurfElement::tsrf_FeatureCount (LXtID4 type)
 {
@@ -998,7 +1025,6 @@ class Surface : public CLxImpl_Surface
         }
     
         LxResult     surf_GetBBox       (LXtBBox *bbox)                         LXx_OVERRIDE;
-        LxResult     surf_FrontBBox     (const LXtVector pos, const LXtVector dir, LXtBBox *bbox)   LXx_OVERRIDE;
         LxResult     surf_BinCount      (unsigned int *count)                       LXx_OVERRIDE;
         LxResult     surf_BinByIndex    (unsigned int index, void **ppvObj)             LXx_OVERRIDE;
         LxResult     surf_TagCount      (LXtID4 type, unsigned int *count)              LXx_OVERRIDE;
@@ -1032,16 +1058,6 @@ LxResult Surface::surf_GetBBox (LXtBBox *bbox)
     bounds.get (bbox);
     
     return LXe_OK;
-}
-
-LxResult Surface::surf_FrontBBox (const LXtVector pos, const LXtVector dir, LXtBBox *bbox)
-{
-    /*
-     *  FrontBBox is called to get the bounding box for a particular raycast.
-     *  For simplicity, we'll fall through to the GetBBox function.
-     */
-    
-    return surf_GetBBox (bbox);
 }
 
 LxResult Surface::surf_BinCount (unsigned int *count)

@@ -138,6 +138,7 @@ namespace CanvasPI
     { feLogError("SurfDef::EvaluateMain(): m_userData->baseInterface is NULL");
       return LXe_OK; }
 
+    // [FE-5579]
     // set the base interface's evaluation member so that it doesn't
     // process notifications while the element is being evaluated.
     FTL::AutoSet<bool> isEvaluating( b->m_evaluating, true );
@@ -567,6 +568,7 @@ namespace CanvasPI
   */
 
   class SurfElement : public CLxImpl_TableauSurface,
+                      public CLxImpl_SurfaceBin,
                       public CLxImpl_StringTag
   {
    public:
@@ -575,12 +577,15 @@ namespace CanvasPI
       CLxGenericPolymorph *srv = NULL;
       srv = new CLxPolymorph                            <SurfElement>;
       srv->AddInterface       (new CLxIfc_TableauSurface<SurfElement>);
+      srv->AddInterface       (new CLxIfc_SurfaceBin    <SurfElement>);
       srv->AddInterface       (new CLxIfc_StringTag     <SurfElement>);
       lx::AddSpawner          (SERVER_NAME_CanvasPI ".elmt", srv);
     }
     
     SurfElement()   { m_numOffsets = 0; };
     ~SurfElement()  {};
+
+    LxResult	    surfbin_GetBBox     (LXtBBox *bbox)                                                   LXx_OVERRIDE;
 
     unsigned int  tsrf_FeatureCount   (LXtID4 type)                                                     LXx_OVERRIDE;
     LxResult      tsrf_FeatureByIndex (LXtID4 type, unsigned int index, const char **name)              LXx_OVERRIDE;
@@ -596,6 +601,30 @@ namespace CanvasPI
     int           m_offsets[MAX_NUM_VERTEX_FEATURE_OFFSETS];
     int           m_numOffsets;
   };
+
+  LxResult SurfElement::surfbin_GetBBox(LXtBBox *bbox)
+  {
+    LXtTableauBox	tBox;
+    LxResult result = tsrf_Bound (tBox);
+
+    bbox->min[0] = tBox[0];
+    bbox->min[1] = tBox[1];
+    bbox->min[2] = tBox[2];
+
+    bbox->max[0] = tBox[3];
+    bbox->max[1] = tBox[4];
+    bbox->max[2] = tBox[5];
+
+    bbox->extent[0] = bbox->max[0] - bbox->min[0];
+    bbox->extent[1] = bbox->max[1] - bbox->min[1];
+    bbox->extent[2] = bbox->max[2] - bbox->min[2];
+
+    bbox->center[0] = 0.5f * (bbox->min[0] + bbox->max[0]);
+    bbox->center[1] = 0.5f * (bbox->min[1] + bbox->max[1]);
+    bbox->center[2] = 0.5f * (bbox->min[2] + bbox->max[2]);
+
+    return result;
+  }
 
   unsigned int SurfElement::tsrf_FeatureCount(LXtID4 type)
   {
@@ -759,12 +788,12 @@ namespace CanvasPI
     // return early if the bounding box is not visible.
     if (!soup.TestBox(ud.polymesh.bbox))
         return LXe_OK;
-       
+
     /*
       We're only generating triangles/polygons in a single segment. If
       something else is being requested, we'll early out.
     */
-    
+
     if (LXx_FAIL(soup.Segment(1, LXiTBLX_SEG_TRIANGLE)))
       return LXe_OK;
 
@@ -802,9 +831,10 @@ namespace CanvasPI
             // object position.
             if (m_numOffsets > 1)
             {
-              vec[m_offsets[1] + 0] = 0;
-              vec[m_offsets[1] + 1] = 0;
-              vec[m_offsets[1] + 2] = 0;
+              // [FE-7139]
+              vec[m_offsets[1] + 0] = vp[0];
+              vec[m_offsets[1] + 1] = vp[1];
+              vec[m_offsets[1] + 2] = vp[2];
             }
 
             // normal.
@@ -908,7 +938,6 @@ namespace CanvasPI
     }
     
     LxResult  surf_GetBBox    (LXtBBox *bbox)                                           LXx_OVERRIDE;
-    LxResult  surf_FrontBBox  (const LXtVector pos, const LXtVector dir, LXtBBox *bbox) LXx_OVERRIDE;
     LxResult  surf_BinCount   (unsigned int *count)                                     LXx_OVERRIDE;
     LxResult  surf_BinByIndex (unsigned int index, void **ppvObj)                       LXx_OVERRIDE;
     LxResult  surf_TagCount   (LXtID4 type, unsigned int *count)                        LXx_OVERRIDE;
@@ -927,23 +956,25 @@ namespace CanvasPI
     if (bbox && m_surf_def.m_userData && m_surf_def.m_userData->polymesh.isValid())
     {
       float *tBox = m_surf_def.m_userData->polymesh.bbox;
-      LXx_V3SET(bbox->min, tBox[0], tBox[1], tBox[2]);
-      LXx_V3SET(bbox->max, tBox[3], tBox[4], tBox[5]);
-      LXx_V3SET(bbox->extent, tBox[3] - tBox[0], tBox[4] - tBox[1], tBox[5] - tBox[2]);
-      LXx_VCLR (bbox->center);
+
+      bbox->min[0] = tBox[0];
+      bbox->min[1] = tBox[1];
+      bbox->min[2] = tBox[2];
+
+      bbox->max[0] = tBox[3];
+      bbox->max[1] = tBox[4];
+      bbox->max[2] = tBox[5];
+
+      bbox->extent[0] = bbox->max[0] - bbox->min[0];
+      bbox->extent[1] = bbox->max[1] - bbox->min[1];
+      bbox->extent[2] = bbox->max[2] - bbox->min[2];
+
+      bbox->center[0] = 0.5f * (bbox->min[0] + bbox->max[0]);
+      bbox->center[1] = 0.5f * (bbox->min[1] + bbox->max[1]);
+      bbox->center[2] = 0.5f * (bbox->min[2] + bbox->max[2]);
     }
     
     return LXe_OK;
-  }
-
-  LxResult Surface::surf_FrontBBox(const LXtVector pos, const LXtVector dir, LXtBBox *bbox)
-  {
-    /*
-      FrontBBox is called to get the bounding box for a particular raycast.
-      For simplicity, we'll fall through to the GetBBox function.
-    */
-    
-    return surf_GetBBox(bbox);
   }
 
   LxResult Surface::surf_BinCount(unsigned int *count)
@@ -1378,7 +1409,7 @@ namespace CanvasPI
     CLxSpawner <SurfInst> spawner (SERVER_NAME_CanvasPI ".instObj");
     ILxUnknownID object = NULL;
     SurfInst *instObj = spawner.Alloc(object);
-    
+
     CLxUser_ValueReference val_ref;
     unsigned int temp_chan_index = m_eval_index_InstObj;
     if (instObj && attr.ObjectRW(temp_chan_index++, val_ref))
